@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "692595540299",
+    "project_id": "hoothub-8a56e",
+    "storage_bucket": "hoothub-8a56e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:692595540299:android:1a4be769063e75e84928ce",
+        "android_client_info": {
+          "package_name": "com.example.hoothub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClr_sSo9TGLB_K3wYK8L0sZGkGFZLijLY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
