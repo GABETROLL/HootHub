@@ -12,4 +12,11 @@ class Question {
   final String question;
   final List<String> answers;
   final int correctAnswer;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'question': question,
+    'answers': answers,
+    'correctAnswer': correctAnswer,
+  };
 }
