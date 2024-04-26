@@ -1,4 +1,4 @@
-import 'package:hoothub/firebase/models/question.dart';
+import 'question.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Test {
