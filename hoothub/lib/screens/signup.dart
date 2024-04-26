@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:hoothub/firebase/api/auth.dart';
+import 'package:flutter/material.dart';
+import 'login.dart';
 
-class Login extends StatefulWidget {
-  Login({super.key});
+class SignUp extends StatefulWidget {
+  SignUp({super.key});
 
   final emailController = TextEditingController();
   final usernameController = TextEditingController();
@@ -10,10 +11,10 @@ class Login extends StatefulWidget {
   final passwordConfirmationController = TextEditingController();
 
   @override
-  State<Login> createState() => _LoginState();
+  State<SignUp> createState() => _SignUpState();
 }
 
-class _LoginState extends State<Login> {
+class _SignUpState extends State<SignUp> {
   bool _passwordHidden = true;
 
   @override
@@ -70,6 +71,21 @@ class _LoginState extends State<Login> {
                 /* TODO: NAVIGATE TO MAIN SCREEN HERE */
               },
               child: const Text('Sign up'),
+            ),
+            const Divider(),
+            Row(
+              children: <Widget>[
+                const Text("Already have an account?"),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (BuildContext context) => Login()),
+                    );
+                  },
+                  child: const Text('Log in'),
+                ),
+              ],
             ),
           ],
         ),

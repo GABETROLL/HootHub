@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:hoothub/firebase/api/auth.dart';
+import 'package:flutter/material.dart';
+import 'signup.dart';
 
 class Login extends StatefulWidget {
   Login({super.key});
@@ -48,6 +49,21 @@ class _LoginState extends State<Login> {
                 /* TODO: NAVIGATE TO MAIN SCREEN HERE */
               },
               child: const Text('Log in'),
+            ),
+            const Divider(),
+            Row(
+              children: <Widget>[
+                const Text("Don't have an account?"),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (BuildContext context) => SignUp()),
+                    );
+                  },
+                  child: const Text('Sign up'),
+                ),
+              ],
             ),
           ],
         ),
