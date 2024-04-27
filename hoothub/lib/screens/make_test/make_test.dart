@@ -6,6 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
 import 'slide_preview.dart';
 
+class AddSlideButton extends StatelessWidget {
+  const AddSlideButton({super.key, this.onPressed});
+
+  final void Function()? onPressed;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: ElevatedButton(
+      onPressed: onPressed ?? (() { }),
+      child: const Text('Add slide'),
+    ),
+  );
+}
 
 class MakeTest extends StatefulWidget {
   const MakeTest({
@@ -44,6 +57,8 @@ class _MakeTestState extends State<MakeTest> {
       );
     }
 
+    slidePreviews.add(const AddSlideButton());
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.testModel.name),
@@ -63,12 +78,7 @@ class _MakeTestState extends State<MakeTest> {
           */
           (
             _currentSlideIndex < 0 || _currentSlideIndex >= widget.testModel.questions.length
-            ? Center(
-              child: ElevatedButton(
-                onPressed: () { },
-                child: const Text('Add slide'),
-              ),
-            )
+            ? const AddSlideButton()
             : SlideEditor(question: widget.testModel.questions[_currentSlideIndex])
           ),
         ],
