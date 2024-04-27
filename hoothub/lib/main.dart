@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/login.dart';
+import 'package:hoothub/screens/home.dart';
 
 Future<void> main() async {
   runApp(const MyApp());
@@ -38,8 +38,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Scaffold(
-        body: Login(),
+      home: const Scaffold(
+        body: Home(),
       ),
     );
   }

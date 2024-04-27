@@ -2,15 +2,15 @@ import 'question.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Test {
-  Test({required this.id, required this.name, required this.questions}) {
+  /// Only use this constructor for representing a document already created, and stored in Firebase!
+  /// If you need to create and upload a new `Test` model to Firebase,
+  /// use the API.
+  Test({required this.id, required this.name, this.questions = const <Question>[]}) {
     if (id == '') {
       throw "`id` argument of `Test` contructor is empty!";
     }
     if (name == '') {
-      throw "`id` argument of `Test` contructor is empty!";
-    }
-    if (questions.isEmpty) {
-      throw "`questions` argument of `Test` constructor must have at least one `Question`!";
+      throw "`name` argument of `Test` contructor is empty!";
     }
   }
 
@@ -27,6 +27,7 @@ class Test {
 
     if (data == null) return null;
 
+    // TODO: Will this work?
     if (data['questions'] is! List<Map<String, dynamic>>) {
       throw "`questions` field of snapshot data is not the correct type!";
     }
@@ -47,6 +48,8 @@ class Test {
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
-    'questions': questions,
+    'questions': List.from(
+      questions.map<Map<String, dynamic>>((Question question) => question.toJson())
+    ) ,
   };
 }
