@@ -15,7 +15,7 @@ class AddSlideButton extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: ElevatedButton(
       onPressed: onPressed ?? (() { }),
-      child: const Text('Add slide'),
+      child: const Text('Add question'),
     ),
   );
 }
