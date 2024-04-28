@@ -77,7 +77,7 @@ class _MakeTestState extends State<MakeTest> {
       AddSlideButton(
         onPressed: () {
           setState(() {
-            _testModel = _testModel!.addNewEmptyQuestion();
+            _testModel!.addNewEmptyQuestion();
             _currentSlideIndex = _testModel!.questions.length - 1;
           });
         },
@@ -105,8 +105,11 @@ class _MakeTestState extends State<MakeTest> {
             ? const AddSlideButton()
             : SlideEditor(
               questionModel: _testModel!.questions[_currentSlideIndex],
-              setQuestion: (Question question) => setState(() {
-                _testModel = _testModel!.setQuestion(_currentSlideIndex, question);
+              setCorrectAnswer: (int index) => setState(() {
+                _testModel!.setCorrectAnswer(_currentSlideIndex, index);
+              }),
+              setAnswer: (int index, String answer) => setState(() {
+                _testModel!.setAnswer(_currentSlideIndex, index, answer);
               }),
             )
           ),

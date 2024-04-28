@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
@@ -25,13 +27,19 @@ class MultipleChoiceEditor extends StatelessWidget {
         children: [
           Checkbox(
             value: index == questionModel.correctAnswer,
-            onChanged: (bool? checked) => setCorrectAnswer(index),
+            onChanged: (bool? checked) {
+              if (checked != null && checked) {
+                setCorrectAnswer(index);
+              }
+            }
           ),
-          TextField(
-            controller: answerTextEditingController,
-            onSubmitted: (String answer) => setAnswer(index, answer),
-            decoration: InputDecoration(
-              hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
+          Expanded(
+            child: TextField(
+              controller: answerTextEditingController,
+              onSubmitted: (String answer) => setAnswer(index, answer),
+              decoration: InputDecoration(
+                hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
+              ),
             ),
           ),
         ],
@@ -48,11 +56,13 @@ class SlideEditor extends StatelessWidget {
   const SlideEditor({
     super.key,
     required this.questionModel,
-    required this.setQuestion,
+    required this.setCorrectAnswer,
+    required this.setAnswer,
   });
 
   final Question questionModel;
-  final void Function(Question) setQuestion;
+  final void Function(int) setCorrectAnswer;
+  final void Function(int, String) setAnswer;
 
   @override
   Widget build(BuildContext context) {
@@ -60,16 +70,18 @@ class SlideEditor extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        TextField(
-          controller: questionTextEditingController,
-          decoration: const InputDecoration(
-            hintText: 'Question',
+        Expanded(
+          child: TextField(
+            controller: questionTextEditingController,
+            decoration: const InputDecoration(
+              hintText: 'Question',
+            ),
           ),
         ),
         MultipleChoiceEditor(
           questionModel: questionModel,
-          setCorrectAnswer: (int index) => setQuestion(questionModel.setCorrectAnswer(index)),
-          setAnswer: (int index, String answer) => setQuestion(questionModel.setAnswer(index, answer)),
+          setCorrectAnswer: (int index) => setCorrectAnswer(index),
+          setAnswer: (int index, String answer) => setAnswer(index, answer),
         ),
       ],
     );
