@@ -1,22 +1,56 @@
+import 'model.dart';
 import 'question.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Test {
-  /// Only use this constructor for representing a document already created, and stored in Firebase!
-  /// If you need to create and upload a new `Test` model to Firebase,
-  /// use the API.
-  Test({required this.id, required this.name, this.questions = const <Question>[]}) {
-    if (id == '') {
-      throw "`id` argument of `Test` contructor is empty!";
-    }
-    if (name == '') {
-      throw "`name` argument of `Test` contructor is empty!";
-    }
-  }
+class Test implements Model {
+  const Test({required this.name, this.questions = const <Question>[]});
 
-  final String id;
   final String name;
   final List<Question> questions;
+
+  /// A `Test` is valid if its `name` and `questions` aren't empty,
+  /// and if all of its questions are valid.
+  @override
+  bool isValid() {
+    bool questionsValid = true;
+
+    for (Question question in questions) {
+      questionsValid &= question.isValid();
+    }
+
+    return name.isNotEmpty && questions.isNotEmpty && questionsValid;
+  }
+
+  /// Returns copy of `this` with `name: name`.
+  Test setName(String name) =>
+    Test(name: name, questions: questions);
+
+  /// Returns copy of `this` with a new, empty question at the end of `questions`.
+  ///
+  /// The new, empty question should have an empty title, answers,
+  /// and should have answer 0 as the correct answer.
+  Test addNewEmptyQuestion() {
+    List<Question> newQuestions = List.from(questions);
+    Question newQuestion = const Question(question: '', answers: <String>[], correctAnswer: 0);
+    newQuestions.add(newQuestion);
+
+    return Test(name: name, questions: newQuestions);
+  }
+
+  /// Returns copy of `this`, that has the `index`-th question equal to `question`.
+  ///
+  /// Throws an error if `index` is out of range of `questions`. 
+  Test setQuestion(int index, Question question) {
+    List<Question> newQuestions = questions;
+
+    if (index < 0 || index >= questions.length) {
+      throw "Can't set question at index: $index, that index is out of range.";
+    }
+
+    newQuestions[index] = question;
+
+    return Test(name: name, questions: newQuestions);
+  }
 
   /// Returns the `Test` representation of `snapshot.data()`.
   /// If the data is null, this method returns null.
@@ -39,14 +73,13 @@ class Test {
     );
 
     return Test(
-      id: data['id'],
       name: data['name'],
       questions: questions,
     );
   }
 
+  @override
   Map<String, dynamic> toJson() => {
-    'id': id,
     'name': name,
     'questions': List.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson())

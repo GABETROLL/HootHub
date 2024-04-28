@@ -1,10 +1,14 @@
+/// Every child Widget that edits the Test requests callbacks that actually mutate the state,
+/// at the top widget: `MakeTest`.
+library;
+
 // backend
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/question.dart';
 // frontend
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
-import 'slide_preview.dart';
+import 'package:hoothub/screens/slide_preview.dart';
 
 class AddSlideButton extends StatelessWidget {
   const AddSlideButton({super.key, this.onPressed});
@@ -31,25 +35,29 @@ class MakeTest extends StatefulWidget {
   @override
   State<MakeTest> createState() => _MakeTestState();
 }
+
 class _MakeTestState extends State<MakeTest> {
-  /*
-    default index. May not be in the bounds of `widget.testModel.questions`,
-    since that could be empty!
-  */
+  //default index. May not be in the bounds of `testModel!.questions`,
+  // since that could be empty!
   int _currentSlideIndex = 0;
+  Test? _testModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _testModel = widget.testModel;
+  }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> slidePreviews = [];
 
-    for (final (int index, Question question) in widget.testModel.questions.indexed) {
+    for (final (int index, Question question) in _testModel!.questions.indexed) {
       slidePreviews.add(
         IconButton(
           onPressed: () => setState(() {
-            /*
-              `index` should be within the index bounds of `widget.testModel.questions`,
-              so `_currentSlideIndex` should also be, after this `setState` call.
-            */
+            // `index` should be within the index bounds of `testModel.questions`,
+            // so `_currentSlideIndex` should also be, after this `setState` call.
             _currentSlideIndex = index;
           }),
           icon: const SlidePreview(),
@@ -57,11 +65,28 @@ class _MakeTestState extends State<MakeTest> {
       );
     }
 
-    slidePreviews.add(const AddSlideButton());
+    /*
+      Add an `AddSlideButton` at the bottom of the `slidePreviews` `List<Widget>`.
+      When pressed, it should add a new (EMPTY) question to `testModel.questions`,
+      and automatically change `_currentSlideIndex` to the index of this new `Question`.
+
+      This means that pressing this `AddSlideButton` will automatically jump to the last
+      slide, where the user SHOULD be able to edit the last question.
+    */
+    slidePreviews.add(
+      AddSlideButton(
+        onPressed: () {
+          setState(() {
+            _testModel = _testModel!.addNewEmptyQuestion();
+            _currentSlideIndex = _testModel!.questions.length - 1;
+          });
+        },
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.testModel.name),
+        title: Text(_testModel!.name),
         actions: <Widget>[
           ElevatedButton(onPressed: () { }, child: const Text('Cancel')),
           ElevatedButton(onPressed: () { }, child: const Text('Save')),
@@ -72,14 +97,18 @@ class _MakeTestState extends State<MakeTest> {
           Column(
             children: slidePreviews,
           ),
-          /*
-            `_currentSlideIndex` may be out of the range of the list.
-            In the case that it is, it will 
-          */
+          // `_currentSlideIndex` may be out of the range of the list.
+          // In the case that it is,
+          // the `AddSlideButton` "slide" will be displayed instead.
           (
-            _currentSlideIndex < 0 || _currentSlideIndex >= widget.testModel.questions.length
+            _currentSlideIndex < 0 || _currentSlideIndex >= _testModel!.questions.length
             ? const AddSlideButton()
-            : SlideEditor(question: widget.testModel.questions[_currentSlideIndex])
+            : SlideEditor(
+              questionModel: _testModel!.questions[_currentSlideIndex],
+              setQuestion: (Question question) => setState(() {
+                _testModel = _testModel!.setQuestion(_currentSlideIndex, question);
+              }),
+            )
           ),
         ],
       ),

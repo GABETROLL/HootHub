@@ -78,7 +78,7 @@ Future<String> logInUser({required String email, required String password}) asyn
 }
 
 /// Return the `UserModel` representation of the currently logged-in user (`_auth.currentUser`).
-/// The user, if they are logged in, should have their `uid` in 
+/// The user, if they are logged in, should have their `uid` in `_auth.currentUser!.uid`
 Future<UserModel?> loggedInUser() async {
   if (_auth.currentUser == null) return null;
 
