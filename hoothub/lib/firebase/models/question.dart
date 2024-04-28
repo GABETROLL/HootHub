@@ -1,43 +1,36 @@
 import 'model.dart';
 
 class Question implements Model {
-  const Question({required this.question, required this.answers, required this.correctAnswer});
+  Question({required this.question, required this.answers, required this.correctAnswer});
 
-  final String question;
-  final List<String> answers;
-  final int correctAnswer;
+  String question;
+  List<String> answers;
+  int correctAnswer;
 
   @override
   bool isValid() => answers.length > 1 && 0 <= correctAnswer && correctAnswer < answers.length;
 
   /// Throws error if `index` is out of the range of `answers`.
-  void _checkIndex(int index) {
+  void _checkAnswerIndex(int index) {
     if (index < 0 || index >= answers.length) {
-      throw "Correct answer index: $index out of range";
+      throw "Answer index out of range: $index";
     }
   }
 
-  /// Returns a copy of `this`
-  /// that now has its `index`-th answer equal to `answer`.
+  /// Sets `answers`'s `index`-th answer equal to `answer`.
   ///
   /// Throws an error if the index is outside the range of `answers`.
-  Question setAnswer(int index, String answer) {
-    _checkIndex(index);
-
-    List<String> newAnswers = answers;
-    newAnswers[index] = answer;
-
-    return Question(question: question, answers: newAnswers, correctAnswer: correctAnswer);
+  void setAnswer(int index, String answer) {
+    _checkAnswerIndex(index);
+    answers[index] = answer;
   }
 
-  /// Returns a copy of `this`
-  /// that now has `correctAnswer: index`.
+  /// Sets `correctAnswer: index`.
   ///
   /// Throws an error if the index is outside the range of `answers`.
-  Question setCorrectAnswer(int index) {
-    _checkIndex(index);
-
-    return Question(question: question, answers: answers, correctAnswer: index);
+  void setCorrectAnswer(int index) {
+    _checkAnswerIndex(index);
+    correctAnswer = index;
   }
 
   /// Adds `answer` to the end of `answers`.

@@ -3,10 +3,10 @@ import 'question.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Test implements Model {
-  const Test({required this.name, this.questions = const <Question>[]});
+  Test({required this.name, this.questions = const <Question>[]});
 
-  final String name;
-  final List<Question> questions;
+  String name;
+  List<Question> questions;
 
   /// A `Test` is valid if its `name` and `questions` aren't empty,
   /// and if all of its questions are valid.
@@ -21,36 +21,51 @@ class Test implements Model {
     return name.isNotEmpty && questions.isNotEmpty && questionsValid;
   }
 
-  /// Returns copy of `this` with `name: name`.
-  Test setName(String name) =>
-    Test(name: name, questions: questions);
+  /// Sets `this.name: name`.
+  void setName(String name) {
+    this.name = name;
+  }
 
-  /// Returns copy of `this` with a new, empty question at the end of `questions`.
+  /// Adds a new, empty question at the end of `answers`
   ///
   /// The new, empty question should have an empty title, answers,
   /// and should have answer 0 as the correct answer.
-  Test addNewEmptyQuestion() {
-    List<Question> newQuestions = List.from(questions);
-    Question newQuestion = const Question(question: '', answers: <String>[], correctAnswer: 0);
-    newQuestions.add(newQuestion);
-
-    return Test(name: name, questions: newQuestions);
+  void addNewEmptyQuestion() {
+    questions.add(Question(question: '', answers: <String>[], correctAnswer: 0));
   }
 
-  /// Returns copy of `this`, that has the `index`-th question equal to `question`.
-  ///
-  /// Throws an error if `index` is out of range of `questions`. 
-  Test setQuestion(int index, Question question) {
-    List<Question> newQuestions = questions;
-
+  /// Throws error if `index` is out of the range of `questions`.
+  void _checkQuestionIndex(int index) {
     if (index < 0 || index >= questions.length) {
-      throw "Can't set question at index: $index, that index is out of range.";
+      throw "Question index out of range: $index";
     }
-
-    newQuestions[index] = question;
-
-    return Test(name: name, questions: newQuestions);
   }
+
+  /// Assigns `answer` to the `answerIndex`-th answer of the `questionIndex`-th question.
+  /// 
+  /// Throws if either the `questionIndex` is out of range of `questions`,
+  /// or if `answerIndex` is out of range of `questions[questionIndex].answers`. 
+  void setAnswer(int questionIndex, int answerIndex, String answer) {
+    _checkQuestionIndex(questionIndex);
+    questions[questionIndex].setAnswer(answerIndex, answer);
+  }
+
+  /// Assigns `correctAnswer: answerIndex` to the `questionIndex`-th question.
+  ///
+  /// Throws if either the `questionIndex` is out of range of `questions`,
+  /// or if `answerIndex` is out of range of `questions[questionIndex].answers`.
+  void setCorrectAnswer(int questionIndex, int answerIndex) {
+    _checkQuestionIndex(questionIndex);
+    questions[questionIndex].setCorrectAnswer(answerIndex);
+  }
+
+  /// Adds `answer` to the end of the `answers` of the `questionIndex`-th question.
+  /// 
+  /// Throws if either the `questionIndex` is out of range of `questions`.
+  void addAnswer(int questionIndex, String answer) {
+    _checkQuestionIndex(questionIndex);
+    questions[questionIndex].addAnswer(answer);
+  } 
 
   /// Returns the `Test` representation of `snapshot.data()`.
   /// If the data is null, this method returns null.
