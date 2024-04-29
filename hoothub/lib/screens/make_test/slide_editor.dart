@@ -38,6 +38,7 @@ class MultipleChoiceEditor extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: answerTextEditingController,
+              // TODO: Make text save even when the user doesn't press ENTER or submits the text...
               onSubmitted: (String answer) => setAnswer(index, answer),
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
@@ -80,6 +81,7 @@ class SlideEditor extends StatelessWidget {
       children: <Widget>[
         TextField(
           controller: questionTextEditingController,
+          // TODO: Make text save even when the user doesn't press ENTER or submits the text...
           onSubmitted: (String question) => setQuestion(question),
           decoration: const InputDecoration(
             hintText: 'Question',
