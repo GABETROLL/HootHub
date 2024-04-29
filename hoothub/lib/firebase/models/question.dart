@@ -10,6 +10,11 @@ class Question implements Model {
   @override
   bool isValid() => answers.length > 1 && 0 <= correctAnswer && correctAnswer < answers.length;
 
+  /// Sets `this.question: question`.
+  void setQuestion(String question) {
+    this.question = question;
+  }
+
   /// Throws error if `index` is out of the range of `answers`.
   void _checkAnswerIndex(int index) {
     if (index < 0 || index >= answers.length) {

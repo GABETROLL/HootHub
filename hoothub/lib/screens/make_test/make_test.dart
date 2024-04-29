@@ -102,15 +102,20 @@ class _MakeTestState extends State<MakeTest> {
           // the `AddSlideButton` "slide" will be displayed instead.
           (
             _currentSlideIndex < 0 || _currentSlideIndex >= _testModel!.questions.length
-            ? const AddSlideButton()
-            : SlideEditor(
-              questionModel: _testModel!.questions[_currentSlideIndex],
-              setCorrectAnswer: (int index) => setState(() {
-                _testModel!.setCorrectAnswer(_currentSlideIndex, index);
-              }),
-              setAnswer: (int index, String answer) => setState(() {
-                _testModel!.setAnswer(_currentSlideIndex, index, answer);
-              }),
+            ? const Center(child: AddSlideButton())
+            : Expanded(
+              child: SlideEditor(
+                questionModel: _testModel!.questions[_currentSlideIndex],
+                setQuestion: (String question) => setState(() {
+                  _testModel!.setQuestion(_currentSlideIndex, question);
+                }),
+                setCorrectAnswer: (int index) => setState(() {
+                  _testModel!.setCorrectAnswer(_currentSlideIndex, index);
+                }),
+                setAnswer: (int index, String answer) => setState(() {
+                  _testModel!.setAnswer(_currentSlideIndex, index, answer);
+                }),
+              ),
             )
           ),
         ],

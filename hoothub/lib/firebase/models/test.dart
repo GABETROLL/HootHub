@@ -41,6 +41,12 @@ class Test implements Model {
     }
   }
 
+  /// Sets `question: question` to the `questionIndex`-th question.
+  void setQuestion(int questionIndex, String question) {
+    _checkQuestionIndex(questionIndex);
+    questions[questionIndex].setQuestion(question);
+  }
+
   /// Assigns `answer` to the `answerIndex`-th answer of the `questionIndex`-th question.
   /// 
   /// Throws if either the `questionIndex` is out of range of `questions`,

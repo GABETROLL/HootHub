@@ -1,9 +1,11 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
 
+/// WARNING: I think this one also tries to expand to fill its parent,
+/// so its parent must have finite width.
+///
+/// (Built `Widget` is a `Column`)
 class MultipleChoiceEditor extends StatelessWidget {
   const MultipleChoiceEditor({
     super.key,
@@ -52,15 +54,21 @@ class MultipleChoiceEditor extends StatelessWidget {
   }
 }
 
+/// WARNING: Tries to expand to fill its parent,
+/// so its parent must have finite width.
+///
+/// (Built `Widget` is a `Column`)
 class SlideEditor extends StatelessWidget {
   const SlideEditor({
     super.key,
     required this.questionModel,
+    required this.setQuestion,
     required this.setCorrectAnswer,
     required this.setAnswer,
   });
 
   final Question questionModel;
+  final void Function(String) setQuestion;
   final void Function(int) setCorrectAnswer;
   final void Function(int, String) setAnswer;
 
@@ -70,12 +78,11 @@ class SlideEditor extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        Expanded(
-          child: TextField(
-            controller: questionTextEditingController,
-            decoration: const InputDecoration(
-              hintText: 'Question',
-            ),
+        TextField(
+          controller: questionTextEditingController,
+          onSubmitted: (String question) => setQuestion(question),
+          decoration: const InputDecoration(
+            hintText: 'Question',
           ),
         ),
         MultipleChoiceEditor(
