@@ -65,12 +65,12 @@ class Test implements Model {
     questions[questionIndex].setCorrectAnswer(answerIndex);
   }
 
-  /// Adds `answer` to the end of the `answers` of the `questionIndex`-th question.
-  /// 
+  /// Adds a new, empty answer to the end of the `answers` of the `questionIndex`-th question.
+  ///
   /// Throws if either the `questionIndex` is out of range of `questions`.
-  void addAnswer(int questionIndex, String answer) {
+  void addNewEmptyAnswer(int questionIndex) {
     _checkQuestionIndex(questionIndex);
-    questions[questionIndex].addAnswer(answer);
+    questions[questionIndex].addNewEmptyAnswer();
   } 
 
   /// Returns the `Test` representation of `snapshot.data()`.

@@ -38,9 +38,9 @@ class Question implements Model {
     correctAnswer = index;
   }
 
-  /// Adds `answer` to the end of `answers`.
-  void addAnswer(String answer) {
-    answers.add(answer);
+  /// Adds a new, empty answer to the end of `answers`.
+  void addNewEmptyAnswer() {
+    answers.add('');
   }
 
   static Question fromJson(Map<String, dynamic> data) {

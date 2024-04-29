@@ -109,6 +109,9 @@ class _MakeTestState extends State<MakeTest> {
                 setQuestion: (String question) => setState(() {
                   _testModel!.setQuestion(_currentSlideIndex, question);
                 }),
+                addNewEmptyAnswer: () => setState(() {
+                  _testModel!.addNewEmptyAnswer(_currentSlideIndex);
+                }),
                 setCorrectAnswer: (int index) => setState(() {
                   _testModel!.setCorrectAnswer(_currentSlideIndex, index);
                 }),

@@ -10,11 +10,13 @@ class MultipleChoiceEditor extends StatelessWidget {
   const MultipleChoiceEditor({
     super.key,
     required this.questionModel,
+    required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
     required this.setAnswer,
   });
 
   final Question questionModel;
+  final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
   final void Function(int, String) setAnswer;
 
@@ -51,6 +53,13 @@ class MultipleChoiceEditor extends StatelessWidget {
       choices.add(choice);
     }
 
+    choices.add(
+      ElevatedButton(
+        onPressed: () => addNewEmptyAnswer(),
+        child: const Text('Add answer')
+      ),
+    );
+
     return Column(children: choices);
   }
 }
@@ -64,12 +73,14 @@ class SlideEditor extends StatelessWidget {
     super.key,
     required this.questionModel,
     required this.setQuestion,
+    required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
     required this.setAnswer,
   });
 
   final Question questionModel;
   final void Function(String) setQuestion;
+  final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
   final void Function(int, String) setAnswer;
 
@@ -89,6 +100,7 @@ class SlideEditor extends StatelessWidget {
         ),
         MultipleChoiceEditor(
           questionModel: questionModel,
+          addNewEmptyAnswer: () => addNewEmptyAnswer(),
           setCorrectAnswer: (int index) => setCorrectAnswer(index),
           setAnswer: (int index, String answer) => setAnswer(index, answer),
         ),
