@@ -37,7 +37,7 @@ class MakeTest extends StatefulWidget {
 }
 
 class _MakeTestState extends State<MakeTest> {
-  //default index. May not be in the bounds of `testModel!.questions`,
+  // default index. May not be in the bounds of `testModel!.questions`,
   // since that could be empty!
   int _currentSlideIndex = 0;
   Test? _testModel;
