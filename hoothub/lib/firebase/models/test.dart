@@ -31,7 +31,7 @@ class Test implements Model {
   /// The new, empty question should have an empty title, answers,
   /// and should have answer 0 as the correct answer.
   void addNewEmptyQuestion() {
-    questions.add(Question(question: '', answers: <String>[], correctAnswer: 0));
+    questions.add(Question(question: '', answers: <String>['', ''], correctAnswer: 0));
   }
 
   /// Throws error if `index` is out of the range of `questions`.
