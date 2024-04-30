@@ -5,6 +5,7 @@ library;
 // backend
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/question.dart';
+import 'package:hoothub/firebase/api/tests.dart';
 // frontend
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
@@ -24,6 +25,7 @@ class AddSlideButton extends StatelessWidget {
   );
 }
 
+/// Eventually pops with void. Edits the test, then saves it.
 class MakeTest extends StatefulWidget {
   const MakeTest({
     super.key,
@@ -46,6 +48,30 @@ class _MakeTestState extends State<MakeTest> {
   void initState() {
     super.initState();
     _testModel = widget.testModel;
+  }
+
+  Future<void> onTestSaved(BuildContext context) async {
+    if (!(_testModel!.isValid()) && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid Test!')),
+      );
+    } else {
+      String saveResult = await saveTest(_testModel!);
+
+      if (!(context.mounted)) return;
+
+      if (saveResult != 'Ok') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving test: $saveResult')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Test saved successfully!')),
+        );
+      }
+
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -88,8 +114,16 @@ class _MakeTestState extends State<MakeTest> {
       appBar: AppBar(
         title: Text(_testModel!.name),
         actions: <Widget>[
-          ElevatedButton(onPressed: () { }, child: const Text('Cancel')),
-          ElevatedButton(onPressed: () { }, child: const Text('Save')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')
+          ),
+          Builder(
+            builder: (BuildContext context) =>  ElevatedButton(
+              onPressed: () => onTestSaved(context),
+              child: const Text('Save'),
+            ),
+          ),
         ],
       ),
       body: Row(
