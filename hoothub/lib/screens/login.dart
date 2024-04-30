@@ -18,7 +18,12 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _passwordHidden = true;
 
-  Future<void> onLogIn(BuildContext context) async {
+  /// Logs in the user using `logInUser`,
+  /// and the text from the email and password `TextField`s.
+  ///
+  /// `context`'s SCAFFOLD MUST BE THE `Scaffold` RETURNED BY THIS WIDGET'S `build`.
+  /// You can use `Builder` inside `build` to wrap the widget that triggers this event handler.
+  Future<void> _onLogIn(BuildContext context) async {
     String logInResult = await logInUser(
       email: widget.emailController.text,
       password: widget.passwordController.text
@@ -46,54 +51,55 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.center,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 760),
-        child: Column(
-          children: <Widget>[
-            TextField(
-              controller: widget.emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-              ),
-            ),
-            TextField(
-              controller: widget.passwordController,
-              obscureText: _passwordHidden,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                suffixIcon: IconButton(
-                  onPressed: () => setState(() { _passwordHidden = !_passwordHidden; }),
-                  icon: Icon(_passwordHidden ? Icons.visibility_off : Icons.visibility),
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.center,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: Column(
+            children: <Widget>[
+              TextField(
+                controller: widget.emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
                 ),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-
-                /* TODO: NAVIGATE TO MAIN SCREEN HERE */
-              },
-              child: const Text('Log in'),
-            ),
-            const Divider(),
-            Row(
-              children: <Widget>[
-                const Text("Don't have an account?"),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (BuildContext context) => SignUp()),
-                    );
-                  },
-                  child: const Text('Sign up'),
+              TextField(
+                controller: widget.passwordController,
+                obscureText: _passwordHidden,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() { _passwordHidden = !_passwordHidden; }),
+                    icon: Icon(_passwordHidden ? Icons.visibility_off : Icons.visibility),
+                  ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              Builder(
+                builder: (BuildContext context) => ElevatedButton(
+                  onPressed: () => _onLogIn(context),
+                  child: const Text('Log in'),
+                ),
+              ),
+              const Divider(),
+              Row(
+                children: <Widget>[
+                  const Text("Don't have an account?"),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (BuildContext context) => SignUp()),
+                      );
+                    },
+                    child: const Text('Sign up'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    );
+    ); 
   }
 }
