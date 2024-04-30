@@ -3,7 +3,7 @@ import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'make_test/make_test.dart';
+import 'view_test/view_test.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -15,7 +15,7 @@ class Home extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => MakeTest(
+            builder: (BuildContext context) => ViewTest(
               testModel: Test(
                 name: 'Test Test!',
                 questions: <Question>[
@@ -26,7 +26,7 @@ class Home extends StatelessWidget {
           ),
         );
       },
-      child: const Text('Go to `MakeTest` screen with test Test!'),
+      child: const Text('Go to `ViewTest` screen with test Test!'),
     );
   }
 }
