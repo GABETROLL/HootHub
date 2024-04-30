@@ -2,14 +2,37 @@ import 'model.dart';
 import 'question.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Model for test.
+///
+/// BOTH IDS ARE OPTIONAL, SINCE THEY WILL BE CREATED BY FIREBASE.
+/// PROVIDING THEM INDICATES TO `saveTest` TO USE THESE INSTEAD
+/// OF GENERATING NEW ONES, SO THEY NEED TO BE CORRECT.
+/// NOT PROVIDING THEM INDICATES TO `saveTest` TO GENERATE THEM
+/// AUTOMATICALLY WHEN SAVING THEM, VIA THE CURRENT USER'S UID
+/// AND BY GENERATING A NEW UNIQUE KEY FOR THE TEST IN THE FIRESTORE.
+///
+/// `id` is the ID of the test,
+/// the unique key for the test in the `tests` Firestore collection.
+/// `userId` is the ID of the user that created it,
+/// the unique key for the user in the `users` Firestore collection.
+///
+/// `name` is the "title" of the test
+/// `questions` is a List<Question>.
 class Test implements Model {
-  Test({required this.name, this.questions = const <Question>[]});
+  Test({this.id, this.userId, this.name = '', this.questions = const <Question>[]});
 
+  String? id;
+  String? userId;
   String name;
   List<Question> questions;
 
+  /// Validates `this` before it can be put in `FirebaseFirestore`.
+  /// 
   /// A `Test` is valid if its `name` and `questions` aren't empty,
   /// and if all of its questions are valid.
+  ///
+  /// `id` and `userId` are not needed to validate a test,
+  /// because the ID's will be created by `saveTest`.
   @override
   bool isValid() {
     bool questionsValid = true;
@@ -94,6 +117,8 @@ class Test implements Model {
     );
 
     return Test(
+      id: data['id'],
+      userId: data['userId'],
       name: data['name'],
       questions: questions,
     );
@@ -101,9 +126,11 @@ class Test implements Model {
 
   @override
   Map<String, dynamic> toJson() => {
+    'id': id,
+    'userId': userId,
     'name': name,
     'questions': List.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson())
-    ) ,
+    ),
   };
 }
