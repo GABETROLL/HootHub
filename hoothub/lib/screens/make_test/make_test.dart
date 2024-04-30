@@ -69,8 +69,6 @@ class _MakeTestState extends State<MakeTest> {
           const SnackBar(content: Text('Test saved successfully!')),
         );
       }
-
-      Navigator.pop(context);
     }
   }
 
@@ -116,7 +114,7 @@ class _MakeTestState extends State<MakeTest> {
         actions: <Widget>[
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')
+            child: const Text('Exit'),
           ),
           Builder(
             builder: (BuildContext context) =>  ElevatedButton(
