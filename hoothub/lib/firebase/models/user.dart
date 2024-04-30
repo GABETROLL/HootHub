@@ -1,8 +1,7 @@
-import 'test.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
-  const UserModel({
+  UserModel({
     required this.id,
     required this.username,
     this.profileImageUrl,
@@ -14,15 +13,15 @@ class UserModel {
     this.savedTestsPublic = false,
   });
 
-  final String id;
-  final String username;
-  final String? profileImageUrl;
-  final Timestamp dateCreated;
-  final List<Test> tests;
-  final List<Test> likedTests;
-  final List<Test> savedTests;
-  final bool likedTestsPublic;
-  final bool savedTestsPublic;
+  String id;
+  String username;
+  String? profileImageUrl;
+  Timestamp dateCreated;
+  List<String> tests;
+  List<String> likedTests;
+  List<String> savedTests;
+  bool likedTestsPublic;
+  bool savedTestsPublic;
 
   /// Returns the `UserModel` representation of `snapshot.data()`.
   /// If the data is null, this method returns null.
