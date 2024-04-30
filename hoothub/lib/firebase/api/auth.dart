@@ -66,7 +66,7 @@ Future<String> logInUser({required String email, required String password}) asyn
     );
 
     if (userCredential.user == null) {
-      throw 'Failed to login user';
+      return 'Failed to login user';
     }
   } on FirebaseException catch (error) {
     return error.code;
