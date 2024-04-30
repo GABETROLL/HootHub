@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+// models
 import 'package:hoothub/firebase/models/user.dart';
-import 'package:hoothub/firebase/models/test.dart';
 
 final _auth = FirebaseAuth.instance;
 final _collection = FirebaseFirestore.instance.collection('users');
@@ -35,9 +35,9 @@ Future<String> signUpUser({
       id: userId,
       username: username,
       dateCreated: Timestamp.now(),
-      tests: <Test>[],
-      likedTests: <Test>[],
-      savedTests: <Test>[],
+      tests: <String>[],
+      likedTests: <String>[],
+      savedTests: <String>[],
     );
 
     await _collection.doc(userId).set(userModel.toJson());
