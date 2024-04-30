@@ -1,5 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Front-end representation for a user document,
+/// in the `users` collection, in Firestore.
+///
+/// The `List` arguments are meant to be lists of test ID's:
+/// the paths of the tests in the Firestore `tests` collection.
+/// They say `dynamic` instead of `String`
+/// because requesting the test document from Firestore
+/// responds with `List<dynamic>` instead of `List<String>`.
+/// (That's also why `dateCreated` is a `TimeStamp` instead of a `DateTime`)
 class UserModel {
   UserModel({
     required this.id,
@@ -17,9 +26,9 @@ class UserModel {
   String username;
   String? profileImageUrl;
   Timestamp dateCreated;
-  List<String> tests;
-  List<String> likedTests;
-  List<String> savedTests;
+  List<dynamic> tests;
+  List<dynamic> likedTests;
+  List<dynamic> savedTests;
   bool likedTestsPublic;
   bool savedTestsPublic;
 
