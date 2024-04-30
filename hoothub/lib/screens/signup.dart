@@ -1,5 +1,8 @@
+// back-end
 import 'package:hoothub/firebase/api/auth.dart';
+// front-end
 import 'package:flutter/material.dart';
+import 'home.dart';
 import 'login.dart';
 
 class SignUp extends StatefulWidget {
@@ -16,6 +19,32 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   bool _passwordHidden = true;
+
+  Future<void> onSignUp(BuildContext context) async {
+    String signupResult = await signUpUser(
+      email: widget.emailController.text,
+      password: widget.passwordController.text,
+      username: widget.usernameController.text,
+    );
+
+    if (!(context.mounted)) return;
+
+    if (signupResult != 'Ok') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error signing up: $signupResult')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Welcome to HootHub, ${widget.usernameController.text}!')),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => const Home(),
+        ),
+      );        
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,14 +91,7 @@ class _SignUpState extends State<SignUp> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                signUpUser(
-                  email: widget.emailController.text,
-                  password: widget.passwordController.text,
-                  username: widget.usernameController.text,
-                );
-                /* TODO: NAVIGATE TO MAIN SCREEN HERE */
-              },
+              onPressed: () => onSignUp(context),
               child: const Text('Sign up'),
             ),
             const Divider(),
