@@ -91,3 +91,12 @@ Future<UserModel?> loggedInUser() async {
     return null;
   }
 }
+
+/// Returns the `userModel` representation of the `FirebaseFirestore` user with `id` as its id.
+///
+/// This function THROWS if receiving the user document from the Firestore
+/// failed, or if parsing the document into a `UserModel`,
+/// using `UserModel.fromSnapshot`, also failed.
+Future<UserModel?> userWithId(String id) async {
+  return UserModel.fromSnapshot(await _collection.doc(id).get());
+}

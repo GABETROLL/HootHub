@@ -1,6 +1,8 @@
 // back-end
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/question.dart';
+import 'package:hoothub/firebase/models/user.dart';
+import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
 import '../make_test/make_test.dart';
@@ -38,20 +40,55 @@ class _ViewQuestionsState extends State<ViewQuestions> {
   }
 }
 
-class ViewTest extends StatelessWidget {
-  const ViewTest({super.key, required this.testModel});
+class ViewTest extends StatefulWidget {
+  const ViewTest({
+    super.key,
+    required this.testModel,
+  });
 
   final Test testModel;
 
   @override
-  Widget build(BuildContext context) {
+  State<ViewTest> createState() => _ViewTestState();
+}
+
+class _ViewTestState extends State<ViewTest> {
+  UserModel? _testAuthor;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.testModel.userId != null) {
+      userWithId(widget.testModel.userId!)
+        .then(
+          (UserModel? testAuthor) {
+            setState(() {
+              _testAuthor = testAuthor;
+            });
+          },
+          onError: (error) {
+            print('error initting state: $error');
+          },
+        );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {    
     return Scaffold(
       appBar: AppBar(
-        title: Text(testModel.name),
+        title: const Text('HootHub'),
       ),
       body: Column(
         children: [
           // test image here, test title, and username+userlogo
+          Column(
+            children: <Widget>[
+              Text(widget.testModel.name),
+              Text(_testAuthor?.username ?? '...'),
+            ],
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -68,7 +105,7 @@ class ViewTest extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (BuildContext context) => MakeTest(testModel: testModel),
+                      builder: (BuildContext context) => MakeTest(testModel: widget.testModel),
                     ),
                   );
                 },
@@ -80,7 +117,7 @@ class ViewTest extends StatelessWidget {
               ),
             ],
           ),
-          ViewQuestions(questions: testModel.questions),
+          ViewQuestions(questions: widget.testModel.questions),
         ],
       )
     );
