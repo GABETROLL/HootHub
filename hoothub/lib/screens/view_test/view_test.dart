@@ -5,7 +5,8 @@ import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
-import '../make_test/make_test.dart';
+import 'package:hoothub/widgets/test_card.dart';
+import 'package:hoothub/screens/make_test/make_test.dart';
 
 class ViewQuestions extends StatefulWidget {
   const ViewQuestions({
@@ -80,15 +81,15 @@ class _ViewTestState extends State<ViewTest> {
       appBar: AppBar(
         title: const Text('HootHub'),
       ),
-      body: Column(
+      body: ListView(
         children: [
-          // test image here, test title, and username+userlogo
-          Column(
-            children: <Widget>[
-              Text(widget.testModel.name),
-              Text(_testAuthor?.username ?? '...'),
-            ],
+          TestCard(
+            testName: widget.testModel.name,
+            username: _testAuthor?.username ?? '...',
+            testImageUrl: widget.testModel.imageUrl,
+            profileImageUrl: _testAuthor?.profileImageUrl,
           ),
+          // Test Options
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

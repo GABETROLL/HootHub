@@ -18,6 +18,7 @@ class Home extends StatelessWidget {
             builder: (BuildContext context) => ViewTest(
               testModel: Test(
                 name: 'Test Test!',
+                userId: 'DsS1ZzDNxqci3NLEsW5WQJIiG422',
                 questions: <Question>[
                   Question(question: 'What is `1 + 1`?', answers: ['0', '1', '2', '3'], correctAnswer: 2),
                 ],

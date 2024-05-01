@@ -19,11 +19,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `name` is the "title" of the test
 /// `questions` is a List<Question>.
 class Test implements Model {
-  Test({this.id, this.userId, this.name = '', this.questions = const <Question>[]});
+  Test({
+    this.id,
+    this.userId,
+    this.name = '',
+    this.imageUrl,
+    this.questions = const <Question>[]
+  });
 
   String? id;
   String? userId;
   String name;
+  String? imageUrl;
   List<Question> questions;
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
@@ -31,8 +38,9 @@ class Test implements Model {
   /// A `Test` is valid if its `name` and `questions` aren't empty,
   /// and if all of its questions are valid.
   ///
-  /// `id` and `userId` are not needed to validate a test,
-  /// because the ID's will be created by `saveTest`.
+  /// `id` and `userId` and `imageUrl` ARE NOT NEEDED TO VALIDATE A TEST,
+  /// because the ID's will be created by `saveTest`,
+  /// and because tests may not always have an image.
   @override
   bool isValid() {
     bool questionsValid = true;
