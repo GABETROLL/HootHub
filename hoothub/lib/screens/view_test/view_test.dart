@@ -8,6 +8,81 @@ import 'package:flutter/material.dart';
 import 'package:hoothub/widgets/test_card.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
 
+class ViewQuestion extends StatefulWidget {
+  const ViewQuestion({
+    super.key,
+    required this.question,
+    required this.answers,
+    required this.correctAnswer,
+  });
+
+  final String question;
+  final List<String> answers;
+  final int correctAnswer;
+
+  @override
+  State<ViewQuestion> createState() => _ViewQuestionState();
+}
+class _ViewQuestionState extends State<ViewQuestion> {
+  bool _open = false;
+  bool _correctAnswerRevealed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> questionChildren = [
+      Row(
+        children: [
+          Text(widget.question),
+          TextButton(
+            onPressed: () => setState(() {
+              _open = !_open;
+              _correctAnswerRevealed = false;
+              // Closing and opening the answers drawer should hide the correct answers again,
+              // to prevent spoilers.
+            }),
+            child: Text(_open ? 'Close' : 'Open'),
+          ),
+        ],
+      ),
+    ];
+
+    if (_open) {
+      questionChildren.add(
+        TextButton(
+          onPressed: () => setState(() {
+            _correctAnswerRevealed = !_correctAnswerRevealed;
+          }),
+          child: Text('${_correctAnswerRevealed ? 'Hide' : 'Reveal'} correct answer'),
+        ),
+      );
+
+      for (final (int index, String answer) in widget.answers.indexed) {
+        final List<Widget> answerChildren = [
+          Text(answer),
+        ];
+
+        if (_correctAnswerRevealed) {
+          final bool currentAnswerCorrect = index == widget.correctAnswer;
+
+          answerChildren.insert(
+            0,
+            Icon(
+              currentAnswerCorrect ? Icons.check : Icons.close,
+              color: currentAnswerCorrect ? Colors.green : Colors.red
+            ),
+          );
+        }
+
+        questionChildren.add(
+          Row(children: answerChildren),
+        );
+      }
+    }
+
+    return Column(children: questionChildren);
+  }
+}
+
 class ViewQuestions extends StatefulWidget {
   const ViewQuestions({
     super.key,
@@ -21,23 +96,31 @@ class ViewQuestions extends StatefulWidget {
 }
 
 class _ViewQuestionsState extends State<ViewQuestions> {
-  late bool _open;
-  late List<bool> _questionsOpen;
-
-  @override
-  initState() {
-    super.initState();
-    _open = false;
-    _questionsOpen = List.from(
-      widget.questions.map<bool>(
-        (Question question) => false
-      ),
-    );
-  }
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
-    return const Text('`ViewQuestions` has not yet been implemented!');
+    List<Widget> children = [
+      Row(
+        children: [
+          const Text('Questions'),
+          TextButton(
+            onPressed: () => setState(() { _open = !_open; }),
+            child: Text(_open ? 'Close' : 'Open'),
+          ),
+        ],
+      ),
+    ];
+
+    if (_open) {
+      for (final Question question in widget.questions) {
+        children.add(
+          ViewQuestion(question: question.question, answers: question.answers, correctAnswer: question.correctAnswer),
+        );
+      }
+    }
+
+    return Column(children: children);
   }
 }
 
