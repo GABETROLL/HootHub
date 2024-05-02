@@ -39,6 +39,7 @@ dependencies:
   cloud_firestore: ^4.17.2
   firebase_auth: ^4.19.4
   uuid: ^4.4.0
+  timer_count_down: ^2.2.0
 
 dev_dependencies:
   flutter_test:

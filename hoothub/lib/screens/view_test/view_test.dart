@@ -6,6 +6,7 @@ import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/widgets/test_card.dart';
+import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
 
 class ViewQuestion extends StatefulWidget {
@@ -177,7 +178,16 @@ class _ViewTestState extends State<ViewTest> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () { },
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => PlayTestSolo(
+                        testModel: widget.testModel,
+                      ),
+                    ),
+                  );
+                },
                 child: const Text('Play solo'),
               ),
               ElevatedButton(
