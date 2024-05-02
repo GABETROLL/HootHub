@@ -36,8 +36,8 @@ Future<String> signUpUser({
       username: username,
       dateCreated: Timestamp.now(),
       tests: <String>[],
-      likedTests: <String>[],
-      savedTests: <String>[],
+      upvotedTests: <String>[],
+      downvotedTests: <String>[],
     );
 
     await _collection.doc(userId).set(userModel.toJson());

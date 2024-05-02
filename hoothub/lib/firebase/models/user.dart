@@ -16,10 +16,8 @@ class UserModel {
     this.profileImageUrl,
     required this.dateCreated,
     required this.tests,
-    required this.likedTests,
-    required this.savedTests,
-    this.likedTestsPublic = false,
-    this.savedTestsPublic = false,
+    required this.upvotedTests,
+    required this.downvotedTests,
   });
 
   String id;
@@ -27,10 +25,8 @@ class UserModel {
   String? profileImageUrl;
   Timestamp dateCreated;
   List<dynamic> tests;
-  List<dynamic> likedTests;
-  List<dynamic> savedTests;
-  bool likedTestsPublic;
-  bool savedTestsPublic;
+  List<dynamic> upvotedTests;
+  List<dynamic> downvotedTests;
 
   /// Returns the `UserModel` representation of `snapshot.data()`.
   /// If the data is null, this method returns null.
@@ -47,10 +43,8 @@ class UserModel {
       profileImageUrl: data['profileImageUrl'],
       dateCreated: data['dateCreated'],
       tests: data['tests'],
-      likedTests: data['likedTests'],
-      savedTests: data['savedTests'],
-      likedTestsPublic: data['likedTestsPublic'],
-      savedTestsPublic: data['savedTestsPublic'],
+      upvotedTests: data['upvotedTests'] ?? <String>[],
+      downvotedTests: data['downvotedTests'] ?? <String>[],
     );
   }
 
@@ -60,9 +54,7 @@ class UserModel {
     'profileImageUrl': profileImageUrl,
     'dateCreated': dateCreated,
     'tests': tests,
-    'likedTests': likedTests,
-    'savedTests': savedTests,
-    'likedTestsPublic': likedTestsPublic,
-    'savedTestsPublic': savedTestsPublic,
+    'upvotedTests': upvotedTests,
+    'downvotedTests': downvotedTests,
   };
 }

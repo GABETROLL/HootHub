@@ -16,29 +16,35 @@ class TestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Image defaultImage = Image.asset('assets/default_image.png');
+    const double userImageWidth = 60;
+
+    final Image defaultImage = Image.asset('assets/default_image.png');
+    final Image defaultUserImage = Image.asset('assets/default_user_image.png', width: userImageWidth);
 
     return Card(
-      child: Column(
-        children: [
-          (
-            testImageUrl != null
-              ? Image.network(testImageUrl!)
-              : defaultImage
-          ),
-          Text(testName),
-          Row(
+        child: SizedBox(
+          width: 760,
+          child: Column(
             children: [
               (
-                profileImageUrl != null
-                  ? Image.network(profileImageUrl!)
-                  : defaultImage
+                testImageUrl != null
+                ? Image.network(testImageUrl!)
+                : defaultImage
               ),
-              Text(username),
+              Text(testName, style: const TextStyle(fontSize: 60)),
+              Row(
+                children: [
+                  (
+                    profileImageUrl != null
+                      ? Image.network(profileImageUrl!, width: userImageWidth)
+                      : defaultUserImage
+                  ),
+                  Text(username),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
   }
 }

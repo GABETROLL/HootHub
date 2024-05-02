@@ -24,7 +24,9 @@ class Test implements Model {
     this.userId,
     this.name = '',
     this.imageUrl,
-    this.questions = const <Question>[]
+    this.questions = const <Question>[],
+    this.usersThatUpvoted = const <String>[],
+    this.usersThatDownvoted = const <String>[],
   });
 
   String? id;
@@ -32,9 +34,11 @@ class Test implements Model {
   String name;
   String? imageUrl;
   List<Question> questions;
+  List<String> usersThatUpvoted;
+  List<String> usersThatDownvoted;
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
-  /// 
+  ///
   /// A `Test` is valid if its `name` and `questions` aren't empty,
   /// and if all of its questions are valid.
   ///
@@ -128,7 +132,10 @@ class Test implements Model {
       id: data['id'],
       userId: data['userId'],
       name: data['name'],
+      imageUrl: data['imageUrl'],
       questions: questions,
+      usersThatUpvoted: data['usersThatUpvoted'],
+      usersThatDownvoted: data['usersThatDownvoted'],
     );
   }
 
@@ -137,8 +144,11 @@ class Test implements Model {
     'id': id,
     'userId': userId,
     'name': name,
+    'imageUrl': imageUrl,
     'questions': List.from(
-      questions.map<Map<String, dynamic>>((Question question) => question.toJson())
+      questions.map<Map<String, dynamic>>((Question question) => question.toJson()),
     ),
+    'usersThatUpvoted': usersThatUpvoted,
+    'usersThatDownvoted': usersThatDownvoted,
   };
 }
