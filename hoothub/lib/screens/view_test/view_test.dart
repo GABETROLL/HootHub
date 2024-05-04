@@ -144,6 +144,18 @@ class _ViewTestState extends State<ViewTest> {
   void initState() {
     super.initState();
 
+    // If the test model is not valid,
+    // this widget should only display this fact to the user,
+    // and we don't need to bother fetching the author's `UserModel`.
+    // (read below)
+    if (!(widget.testModel.isValid())) return;
+
+    // Get the test's author's `UserModel`.
+    // The test doesn't store the model directly,
+    // but it provides the user's ID.
+    //
+    // We need to get the user's model, so that we can display
+    // the author's username right underneath the test's name and image.
     if (widget.testModel.userId != null) {
       userWithId(widget.testModel.userId!)
         .then(
@@ -161,6 +173,30 @@ class _ViewTestState extends State<ViewTest> {
 
   @override
   Widget build(BuildContext context) {
+    if (!(widget.testModel.isValid())) {
+      const double textWidth = 760;
+
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('HootHub'),
+        ),
+        body: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              width: textWidth,
+              child: Text("The test you're trying to view seems to be invalid. I'm verry sorry!"),
+            ),
+            SizedBox(
+              width: textWidth,
+              child: Text(":("),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('HootHub'),
