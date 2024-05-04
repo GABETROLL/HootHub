@@ -3,6 +3,7 @@ import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'package:timer_count_down/timer_controller.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 import 'multiple_choice_player.dart';
 import 'multiple_choice_revelation.dart';
@@ -21,6 +22,7 @@ class PlayTestSolo extends StatefulWidget {
 
 class _PlayTestSoloState extends State<PlayTestSolo> {
   int _currentQuestionIndex = 0;
+  final countdownController = CountdownController();
 
   void revealCorrectAnswer(BuildContext context, Question currentQuestion) {
     Navigator.push(
@@ -44,6 +46,8 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
     }
 
     final Question currentQuestion = widget.testModel.questions[_currentQuestionIndex];
+    countdownController.start();
+    countdownController.restart();
 
     return Scaffold(
       appBar: AppBar(
@@ -53,6 +57,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
         children: <Widget>[
           Text(currentQuestion.question),
           Countdown(
+            controller: countdownController,
             seconds: 20, // TODO: Make the test customize the time each question takes
             build: (BuildContext context, double time) => Text(time.toString()),
             interval: const Duration(seconds: 1),
@@ -64,6 +69,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
           MultipleChoicePlayer(
             questionModel: currentQuestion,
             onAnswerSelected: (int index) {
+              countdownController.pause();
               revealCorrectAnswer(context, currentQuestion);
             }
           ),
