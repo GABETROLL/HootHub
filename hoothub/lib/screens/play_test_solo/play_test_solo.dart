@@ -22,7 +22,7 @@ class PlayTestSolo extends StatefulWidget {
 
 class _PlayTestSoloState extends State<PlayTestSolo> {
   int _currentQuestionIndex = 0;
-  final countdownController = CountdownController();
+  final countdownController = CountdownController(autoStart: true);
 
   Future<void> revealCorrectAnswer({
     required BuildContext context,
@@ -45,13 +45,15 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
   @override
   Widget build(BuildContext context) {
     // `_currentQuestionIndex` out of range of `widget.testModel.questions.length`.
+    // TODO: Make this screen recite the score results, and have the option to come back to
+    // the view test screen
     if (_currentQuestionIndex >= widget.testModel.questions.length) {
       return const Center(child: Text("All done! You've made it to the end of the test!"));
     }
 
     final Question currentQuestion = widget.testModel.questions[_currentQuestionIndex];
-    countdownController.start();
     countdownController.restart();
+    print('Restarted timer');
 
     return Scaffold(
       appBar: AppBar(
@@ -64,9 +66,8 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             controller: countdownController,
             seconds: 20, // TODO: Make the test customize the time each question takes
             build: (BuildContext context, double time) => Text(time.toString()),
-            interval: const Duration(seconds: 1),
             onFinished: () {
-              // print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');
+              print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');
               revealCorrectAnswer(
                 context: context,
                 currentQuestion: currentQuestion
@@ -77,6 +78,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             questionModel: currentQuestion,
             onAnswerSelected: (int answerSelectedIndex) {
               countdownController.pause();
+              print('Paused timer');
               revealCorrectAnswer(
                 context: context,
                 currentQuestion: currentQuestion,
