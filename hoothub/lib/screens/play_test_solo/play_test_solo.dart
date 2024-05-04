@@ -24,13 +24,17 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
   int _currentQuestionIndex = 0;
   final countdownController = CountdownController();
 
-  void revealCorrectAnswer(BuildContext context, Question currentQuestion) {
-    Navigator.push(
+  Future<void> revealCorrectAnswer({
+    required BuildContext context,
+    required Question currentQuestion,
+    int? answerSelectedIndex
+  }) async {
+    await Navigator.push<void>(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (BuildContext context) => MultipleChoiceRevelation(
           questionModel: currentQuestion,
-          chosenAnswer: null,
+          chosenAnswer: answerSelectedIndex,
         ),
       ),
     );
@@ -63,14 +67,21 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             interval: const Duration(seconds: 1),
             onFinished: () {
               // print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');
-              revealCorrectAnswer(context, currentQuestion);
+              revealCorrectAnswer(
+                context: context,
+                currentQuestion: currentQuestion
+              );
             },
           ),
           MultipleChoicePlayer(
             questionModel: currentQuestion,
-            onAnswerSelected: (int index) {
+            onAnswerSelected: (int answerSelectedIndex) {
               countdownController.pause();
-              revealCorrectAnswer(context, currentQuestion);
+              revealCorrectAnswer(
+                context: context,
+                currentQuestion: currentQuestion,
+                answerSelectedIndex: answerSelectedIndex
+              );
             }
           ),
         ],
