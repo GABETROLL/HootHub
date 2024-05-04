@@ -3,9 +3,18 @@ import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
 
+/// Displays all of the answers in `questionModel.questions` in a vertical list,
+/// with a green checkmark beside the correct answer and an 'x' icon beside the
+/// answer the player chose, if that answer was wrong.
+///
+/// For the rest of the answers,
+/// completely transparent 'x' icons are displayed.
+///
+/// This widget has a 'Next' button, that POPS BACK TO THE PREVIOUS SCREEN
+/// USING `Navigator.pop(context)`, WITH `void` AS THE RESULT.
+/// 
 /// WARNING: I think this one also tries to expand to fill its parent,
 /// so its parent must have finite width.
-///
 /// (Built `Widget` is a `Column`)
 class MultipleChoiceRevelation extends StatelessWidget {
   const MultipleChoiceRevelation({
@@ -27,37 +36,27 @@ class MultipleChoiceRevelation extends StatelessWidget {
 
     for (final (int index, String answer) in questionModel.answers.indexed) {
       final List<Widget> choiceChildren = <Widget>[
+        (
+          index == questionModel.correctAnswer
+          ? const Icon(
+              Icons.check,
+              color: Colors.green,
+            )
+          : Icon(
+              Icons.close,
+              color: Color(chosenAnswer == null || index == chosenAnswer ? 0xFFFF0000 : 0x00000000),
+            )
+        ),
         Expanded(child: Text(answer)),
       ];
 
-      if (chosenAnswer != null && index == chosenAnswer && chosenAnswer != questionModel.correctAnswer) {
-        choiceChildren.insert(
-          0,
-          const Icon(
-            Icons.close,
-            color: Colors.red,
-          ),
-        );
-      }
-      if (index == questionModel.correctAnswer) {
-        choiceChildren.insert(
-          0,
-          const Icon(
-            Icons.check,
-            color: Colors.green,
-          ),
-        );
-      }
-
-      choices.add(
-        Row(children: choiceChildren)
-      );
+      choices.add(Row(children: choiceChildren));
     }
 
     choices.add(
       ElevatedButton(
         onPressed: () {
-          Navigator.pop(context);
+          Navigator.pop<void>(context);
         },
         child: const Text('Next'),
       ),
