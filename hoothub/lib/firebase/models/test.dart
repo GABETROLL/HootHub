@@ -64,7 +64,8 @@ class Test implements Model {
   /// Adds a new, empty question at the end of `answers`
   ///
   /// The new, empty question should have an empty title, answers,
-  /// and should have answer 0 as the correct answer.
+  /// should have answer 0 as the correct answer,
+  /// and should last its constructor's default time, of 20 seconds.
   void addNewEmptyQuestion() {
     questions.add(Question(question: '', answers: <String>['', ''], correctAnswer: 0));
   }
@@ -102,11 +103,19 @@ class Test implements Model {
 
   /// Adds a new, empty answer to the end of the `answers` of the `questionIndex`-th question.
   ///
-  /// Throws if either the `questionIndex` is out of range of `questions`.
+  /// Throws if the `questionIndex` is out of range of `questions`.
   void addNewEmptyAnswer(int questionIndex) {
     _checkQuestionIndex(questionIndex);
     questions[questionIndex].addNewEmptyAnswer();
-  } 
+  }
+
+  /// Sets the time duration, in seconds, of the `questionIndex`-th question.
+  ///
+  /// Throws if the `questionIndex` is out of range of `questions`.
+  void setSecondsDuration(int questionIndex, int secondsDuration) {
+    _checkQuestionIndex(questionIndex);
+    questions[questionIndex].setSecondsDuration(secondsDuration);
+  }
 
   /// Returns the `Test` representation of `snapshot.data()`.
   /// If the data is null, this method returns null.

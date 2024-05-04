@@ -76,6 +76,7 @@ class SlideEditor extends StatelessWidget {
     required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
     required this.setAnswer,
+    required this.setSecondsDuration,
   });
 
   final Question questionModel;
@@ -83,6 +84,7 @@ class SlideEditor extends StatelessWidget {
   final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
   final void Function(int, String) setAnswer;
+  final void Function(int) setSecondsDuration;
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +102,16 @@ class SlideEditor extends StatelessWidget {
           decoration: const InputDecoration(
             hintText: 'Question',
           ),
+        ),
+        Slider(
+          value: questionModel.secondsDuration as double,
+          onChanged: (double selectedSecondsDuration) {
+            setSecondsDuration(selectedSecondsDuration as int);
+          },
+          min: 1,
+          max: 60,
+          divisions: 60,
+          label: questionModel.secondsDuration.toString(),
         ),
         MultipleChoiceEditor(
           questionModel: questionModel,

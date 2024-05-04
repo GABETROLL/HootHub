@@ -52,7 +52,8 @@ Future<String> saveTest(Test test) async {
     // Otherwise, `doc` will recieve null, and will generate the test's UID automatically,
     // which we can then place in `test.id`.
     DocumentReference<Map<String, dynamic>> testReference = _testsCollection.doc(test.id);
-    // TODO: COPY BEFORE ALTERING.
+    // TODO: COPY BEFORE ALTERING. (To do this, you'd have to re-download the test
+    // to show the user the changes after the test has been uploaded)
     test.id ??= testReference.id;
 
     // Check if the test already belongs to someone else that's not the currently logged in user,
@@ -82,7 +83,7 @@ Future<String> saveTest(Test test) async {
     // Save test to its corresponding reference (in the Firestore).
     await testReference.set(test.toJson());
   } on FirebaseException catch (error) {
-    return error.code;
+    return error.message ?? error.code;
   } catch (error) {
     return error.toString();
   }

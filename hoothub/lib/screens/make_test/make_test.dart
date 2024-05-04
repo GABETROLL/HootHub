@@ -42,7 +42,8 @@ class _MakeTestState extends State<MakeTest> {
   // default index. May not be in the bounds of `testModel!.questions`,
   // since that could be empty!
   int _currentSlideIndex = 0;
-  Test? _testModel;
+  // assigned by `initState`.
+  late Test _testModel;
 
   @override
   void initState() {
@@ -51,12 +52,12 @@ class _MakeTestState extends State<MakeTest> {
   }
 
   Future<void> onTestSaved(BuildContext context) async {
-    if (!(_testModel!.isValid()) && context.mounted) {
+    if (!(_testModel.isValid()) && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid Test!')),
       );
     } else {
-      String saveResult = await saveTest(_testModel!);
+      String saveResult = await saveTest(_testModel);
 
       if (!(context.mounted)) return;
 
@@ -76,7 +77,7 @@ class _MakeTestState extends State<MakeTest> {
   Widget build(BuildContext context) {
     final List<Widget> slidePreviews = [];
 
-    for (final (int index, Question question) in _testModel!.questions.indexed) {
+    for (final (int index, Question question) in _testModel.questions.indexed) {
       slidePreviews.add(
         IconButton(
           onPressed: () => setState(() {
@@ -101,8 +102,8 @@ class _MakeTestState extends State<MakeTest> {
       AddSlideButton(
         onPressed: () {
           setState(() {
-            _testModel!.addNewEmptyQuestion();
-            _currentSlideIndex = _testModel!.questions.length - 1;
+            _testModel.addNewEmptyQuestion();
+            _currentSlideIndex = _testModel.questions.length - 1;
           });
         },
       ),
@@ -110,7 +111,7 @@ class _MakeTestState extends State<MakeTest> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_testModel!.name),
+        title: Text(_testModel.name),
         actions: <Widget>[
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
@@ -133,22 +134,25 @@ class _MakeTestState extends State<MakeTest> {
           // In the case that it is,
           // the `AddSlideButton` "slide" will be displayed instead.
           (
-            _currentSlideIndex < 0 || _currentSlideIndex >= _testModel!.questions.length
+            _currentSlideIndex < 0 || _currentSlideIndex >= _testModel.questions.length
             ? const Center(child: AddSlideButton())
             : Expanded(
               child: SlideEditor(
-                questionModel: _testModel!.questions[_currentSlideIndex],
+                questionModel: _testModel.questions[_currentSlideIndex],
                 setQuestion: (String question) => setState(() {
-                  _testModel!.setQuestion(_currentSlideIndex, question);
+                  _testModel.setQuestion(_currentSlideIndex, question);
                 }),
                 addNewEmptyAnswer: () => setState(() {
-                  _testModel!.addNewEmptyAnswer(_currentSlideIndex);
+                  _testModel.addNewEmptyAnswer(_currentSlideIndex);
                 }),
                 setCorrectAnswer: (int index) => setState(() {
-                  _testModel!.setCorrectAnswer(_currentSlideIndex, index);
+                  _testModel.setCorrectAnswer(_currentSlideIndex, index);
                 }),
                 setAnswer: (int index, String answer) => setState(() {
-                  _testModel!.setAnswer(_currentSlideIndex, index, answer);
+                  _testModel.setAnswer(_currentSlideIndex, index, answer);
+                }),
+                setSecondsDuration: (int secondsDuration) => setState(() {
+                  _testModel.setSecondsDuration(_currentSlideIndex, secondsDuration);
                 }),
               ),
             )

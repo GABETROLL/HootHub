@@ -64,7 +64,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
           Text(currentQuestion.question),
           Countdown(
             controller: countdownController,
-            seconds: 20, // TODO: Make the test customize the time each question takes
+            seconds: currentQuestion.secondsDuration,
             build: (BuildContext context, double time) => Text(time.toString()),
             onFinished: () {
               print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');

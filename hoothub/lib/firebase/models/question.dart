@@ -1,14 +1,28 @@
 import 'model.dart';
 
 class Question implements Model {
-  Question({required this.question, required this.answers, required this.correctAnswer});
+  Question({
+    required this.question,
+    required this.answers,
+    required this.correctAnswer,
+    this.secondsDuration = 20,
+  });
 
   String question;
   List<String> answers;
   int correctAnswer;
+  int secondsDuration;
 
+  /// A Question is valid if:
+  /// - It has more than one answer
+  /// - The `correctAnswer` is a valid index for `answers`
+  /// - `secondsDuration` is in the range of 1 to 60
   @override
-  bool isValid() => answers.length > 1 && 0 <= correctAnswer && correctAnswer < answers.length;
+  bool isValid() => (
+    answers.length > 1
+    && 0 <= correctAnswer && correctAnswer < answers.length
+    && 1 <= secondsDuration && secondsDuration <= 60
+  );
 
   /// Sets `this.question: question`.
   void setQuestion(String question) {
@@ -43,11 +57,17 @@ class Question implements Model {
     answers.add('');
   }
 
+  /// Sets `this.secondsDuration: secondsDuration`.
+  void setSecondsDuration(secondsDuration) {
+    this.secondsDuration = secondsDuration;
+  }
+
   static Question fromJson(Map<String, dynamic> data) {
     return Question(
       question: data['question'],
       answers: data['answers'],
       correctAnswer: data['correctAnswer'],
+      secondsDuration: data['secondsDuration'],
     );
   }
 
@@ -56,5 +76,6 @@ class Question implements Model {
     'question': question,
     'answers': answers,
     'correctAnswer': correctAnswer,
+    'secondsDuration': secondsDuration,
   };
 }
