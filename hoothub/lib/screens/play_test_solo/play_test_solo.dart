@@ -5,6 +5,7 @@ import 'package:hoothub/firebase/models/test.dart';
 import 'package:flutter/material.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 import 'multiple_choice_player.dart';
+import 'multiple_choice_revelation.dart';
 
 class PlayTestSolo extends StatefulWidget {
   const PlayTestSolo({
@@ -20,6 +21,20 @@ class PlayTestSolo extends StatefulWidget {
 
 class _PlayTestSoloState extends State<PlayTestSolo> {
   int _currentQuestionIndex = 0;
+
+  void revealCorrectAnswer(BuildContext context, Question currentQuestion) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => MultipleChoiceRevelation(
+          questionModel: currentQuestion,
+          chosenAnswer: null,
+        ),
+      ),
+    );
+
+    setState(() { _currentQuestionIndex++; });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,15 +53,20 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
         children: <Widget>[
           Text(currentQuestion.question),
           Countdown(
-            seconds: 20,
+            seconds: 20, // TODO: Make the test customize the time each question takes
             build: (BuildContext context, double time) => Text(time.toString()),
             interval: const Duration(seconds: 1),
             onFinished: () {
-              print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');
-              setState(() { _currentQuestionIndex++; });
+              // print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');
+              revealCorrectAnswer(context, currentQuestion);
             },
           ),
-          MultipleChoicePlayer(questionModel: currentQuestion),
+          MultipleChoicePlayer(
+            questionModel: currentQuestion,
+            onAnswerSelected: (int index) {
+              revealCorrectAnswer(context, currentQuestion);
+            }
+          ),
         ],
       ),
     );
