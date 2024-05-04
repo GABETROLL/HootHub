@@ -54,6 +54,15 @@ class MultipleChoiceRevelation extends StatelessWidget {
       );
     }
 
+    choices.add(
+      ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        child: const Text('Next'),
+      ),
+    );
+
     return Column(children: choices);
   }
 }
