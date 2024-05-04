@@ -20,9 +20,9 @@ class Home extends StatelessWidget {
                 name: 'Test Test!',
                 userId: 'DsS1ZzDNxqci3NLEsW5WQJIiG422',
                 questions: <Question>[
-                  Question(question: 'What is `1 + 1`?', answers: ['0', '1', '2', '3'], correctAnswer: 2),
-                  Question(question: 'What is `2 + 2`?', answers: ['0', '2', '4', '6'], correctAnswer: 2),
-                  Question(question: 'What is `5 + 5`?', answers: ['0', '5', '10', '15'], correctAnswer: 1),
+                  Question(question: 'Simplify `sqrt(9)`:', answers: ['sqrt(3)', '3', 'sqrt(9)', '6'], correctAnswer: 1),
+                  Question(question: 'Simplify `sqrt(27)`:', answers: ['9', '3 * sqrt(3)', '3', 'sqrt(3)'], correctAnswer: 1),
+                  Question(question: 'Simplify `sqrt(10)`:', answers: ['sqrt(10)', 'sqrt(2)sqrt(5)', '3', 'cbrt(100)'], correctAnswer: 0),
                 ],
               ),
             ),
