@@ -1,10 +1,15 @@
 // back-end
+import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/home.dart';
 import 'signup.dart';
 
+/// This Widget, INTENDED TO BE USED AS A ROUTE,
+/// attempts to login the user to FirebaseAuth,
+/// then POPS with the (now logged in)
+/// user's `UserModel` as this Widget's ROUTE's result.
 class Login extends StatefulWidget {
   Login({super.key});
 
@@ -18,9 +23,17 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _passwordHidden = true;
 
-  /// Logs in the user using `logInUser`,
+  /// (Asynchronously) logs in the user using `logInUser`,
   /// and the text from the email and password `TextField`s.
   ///
+  /// If the `context` is still mounted after called `logInUser`,
+  /// this function displays a `SnackBar` with either
+  /// the error logging in, or a welcome message to the user.
+  ///
+  /// Then, this function attempts to get the user's current `UserModel?`,
+  /// and POPS this widget's route, using the model as its RESULT.
+  ///
+  /// TODO: It may not be anymore:
   /// `context`'s SCAFFOLD MUST BE THE `Scaffold` RETURNED BY THIS WIDGET'S `build`.
   /// You can use `Builder` inside `build` to wrap the widget that triggers this event handler.
   Future<void> _onLogIn(BuildContext context) async {
@@ -40,12 +53,11 @@ class _LoginState extends State<Login> {
         SnackBar(content: Text('Welcome back to HootHub, ${widget.emailController.text}')),
       );
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => const Home(),
-        ),
-      );
+      UserModel? userModel = await loggedInUser();
+
+      if (!(context.mounted)) return;
+
+      Navigator.pop<UserModel?>(context, userModel);
     }
   }
 

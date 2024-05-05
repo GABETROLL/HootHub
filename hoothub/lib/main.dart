@@ -1,15 +1,15 @@
+// back-end
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hoothub/screens/signup.dart';
 import 'firebase_options.dart';
+// front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/home.dart';
 
 Future<void> main() async {
-  runApp(const MyApp());
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: SignUp(),
+      home: const Home(),
     );
   }
 }
