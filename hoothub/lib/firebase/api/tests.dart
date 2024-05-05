@@ -90,3 +90,62 @@ Future<String> saveTest(Test test) async {
 
   return 'Ok';
 }
+
+/// Tries to return `querySnapshot.docs` as an Iterable<Test>.
+///
+/// If transforming an individual test `QueryDocumentSnapshot` to a `Test`
+/// goes wrong, then THE ERROR TAKES THE TEST'S PLACE IN THE RETURNED ITERABLE.
+///
+/// If anything else goes wrong with this function, THE ERROR IS RETURNED.
+dynamic queryTests(Query<Map<String, dynamic>> query) async {
+  try {
+    QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
+
+    return querySnapshot.docs.map<dynamic>(
+      (QueryDocumentSnapshot<Map<String, dynamic>> queryDocumentSnapshot) {
+        try {
+          return Test.fromSnapshot(queryDocumentSnapshot);
+        } catch (error) {
+          return error;
+        }
+      },
+    );
+  } catch (error) {
+    return error;
+  }
+}
+
+/// Tries to return the `querySnapshotTests` representation of
+/// the first `limit` newest/oldest tests in the Firestore `tests` collection.
+/// The tests are ordered according to `newest`.
+///
+/// If anything goes wrong with getting the tests or anything else in this function,
+/// THE ERROR IS RETURNED.
+Future<dynamic> testsByDateCreated(int limit, { required bool newest }) async {
+  return await queryTests(
+    _testsCollection
+      .orderBy('dateCreated')
+      .limit(limit),
+  );
+}
+
+/// Tries to return the first `limit` tests in the Firestore `tests` collection,
+/// that have the most/least NET UPVOTES.
+///
+/// NET UPVOTES ===== (upvotes - downvotes)
+///
+/// If something goes wrong with getting the tests or anything else in this function,
+/// THE ERROR IS RETURNED.
+Future<dynamic> testsByNetUpvotes(int limit) async {
+  // TODO: IMPLEMENT THE QUERY
+}
+
+/// Returns **ALL** of the tests made by the `UserModel` with `id: userId`,
+/// ordered according to `orderByNewest`.
+Future<dynamic> testsByUser(String userId, { required bool orderByNewest }) async {
+  return await queryTests(
+    _testsCollection
+      .where('userId', isEqualTo: userId)
+      .orderBy('dateCreated', descending: orderByNewest),
+  );
+}
