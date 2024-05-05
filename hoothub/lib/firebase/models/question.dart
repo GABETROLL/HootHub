@@ -58,7 +58,7 @@ class Question implements Model {
   }
 
   /// Sets `this.secondsDuration: secondsDuration`.
-  void setSecondsDuration(secondsDuration) {
+  void setSecondsDuration(int secondsDuration) {
     this.secondsDuration = secondsDuration;
   }
 

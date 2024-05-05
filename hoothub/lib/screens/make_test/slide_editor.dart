@@ -103,16 +103,24 @@ class SlideEditor extends StatelessWidget {
             hintText: 'Question',
           ),
         ),
-        Slider(
-          value: questionModel.secondsDuration as double,
-          onChanged: (double selectedSecondsDuration) {
-            setSecondsDuration(selectedSecondsDuration as int);
-          },
-          min: 1,
-          max: 60,
-          divisions: 60,
-          label: questionModel.secondsDuration.toString(),
+        Row(
+          children: <Widget>[
+            const Text('Time:'),
+            Expanded(
+              child: Slider(
+                value: questionModel.secondsDuration.toDouble(),
+                onChanged: (double selectedSecondsDuration) {
+                  setSecondsDuration(selectedSecondsDuration.toInt());
+                },
+                min: 1,
+                max: 60,
+                divisions: 60,
+                label: questionModel.secondsDuration.toString(),
+              ),
+            ),
+          ],
         ),
+        Text('${questionModel.secondsDuration} second${questionModel.secondsDuration > 1 ? 's' : ''}'),
         MultipleChoiceEditor(
           questionModel: questionModel,
           addNewEmptyAnswer: () => addNewEmptyAnswer(),
