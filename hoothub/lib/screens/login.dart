@@ -3,13 +3,14 @@ import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/home.dart';
 import 'signup.dart';
 
 /// This Widget, INTENDED TO BE USED AS A ROUTE,
 /// attempts to login the user to FirebaseAuth,
 /// then POPS with the (now logged in)
-/// user's `UserModel` as this Widget's ROUTE's result.
+/// user's `UserModel?` as this Widget's ROUTE's result.
+///
+/// The user's model may be null, because something may have gone wrong.
 class Login extends StatefulWidget {
   Login({super.key});
 
@@ -28,7 +29,7 @@ class _LoginState extends State<Login> {
   ///
   /// If the `context` is still mounted after called `logInUser`,
   /// this function displays a `SnackBar` with either
-  /// the error logging in, or a welcome message to the user.
+  /// the error logging in, or a welcome back message to the user.
   ///
   /// Then, this function attempts to get the user's current `UserModel?`,
   /// and POPS this widget's route, using the model as its RESULT.
@@ -59,6 +60,23 @@ class _LoginState extends State<Login> {
 
       Navigator.pop<UserModel?>(context, userModel);
     }
+  }
+
+  /// (Asynchronously) PUSHES a `MaterialPageRoute<SignUp>` to the `Navigator`,
+  /// awaits for that route's `UserModel?` result,
+  /// then POPS THIS ROUTE WITH THAT RESULT.
+  ///
+  /// That way, the user may choose the other auth method screen,
+  /// and their credentials will pop back down to `Home`!
+  Future<void> _onSignUpInstead(BuildContext context) async {
+    UserModel? signUpScreenResult = await Navigator.push<UserModel?>(
+      context,
+      MaterialPageRoute<UserModel?>(builder: (BuildContext context) => SignUp()),
+    );
+
+    if (!(context.mounted)) return;
+
+    Navigator.pop<UserModel?>(context, signUpScreenResult);
   }
 
   @override
@@ -98,12 +116,7 @@ class _LoginState extends State<Login> {
                 children: <Widget>[
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (BuildContext context) => SignUp()),
-                      );
-                    },
+                    onPressed: () => _onSignUpInstead(context),
                     child: const Text('Sign up'),
                   ),
                 ],

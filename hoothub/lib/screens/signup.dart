@@ -1,10 +1,16 @@
 // back-end
+import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'home.dart';
 import 'login.dart';
 
+/// This Widget, INTENDED TO BE USED AS A ROUTE,
+/// attempts to signup AND login the user to FirebaseAuth,
+/// then POPS with the (now signed up AND logged in)
+/// user's `UserModel?` as this Widget's ROUTE's result.
+///
+/// The user's model may be null, because something may have gone wrong.
 class SignUp extends StatefulWidget {
   SignUp({super.key});
 
@@ -20,9 +26,17 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   bool _passwordHidden = true;
 
-  /// Signs up the user using `signUpUser`,
+  /// (Asynchronously) signs up AND logs in the user using `signUpUser`,
   /// and the text from the email, password and username `TextField`s.
   ///
+  /// If the `context` is still mounted after called `logInUser`,
+  /// this function displays a `SnackBar` with either
+  /// the error signing up AND loggin in, or a welcome message to the user.
+  ///
+  /// Then, this function attempts to get the user's current `UserModel?`,
+  /// and POPS this widget's route, using the model as its RESULT.
+  ///
+  /// TODO: It may not be anymore:
   /// `context`'s SCAFFOLD MUST BE THE `Scaffold` RETURNED BY THIS WIDGET'S `build`.
   /// You can use `Builder` inside `build` to wrap the widget that triggers this event handler.
   Future<void> _onSignUp(BuildContext context) async {
@@ -42,13 +56,30 @@ class _SignUpState extends State<SignUp> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Welcome to HootHub, ${widget.usernameController.text}!')),
       );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => const Home(),
-        ),
-      );        
+
+      UserModel? userModel = await loggedInUser();
+
+      if (!(context.mounted)) return;
+
+      Navigator.pop<UserModel?>(context, userModel);
     }
+  }
+
+  /// (Asynchronously) PUSHES a `MaterialPageRoute<LogIn>` to the `Navigator`,
+  /// awaits for that route's `UserModel?` result,
+  /// then POPS THIS ROUTE WITH THAT RESULT.
+  ///
+  /// That way, the user may choose the other auth method screen,
+  /// and their credentials will pop back down to `Home`!
+  Future<void> _onLoginInstead(BuildContext context) async {
+    UserModel? loginInScreenResult = await Navigator.push<UserModel?>(
+      context,
+      MaterialPageRoute<UserModel?>(builder: (BuildContext context) => Login()),
+    );
+
+    if (!(context.mounted)) return;
+
+    Navigator.pop<UserModel?>(context, loginInScreenResult);
   }
 
   @override
@@ -107,12 +138,7 @@ class _SignUpState extends State<SignUp> {
                 children: <Widget>[
                   const Text("Already have an account?"),
                   TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (BuildContext context) => Login()),
-                      );
-                    },
+                    onPressed: () =>_onLoginInstead(context),
                     child: const Text('Log in'),
                   ),
                 ],
