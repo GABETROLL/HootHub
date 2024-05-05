@@ -4,12 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Model for test.
 ///
-/// BOTH IDS ARE OPTIONAL, SINCE THEY WILL BE CREATED BY FIREBASE.
-/// PROVIDING THEM INDICATES TO `saveTest` TO USE THESE INSTEAD
-/// OF GENERATING NEW ONES, SO THEY NEED TO BE CORRECT.
-/// NOT PROVIDING THEM INDICATES TO `saveTest` TO GENERATE THEM
-/// AUTOMATICALLY WHEN SAVING THEM, VIA THE CURRENT USER'S UID
-/// AND BY GENERATING A NEW UNIQUE KEY FOR THE TEST IN THE FIRESTORE.
+/// `id`, `userId` and `dateCreated` are optional.
+/// If they are not provided, `saveTest` will generate them for
+/// the test document. If they are, please make sure they are correct.
 ///
 /// `id` is the ID of the test,
 /// the unique key for the test in the `tests` Firestore collection.
@@ -23,6 +20,7 @@ class Test implements Model {
     this.id,
     this.userId,
     this.name = '',
+    this.dateCreated,
     this.imageUrl,
     this.questions = const <Question>[],
     this.usersThatUpvoted = const <String>[],
@@ -32,6 +30,7 @@ class Test implements Model {
   String? id;
   String? userId;
   String name;
+  Timestamp? dateCreated;
   String? imageUrl;
   List<Question> questions;
   List<String> usersThatUpvoted;
@@ -42,8 +41,8 @@ class Test implements Model {
   /// A `Test` is valid if its `name` and `questions` aren't empty,
   /// and if all of its questions are valid.
   ///
-  /// `id` and `userId` and `imageUrl` ARE NOT NEEDED TO VALIDATE A TEST,
-  /// because the ID's will be created by `saveTest`,
+  /// `id`, `userId`, `dateCreated` and `imageUrl` ARE NOT NEEDED TO VALIDATE A TEST,
+  /// because the first 3 fields (HOPEFULLY WERE) created automatically by `saveTest`,
   /// and because tests may not always have an image.
   @override
   bool isValid() {
@@ -118,9 +117,10 @@ class Test implements Model {
   }
 
   /// Returns the `Test` representation of `snapshot.data()`.
+  ///
   /// If the data is null, this method returns null.
-  /// If any of the fields are wrong, the constructor call inside this method
-  /// takes care of those errors, and throws them up the stack.
+  ///
+  /// Throws if the data is invalid.
   static Test? fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     Map<String, dynamic>? data = snapshot.data();
 
@@ -141,6 +141,7 @@ class Test implements Model {
       id: data['id'],
       userId: data['userId'],
       name: data['name'],
+      dateCreated: data['dateCreated'],
       imageUrl: data['imageUrl'],
       questions: questions,
       usersThatUpvoted: data['usersThatUpvoted'],
@@ -153,6 +154,7 @@ class Test implements Model {
     'id': id,
     'userId': userId,
     'name': name,
+    'dateCreated': dateCreated,
     'imageUrl': imageUrl,
     'questions': List.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson()),
