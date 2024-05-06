@@ -1,13 +1,10 @@
 // back-end
 import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/models/user.dart';
-
-import 'package:hoothub/firebase/models/test.dart';
-import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/login.dart';
-import 'view_test/view_test.dart';
+import 'login.dart';
+import 'view_tests/view_tests.dart';
 
 /// For now, this widget only shows the user a test test.
 ///
@@ -74,41 +71,9 @@ class _HomeState extends State<Home> {
       );
     }
 
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => ViewTest(
-              testModel: Test(
-                name: 'Test Test!',
-                userId: 'DsS1ZzDNxqci3NLEsW5WQJIiG422',
-                questions: <Question>[
-                  Question(
-                    question: 'Simplify `sqrt(9)`:',
-                    answers: ['sqrt(3)', '3', 'sqrt(9)', '6'],
-                    correctAnswer: 1,
-                    secondsDuration: 60
-                  ),
-                  Question(
-                    question: 'Simplify `sqrt(27)`:',
-                    answers: ['9', '3 * sqrt(3)', '3', 'sqrt(3)'],
-                    correctAnswer: 1,
-                    secondsDuration: 6,
-                  ),
-                  Question(
-                    question: 'Simplify `sqrt(10)`:',
-                    answers: ['sqrt(10)', 'sqrt(2)sqrt(5)', '3', 'cbrt(100)'],
-                    correctAnswer: 0,
-                    secondsDuration: 1,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      child: const Text('Go to `ViewTest` screen with test Test!'),
+    return Scaffold(
+      appBar: AppBar(title: const Text('HootHub')),
+      body: const ViewTests(),
     );
   }
 }

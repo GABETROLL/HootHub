@@ -94,25 +94,17 @@ Future<String> saveTest(Test test) async {
 /// Tries to return `querySnapshot.docs` as an Iterable<Test>.
 ///
 /// If transforming an individual test `QueryDocumentSnapshot` to a `Test`
-/// goes wrong, then THE ERROR TAKES THE TEST'S PLACE IN THE RETURNED ITERABLE.
+/// goes wrong, then THE ERROR GETS THROWN IN ITS PLACE IN THE ITERABLE.
 ///
-/// If anything else goes wrong with this function, THE ERROR IS RETURNED.
-dynamic queryTests(Query<Map<String, dynamic>> query) async {
-  try {
-    QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
+/// If anything else goes wrong with this function, THE ERROR IS THROWN.
+Future<Iterable<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
+  QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
 
-    return querySnapshot.docs.map<dynamic>(
-      (QueryDocumentSnapshot<Map<String, dynamic>> queryDocumentSnapshot) {
-        try {
-          return Test.fromSnapshot(queryDocumentSnapshot);
-        } catch (error) {
-          return error;
-        }
-      },
-    );
-  } catch (error) {
-    return error;
-  }
+  return querySnapshot.docs.map<Test?>(
+    (QueryDocumentSnapshot<Map<String, dynamic>> queryDocumentSnapshot) {
+      return Test.fromSnapshot(queryDocumentSnapshot);
+    },
+  );
 }
 
 /// Tries to return the `querySnapshotTests` representation of
@@ -121,7 +113,7 @@ dynamic queryTests(Query<Map<String, dynamic>> query) async {
 ///
 /// If anything goes wrong with getting the tests or anything else in this function,
 /// THE ERROR IS RETURNED.
-Future<dynamic> testsByDateCreated(int limit, { required bool newest }) async {
+Future<Iterable<Test?>> testsByDateCreated(int limit, { required bool newest }) async {
   return await queryTests(
     _testsCollection
       .orderBy('dateCreated')
@@ -136,13 +128,13 @@ Future<dynamic> testsByDateCreated(int limit, { required bool newest }) async {
 ///
 /// If something goes wrong with getting the tests or anything else in this function,
 /// THE ERROR IS RETURNED.
-Future<dynamic> testsByNetUpvotes(int limit) async {
+/* Future<Iterable<Test?>> testsByNetUpvotes(int limit) async {
   // TODO: IMPLEMENT THE QUERY
 }
-
+ */
 /// Returns **ALL** of the tests made by the `UserModel` with `id: userId`,
 /// ordered according to `orderByNewest`.
-Future<dynamic> testsByUser(String userId, { required bool orderByNewest }) async {
+Future<Iterable<Test?>> testsByUser(String userId, { required bool orderByNewest }) async {
   return await queryTests(
     _testsCollection
       .where('userId', isEqualTo: userId)
