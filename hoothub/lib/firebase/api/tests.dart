@@ -107,16 +107,15 @@ Future<Iterable<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
   );
 }
 
-/// Tries to return the `querySnapshotTests` representation of
+/// Tries to return the `queryTests` representation of
 /// the first `limit` newest/oldest tests in the Firestore `tests` collection.
 /// The tests are ordered according to `newest`.
 ///
-/// If anything goes wrong with getting the tests or anything else in this function,
-/// THE ERROR IS RETURNED.
-Future<Iterable<Test?>> testsByDateCreated(int limit, { required bool newest }) async {
+/// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
+Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool newest }) async {
   return await queryTests(
     _testsCollection
-      .orderBy('dateCreated')
+      .orderBy('dateCreated', descending: newest)
       .limit(limit),
   );
 }

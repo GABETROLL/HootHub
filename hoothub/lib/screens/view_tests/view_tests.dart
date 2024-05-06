@@ -19,7 +19,21 @@ class _ViewTestsState extends State<ViewTests> {
   bool _searchedForTests = false;
 
   Future<void> _fetchTests() async {
-    Iterable<Test?> tests = await testsByDateCreated(100, newest: true);
+    Iterable<Test?> tests;
+
+    try {
+      tests = await testsByDateCreated(limit: 100, newest: true);
+    } catch (error) {
+      // If even getting the tests goes wrong,
+      // just indicate to the `build` method that the tests
+      // were searched, so that it can tell the user that
+      // something went wrong.
+      setState(() {
+        _searchedForTests = true;
+      });
+      return;
+    }
+
     List<Widget> testCards = [];
 
     for (Test? test in tests) {
