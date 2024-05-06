@@ -7,6 +7,11 @@ import 'package:hoothub/firebase/api/tests.dart';
 import 'package:flutter/material.dart';
 import 'package:hoothub/widgets/test_card.dart';
 
+/// A UI for viewing different categories of tests from the Firestore.
+///
+/// Doesn't have its own `Scaffold` wrapping its contents,
+/// AND IT'S MEANT TO BE WRAPPED BY `Home`, OR BY A WIDGET THAT IS.
+/// IT'S NOT MEANT TO BE USED DIRECTLY IN A ROUTE.
 class ViewTests extends StatefulWidget {
   const ViewTests({super.key});
 
