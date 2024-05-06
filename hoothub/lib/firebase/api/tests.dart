@@ -149,3 +149,7 @@ Future<dynamic> testsByUser(String userId, { required bool orderByNewest }) asyn
       .orderBy('dateCreated', descending: orderByNewest),
   );
 }
+/* 
+Future<dynamic> testsByName(String nameQuery) async {
+  return await 
+} */

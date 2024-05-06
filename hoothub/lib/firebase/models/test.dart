@@ -1,5 +1,6 @@
 import 'model.dart';
 import 'question.dart';
+import 'test_result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Model for test.
@@ -23,6 +24,7 @@ class Test implements Model {
     this.dateCreated,
     this.imageUrl,
     this.questions = const <Question>[],
+    this.userResults = const <String, TestResult>{},
     this.usersThatUpvoted = const <String>[],
     this.usersThatDownvoted = const <String>[],
   });
@@ -33,26 +35,33 @@ class Test implements Model {
   Timestamp? dateCreated;
   String? imageUrl;
   List<Question> questions;
+  Map<String, TestResult> userResults;
   List<String> usersThatUpvoted;
   List<String> usersThatDownvoted;
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
   ///
   /// A `Test` is valid if its `name` and `questions` aren't empty,
-  /// and if all of its questions are valid.
+  /// if all of its questions are valid,
+  /// and if all of the `userResults.values` are valid, according to this test.
   ///
   /// `id`, `userId`, `dateCreated` and `imageUrl` ARE NOT NEEDED TO VALIDATE A TEST,
   /// because the first 3 fields (HOPEFULLY WERE) created automatically by `saveTest`,
   /// and because tests may not always have an image.
   @override
   bool isValid() {
-    bool questionsValid = true;
-
     for (Question question in questions) {
-      questionsValid &= question.isValid();
+      if (!(question.isValid())) return false;
     }
 
-    return name.isNotEmpty && questions.isNotEmpty && questionsValid;
+    for (TestResult testResult in userResults.values) {
+      if (!(0 <= testResult.correctAnswers && testResult.correctAnswers < questions.length)) {
+        return false;
+      }
+      // TODO: VERIFY `testResult` BASED ON THE SCORING FORMULA!
+    }
+
+    return name.isNotEmpty && questions.isNotEmpty;
   }
 
   /// Sets `this.name: name`.
@@ -137,6 +146,19 @@ class Test implements Model {
       ),
     );
 
+    if (data['userResults'] is! Map<String, Map<String, dynamic>>) {
+      throw "`userResults` field of snapshot data is not the correct type!";
+    }
+
+    Map<String, TestResult> userResults = Map.fromEntries(
+      data['userResults'].entries.map<MapEntry<String, TestResult>>(
+        (MapEntry<String, Map<String, dynamic>> userResult) => MapEntry<String, TestResult>(
+          userResult.key,
+          TestResult.fromJson(userResult.value),
+        ), 
+      ),
+    );
+
     return Test(
       id: data['id'],
       userId: data['userId'],
@@ -144,6 +166,7 @@ class Test implements Model {
       dateCreated: data['dateCreated'],
       imageUrl: data['imageUrl'],
       questions: questions,
+      userResults: userResults,
       usersThatUpvoted: data['usersThatUpvoted'],
       usersThatDownvoted: data['usersThatDownvoted'],
     );
