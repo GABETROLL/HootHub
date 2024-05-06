@@ -1,8 +1,10 @@
 // back-end
 import 'package:hoothub/firebase/api/auth.dart';
+import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/make_test/make_test.dart';
 import 'login.dart';
 import 'view_tests/view_tests.dart';
 
@@ -72,7 +74,24 @@ class _HomeState extends State<Home> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('HootHub')),
+      appBar: AppBar(
+        title: const Text('HootHub'),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => MakeTest(
+                    testModel: Test(),
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
       body: const ViewTests(),
     );
   }
