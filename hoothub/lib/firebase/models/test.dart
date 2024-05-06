@@ -20,24 +20,40 @@ class Test implements Model {
   Test({
     this.id,
     this.userId,
-    this.name = '',
+    String? name,
     this.dateCreated,
     this.imageUrl,
-    this.questions = const <Question>[],
-    this.userResults = const <String, TestResult>{},
-    this.usersThatUpvoted = const <String>[],
-    this.usersThatDownvoted = const <String>[],
-  });
+    List<Question>? questions,
+    Map<String, TestResult>? userResults,
+    List<String>? usersThatUpvoted,
+    List<String>? usersThatDownvoted,
+  }) {
+    if (name != null) {
+      this.name = name;
+    }
+    if (questions != null) {
+      this.questions = questions;
+    }
+    if (userResults != null) {
+      this.userResults = userResults;
+    }
+    if (usersThatUpvoted != null) {
+      this.usersThatUpvoted = usersThatUpvoted;
+    }
+    if (usersThatDownvoted != null) {
+      this.usersThatDownvoted = usersThatDownvoted;
+    }
+  }
 
   String? id;
   String? userId;
-  String name;
+  String name = '';
   Timestamp? dateCreated;
   String? imageUrl;
-  List<Question> questions;
-  Map<String, TestResult> userResults;
-  List<String> usersThatUpvoted;
-  List<String> usersThatDownvoted;
+  List<Question> questions = <Question>[];
+  Map<String, TestResult> userResults = <String, TestResult>{};
+  List<String> usersThatUpvoted = <String>[];
+  List<String> usersThatDownvoted = <String>[];
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
   ///
