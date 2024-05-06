@@ -12,20 +12,23 @@ import 'package:hoothub/screens/make_test/slide_editor.dart';
 import 'package:hoothub/screens/slide_preview.dart';
 
 class AddSlideButton extends StatelessWidget {
-  const AddSlideButton({super.key, this.onPressed});
+  const AddSlideButton({super.key, required this.onPressed});
 
-  final void Function()? onPressed;
+  final void Function() onPressed;
 
   @override
   Widget build(BuildContext context) => Center(
     child: ElevatedButton(
-      onPressed: onPressed ?? (() { }),
+      onPressed: onPressed,
       child: const Text('Add question'),
     ),
   );
 }
 
 /// Eventually pops with void. Edits the test, then saves it.
+///
+/// It has its own `Scaffold` wrapping all of its content,
+/// and IT'S MEANT TO BE USED DIRECTLY IN A ROUTE.
 class MakeTest extends StatefulWidget {
   const MakeTest({
     super.key,
@@ -135,7 +138,7 @@ class _MakeTestState extends State<MakeTest> {
           // the `AddSlideButton` "slide" will be displayed instead.
           (
             _currentSlideIndex < 0 || _currentSlideIndex >= _testModel.questions.length
-            ? const Center(child: AddSlideButton())
+            ? const Center(child: Text('No questions yet!'))
             : Expanded(
               child: SlideEditor(
                 questionModel: _testModel.questions[_currentSlideIndex],
