@@ -8,9 +8,22 @@ import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 // frontend
 import 'package:flutter/material.dart';
-import 'slide_editor.dart';
-import 'slide_preview.dart';
-import 'add_slide_button.dart';
+import 'package:hoothub/screens/make_test/slide_editor.dart';
+import 'package:hoothub/screens/slide_preview.dart';
+
+class AddSlideButton extends StatelessWidget {
+  const AddSlideButton({super.key, required this.onPressed});
+
+  final void Function() onPressed;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: ElevatedButton(
+      onPressed: onPressed,
+      child: const Text('Add question'),
+    ),
+  );
+}
 
 /// Eventually pops with void. Edits the test, then saves it.
 ///
@@ -28,97 +41,20 @@ class MakeTest extends StatefulWidget {
   State<MakeTest> createState() => _MakeTestState();
 }
 
-/* class SlideTextEditingControllers {
-  const SlideTextEditingControllers({required this.questionTextEditingController, required this.answerTextEditingControllers});
-
-  final TextEditingController questionTextEditingController;
-  final List<TextEditingController> answerTextEditingControllers;
-} */
-
 class _MakeTestState extends State<MakeTest> {
-  // int _currentSlideIndex = 0;
-  late Widget _currentSlideEditor;
+  // default index. May not be in the bounds of `testModel!.questions`,
+  // since that could be empty!
+  int _currentSlideIndex = 0;
+  // assigned by `initState`.
   late Test _testModel;
-  // late List<SlideTextEditingControllers> _testTextEditingControllers;
-
-  /// Sets `_currentSlideEditor` equal to a `SlideEditor` `Widget` that edits
-  /// the `slideIndex`-th question, WHICH SHOULD BE THE ONE THE USER IS TRYING TO EDIT.
-  ///
-  /// If `slideIndex` is OUT OF THE RANGE OF `_testModel.questions`,
-  /// this method assings `_currentSlideEditor` to a centered `AddSlideButton`
-  /// instead.
-  ///
-  /// This method eliminates a problem:
-  /// Each time a user would type text in one `TextField` in a `SlideEditor`,
-  /// wouldn't press `Enter`, then would set some other state of the question inside
-  /// that same `SlideEditor`, the text would be gone! Because the user never **saved**
-  /// that text to the slide's `Question` by pressing `Enter`.
-  ///
-  /// Keeping track of the `_currentSlideEditor` allows the user to set state
-  /// to this `_testModel`, and have this `Widget` RE-BUILD ITSELF,
-  /// WITHOUT LOSING THE DATA IN THE SLIDE'S `TextEditingController`s, BECAUSE
-  /// THE WIDGET WON'T BE RE-RENDERED AGAIN, WHICH MEANS THE `TextEditingController`s
-  /// WON'T BE CHANGED!
-  void _setCurrentSlideEditor({required int slideIndex}) {
-    if (!(0 <= slideIndex && slideIndex < _testModel.questions.length)) {
-      setState(() {
-        _currentSlideEditor = Center(
-          child: AddSlideButton(
-            onPressed: () => setState(() {
-              _testModel.addNewEmptyQuestion();
-              _setCurrentSlideEditor(slideIndex: _testModel.questions.length);
-            }),
-          ),
-        );
-      });
-    } else {
-      setState(() {
-        _currentSlideEditor = SlideEditor(
-          questionModel: _testModel.questions[slideIndex],
-          setQuestion: (String question) => setState(() {
-            _testModel.setQuestion(slideIndex, question);
-          }),
-          addNewEmptyAnswer: () => setState(() {
-            _testModel.addNewEmptyAnswer(slideIndex);
-          }),
-          setCorrectAnswer: (int answerIndex) => setState(() {
-            _testModel.setCorrectAnswer(slideIndex, answerIndex);
-          }),
-          setAnswer: (int answerIndex, String answer) => setState(() {
-            _testModel.setAnswer(slideIndex, answerIndex, answer);
-          }),
-          setSecondsDuration: (int secondsDuration) => setState(() {
-            _testModel.setSecondsDuration(slideIndex, secondsDuration);
-          }),
-        );
-      });
-    }
-  }
 
   @override
   void initState() {
     super.initState();
     _testModel = widget.testModel;
-    /* _testTextEditingControllers = <SlideTextEditingControllers>[];
-
-    for (Question question in _testModel.questions) {
-      final questionTextEditingController = TextEditingController(text: question.question);
-      final answerTextEditingControllers = <TextEditingController>[];
-
-      for (String answer in question.answers) {
-        answerTextEditingControllers.add(TextEditingController(text: answer));
-      }
-      _testTextEditingControllers.add(
-        SlideTextEditingControllers(
-          questionTextEditingController: questionTextEditingController,
-          answerTextEditingControllers: answerTextEditingControllers
-        ),
-      );
-    } */
-    _setCurrentSlideEditor(slideIndex: 0);
   }
 
-  Future<void> _onTestSaved(BuildContext context) async {
+  Future<void> onTestSaved(BuildContext context) async {
     if (!(_testModel.isValid()) && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid Test!')),
@@ -147,7 +83,11 @@ class _MakeTestState extends State<MakeTest> {
     for (final (int index, Question question) in _testModel.questions.indexed) {
       slidePreviews.add(
         IconButton(
-          onPressed: () => _setCurrentSlideEditor(slideIndex: index),
+          onPressed: () => setState(() {
+            // `index` should be within the index bounds of `testModel.questions`,
+            // so `_currentSlideIndex` should also be, after this `setState` call.
+            _currentSlideIndex = index;
+          }),
           icon: const SlidePreview(),
         ),
       );
@@ -166,8 +106,7 @@ class _MakeTestState extends State<MakeTest> {
         onPressed: () {
           setState(() {
             _testModel.addNewEmptyQuestion();
-            // set the current slide to be for the last question
-            _setCurrentSlideEditor(slideIndex: _testModel.questions.length - 1);
+            _currentSlideIndex = _testModel.questions.length - 1;
           });
         },
       ),
@@ -183,7 +122,7 @@ class _MakeTestState extends State<MakeTest> {
           ),
           Builder(
             builder: (BuildContext context) =>  ElevatedButton(
-              onPressed: () => _onTestSaved(context),
+              onPressed: () => onTestSaved(context),
               child: const Text('Save'),
             ),
           ),
@@ -194,7 +133,33 @@ class _MakeTestState extends State<MakeTest> {
           Column(
             children: slidePreviews,
           ),
-          Expanded(child: _currentSlideEditor),
+          // `_currentSlideIndex` may be out of the range of the list.
+          // In the case that it is,
+          // the `AddSlideButton` "slide" will be displayed instead.
+          (
+            _currentSlideIndex < 0 || _currentSlideIndex >= _testModel.questions.length
+            ? const Center(child: Text('No questions yet!'))
+            : Expanded(
+              child: SlideEditor(
+                questionModel: _testModel.questions[_currentSlideIndex],
+                setQuestion: (String question) => setState(() {
+                  _testModel.setQuestion(_currentSlideIndex, question);
+                }),
+                addNewEmptyAnswer: () => setState(() {
+                  _testModel.addNewEmptyAnswer(_currentSlideIndex);
+                }),
+                setCorrectAnswer: (int index) => setState(() {
+                  _testModel.setCorrectAnswer(_currentSlideIndex, index);
+                }),
+                setAnswer: (int index, String answer) => setState(() {
+                  _testModel.setAnswer(_currentSlideIndex, index, answer);
+                }),
+                setSecondsDuration: (int secondsDuration) => setState(() {
+                  _testModel.setSecondsDuration(_currentSlideIndex, secondsDuration);
+                }),
+              ),
+            )
+          ),
         ],
       ),
     );
