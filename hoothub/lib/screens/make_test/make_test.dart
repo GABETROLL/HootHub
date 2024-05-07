@@ -194,7 +194,7 @@ class _MakeTestState extends State<MakeTest> {
           Column(
             children: slidePreviews,
           ),
-          _currentSlideEditor,
+          Expanded(child: _currentSlideEditor),
         ],
       ),
     );
