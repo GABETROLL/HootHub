@@ -7,26 +7,32 @@ import 'package:flutter/material.dart';
 ///
 /// (Built `Widget` is a `Column`)
 class MultipleChoiceEditor extends StatelessWidget {
-  const MultipleChoiceEditor({
+  MultipleChoiceEditor({
     super.key,
     required this.questionModel,
     required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
     required this.setAnswer,
-  });
+  }) {
+    answerTextEditingControllers = <TextEditingController>[];
+
+    for (final String answer in questionModel.answers) {
+      answerTextEditingControllers.add(TextEditingController(text: answer));
+    }
+  }
 
   final Question questionModel;
   final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
   final void Function(int, String) setAnswer;
 
+  late final List<TextEditingController> answerTextEditingControllers;
+
   @override
   Widget build(BuildContext context) {
     final List<Widget> choices = <Widget>[];
 
-    for (final (int index, String answer) in questionModel.answers.indexed) {
-      final answerTextEditingController = TextEditingController(text: answer);
-
+    for (final (int index, TextEditingController answerTextEditingController) in answerTextEditingControllers.indexed) {
       final choice = Row(
         children: [
           Checkbox(
@@ -40,8 +46,6 @@ class MultipleChoiceEditor extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: answerTextEditingController,
-              // TODO: Make text save even when the user doesn't press ENTER or submits the text...
-              onEditingComplete: () => setAnswer(index, answerTextEditingController.text),
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
               ),
@@ -69,7 +73,7 @@ class MultipleChoiceEditor extends StatelessWidget {
 ///
 /// (Built `Widget` is a `Column`)
 class SlideEditor extends StatelessWidget {
-  const SlideEditor({
+  SlideEditor({
     super.key,
     required this.questionModel,
     required this.setQuestion,
@@ -77,7 +81,15 @@ class SlideEditor extends StatelessWidget {
     required this.setCorrectAnswer,
     required this.setAnswer,
     required this.setSecondsDuration,
-  });
+  }) {
+    questionTextEditingController = TextEditingController(text: questionModel.question);
+    multipleChoiceEditor = MultipleChoiceEditor(
+      questionModel: questionModel,
+      addNewEmptyAnswer: addNewEmptyAnswer,
+      setCorrectAnswer: setCorrectAnswer,
+      setAnswer: setAnswer,
+    );
+  }
 
   final Question questionModel;
   final void Function(String) setQuestion;
@@ -86,19 +98,15 @@ class SlideEditor extends StatelessWidget {
   final void Function(int, String) setAnswer;
   final void Function(int) setSecondsDuration;
 
+  late final TextEditingController questionTextEditingController;
+  late final MultipleChoiceEditor multipleChoiceEditor;
+
   @override
   Widget build(BuildContext context) {
-    final questionTextEditingController = TextEditingController(text: questionModel.question);
-
     return Column(
       children: <Widget>[
         TextField(
           controller: questionTextEditingController,
-          // TODO: Make text save even when the user doesn't press ENTER or submits the text...
-          onEditingComplete: () {
-            print('STOPPED EDITING QUESTION');
-            setQuestion(questionTextEditingController.text);
-          },
           decoration: const InputDecoration(
             hintText: 'Question',
           ),
@@ -121,12 +129,7 @@ class SlideEditor extends StatelessWidget {
           ],
         ),
         Text('${questionModel.secondsDuration} second${questionModel.secondsDuration > 1 ? 's' : ''}'),
-        MultipleChoiceEditor(
-          questionModel: questionModel,
-          addNewEmptyAnswer: () => addNewEmptyAnswer(),
-          setCorrectAnswer: (int index) => setCorrectAnswer(index),
-          setAnswer: (int index, String answer) => setAnswer(index, answer),
-        ),
+        multipleChoiceEditor,
       ],
     );
   }
