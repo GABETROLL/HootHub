@@ -21,7 +21,7 @@ class ViewTests extends StatefulWidget {
 
 class _ViewTestsState extends State<ViewTests> {
   List<Widget>? _testCards;
-  bool _searchedForTests = false;
+  String? _testQueryError;
 
   Future<void> _fetchTests() async {
     Iterable<Test?> tests;
@@ -29,14 +29,9 @@ class _ViewTestsState extends State<ViewTests> {
     try {
       tests = await testsByDateCreated(limit: 100, newest: true);
     } catch (error) {
-      // If even getting the tests goes wrong,
-      // just indicate to the `build` method that the tests
-      // were searched, so that it can tell the user that
-      // something went wrong.
-      setState(() {
-        _searchedForTests = true;
+      return setState(() {
+        _testQueryError = error.toString();
       });
-      return;
     }
 
     List<Widget> testCards = [];
@@ -67,17 +62,22 @@ class _ViewTestsState extends State<ViewTests> {
     }
 
     setState(() {
-      _searchedForTests = true;
       _testCards = testCards;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_searchedForTests) {
+    if (_testCards == null && _testQueryError == null) {
       _fetchTests();
 
       return const Text('Searching for tests...');
+    } else if (_testQueryError != null) {
+      return Center(
+        child: Text(
+          'Error searching for tests: $_testQueryError',
+        ),
+      );
     }
 
     // Cannot promote `_testCards` to non-nullable, because it's a non-final field.
@@ -88,7 +88,11 @@ class _ViewTestsState extends State<ViewTests> {
         children: _testCards!,
       );
     } catch (error) {
-      return const Center(child: Text('Something went wrong searching for tests...'));
+      return Center(
+        child: Text(
+          'Error displaying tests: $error',
+        ),
+      );
     }
   }
 }

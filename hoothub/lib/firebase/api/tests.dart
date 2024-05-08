@@ -10,11 +10,13 @@ final _usersCollection = FirebaseFirestore.instance.collection('users');
 
 /// Saves `test` as a document in the `tests` FirebaseFirestore collection.
 ///
-/// IF THESE IDs IN `test` ARE MISSING, THIS FUNCTION CREATES THEM IN-PLACE, IN `test`:
+/// IF THESE FIELDS IN `test` ARE MISSING, THIS FUNCTION CREATES THEM IN-PLACE, IN `test`:
 /// - `id` will be a unique test ID for the test document's key in the `tests` collection.
 /// - `userId` will be the CURRENTLY LOGGED IN USER'S `uid` (_auth.currentUser!.uid)
 ///   (IF THE CURRENT USER IS NOT LOGGED IN, THIS FUNCTION JUST RETURNS 'No user logged in!').
+/// - `dateCreated` will be `Timestamp.now()`.
 ///
+/// TODO: VERIFY AND DOCUMENT THE TEST VALIDATION IN THE FIREBASE SECURITY RULES.
 /// ANY OTHER IDs PRESENT IN `test`, NO MATTER HOW NESTED,
 /// IS REQUIRED TO BE VALID.
 ///
@@ -41,41 +43,36 @@ Future<String> saveTest(Test test) async {
   }
 
   try {
-    // generate test UID and set `test.id` (locally), if not already present.
-    // if `test.id` is not null, the `testReference` will have it as the path.
-    // Otherwise, `doc` will recieve null, and will generate the test's UID automatically,
-    // which we can then place in `test.id`.
+    // The test's reference will either have `test.id` if that's not null,
+    // or a generated unique ID.
     DocumentReference<Map<String, dynamic>> testReference = _testsCollection.doc(test.id);
-    // to show the user the changes after the test has been uploaded)
+
+    // If `test.id` is null,
+    // I'll ASSUME THAT THE USER DOESN'T HAVE THIS TEST ALREADY,
+    // AND IS CREATING A NEW TEST,
+    // and add `testReference.id` to the user's model's `tests`.
+    if (test.id == null) {
+      DocumentReference<Map<String, dynamic>> userReference = _usersCollection.doc(_auth.currentUser!.uid);
+      UserModel? userModel = UserModel.fromSnapshot(await userReference.get());
+
+      if (userModel == null) {
+        return 'Unable to construct user model.';
+      }
+
+      userModel.tests.add(testReference.id);
+
+      await userReference.set(userModel.toJson());
+    }
+
+    // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
+
+    // (to show the user the changes after the test has been uploaded)
     test.id ??= testReference.id;
-
     // TODO: REVIEW TEST EDITING PERMISSIONS IN THE BACKEND.
-    //
-    //Check if the test already belongs to someone else that's not the currently logged in user,
-    // by comparing `test.userId` to `_auth.currentUser!.uid`,
-    //
-    // Or assign `test.userId = _auth.currentUser!.uid` if `test.userId` is not provided.
-    if (test.userId != null && _auth.currentUser!.uid != test.userId) {
-      return 'This test is not yours!';
-    }
-    test.userId = _auth.currentUser!.uid;
+    test.userId ??= _auth.currentUser!.uid;
+    test.dateCreated = Timestamp.now();
 
-    // Add `test.id` to the user's `tests`, in the Firestore.
-    DocumentReference<Map<String, dynamic>> userReference = _usersCollection.doc(_auth.currentUser!.uid);
-    UserModel? userModel = UserModel.fromSnapshot(await userReference.get());
-    if (userModel == null) {
-      return 'Unable to construct user model.';
-    }
-
-    // TODO: Find a way to make this O(1) instead of O(N).
-    // Currently, `userModel.tests` is a list.
-    if (!(userModel.tests.contains(test.id))) {
-      userModel.tests.add(test.id);
-    }
-
-    await userReference.set(userModel.toJson());
-
-    // Save test to its corresponding reference (in the Firestore).
+    // SAVE TEST TO ITS CORRESPONDING REFERENCE.
     await testReference.set(test.toJson());
   } on FirebaseException catch (error) {
     return error.message ?? error.code;
@@ -89,7 +86,9 @@ Future<String> saveTest(Test test) async {
 /// Tries to find and return the test in the `tests` Firestore collection
 /// that has `testId` as its key, and has `id: testId`.
 ///
-/// TODO: VALIDATE THAT THE TEST IS NOT PRIVATE!
+/// If the test is private, and the user trying to fetch the test
+/// isn't the test's owner, this function **SHOULD** return null,
+/// BECAUSE THE FIREBASE SECURITY RULES SHOULD PREVENT THE USER FROM SEEING THE TEST.
 Future<Test?> testWithId(String testId) async {
   try {
     DocumentSnapshot<Map<String, dynamic>> testSnapshot = await _testsCollection.doc(testId).get();
