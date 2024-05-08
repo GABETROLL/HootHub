@@ -5,10 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 ///
 /// The `List` arguments are meant to be lists of test ID's:
 /// the paths of the tests in the Firestore `tests` collection.
-/// They say `dynamic` instead of `String`
-/// because requesting the test document from Firestore
-/// responds with `List<dynamic>` instead of `List<String>`.
-/// (That's also why `dateCreated` is a `TimeStamp` instead of a `DateTime`)
 class UserModel {
   UserModel({
     required this.id,
@@ -24,9 +20,9 @@ class UserModel {
   String username;
   String? profileImageUrl;
   Timestamp dateCreated;
-  List<dynamic> tests;
-  List<dynamic> upvotedTests;
-  List<dynamic> downvotedTests;
+  List<String> tests;
+  List<String> upvotedTests;
+  List<String> downvotedTests;
 
   /// Returns the `UserModel` representation of `snapshot.data()`.
   /// If the data is null, this method returns null.
@@ -42,9 +38,9 @@ class UserModel {
       username: data['username'],
       profileImageUrl: data['profileImageUrl'],
       dateCreated: data['dateCreated'],
-      tests: data['tests'],
-      upvotedTests: data['upvotedTests'] ?? <String>[],
-      downvotedTests: data['downvotedTests'] ?? <String>[],
+      tests: (data['tests'] as List<dynamic>).cast<String>(),
+      upvotedTests: (data['upvotedTests'] as List<dynamic>).cast<String>(),
+      downvotedTests: (data['downvotedTests'] as List<dynamic>).cast<String>(),
     );
   }
 

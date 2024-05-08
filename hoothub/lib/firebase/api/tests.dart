@@ -8,30 +8,24 @@ final _auth = FirebaseAuth.instance;
 final _testsCollection = FirebaseFirestore.instance.collection('tests');
 final _usersCollection = FirebaseFirestore.instance.collection('users');
 
-/// Saves test in FirebaseFirestore, in the `tests` collection.
+/// Saves `test` as a document in the `tests` FirebaseFirestore collection.
+///
+/// IF THESE IDs IN `test` ARE MISSING, THIS FUNCTION CREATES THEM IN-PLACE, IN `test`:
+/// - `id` will be a unique test ID for the test document's key in the `tests` collection.
+/// - `userId` will be the CURRENTLY LOGGED IN USER'S `uid` (_auth.currentUser!.uid)
+///   (IF THE CURRENT USER IS NOT LOGGED IN, THIS FUNCTION JUST RETURNS 'No user logged in!').
+///
+/// ANY OTHER IDs PRESENT IN `test`, NO MATTER HOW NESTED,
+/// IS REQUIRED TO BE VALID.
 ///
 /// RETURN VALUES
 /// If everything seems to go correctly, this function returns 'Ok'.
 /// If no user is currently logged in, this function returns 'No user logged in!'.
 /// If a `FirebaseException` occurs, this function returns its `code`.
 /// If any other error occurs, this function returns the `error.toString()`.
-/// 
+///
 /// ERRORS
 /// This function shouldn't throw.
-///
-/// DESCRIPTION: IDs:
-/// Uses `test.id` to determine the path of the `test` in the `tests` collection.
-/// This function 'saves' the `test` by overriding any existing document in the `tests` collection
-/// assinged the same path.
-///
-/// If the `test.id` is not provided, this function MODIFIES `test` IN-PLACE
-/// to assign `test.id = UID_GENERATED_BY_FIRESTORE`.
-///
-/// If the `test.userId` is provided, but doesn't match the current user's ID,
-/// this function returns 'This test is not yours!'.
-///
-/// If the `test.user` is not provided, this function MODIFIES `test` IN-PLACE
-/// to assign `test.userId = CURRENT_USER_ID`.
 ///
 /// Schema:
 /// C tests/
@@ -52,11 +46,12 @@ Future<String> saveTest(Test test) async {
     // Otherwise, `doc` will recieve null, and will generate the test's UID automatically,
     // which we can then place in `test.id`.
     DocumentReference<Map<String, dynamic>> testReference = _testsCollection.doc(test.id);
-    // TODO: COPY BEFORE ALTERING. (To do this, you'd have to re-download the test
     // to show the user the changes after the test has been uploaded)
     test.id ??= testReference.id;
 
-    // Check if the test already belongs to someone else that's not the currently logged in user,
+    // TODO: REVIEW TEST EDITING PERMISSIONS IN THE BACKEND.
+    //
+    //Check if the test already belongs to someone else that's not the currently logged in user,
     // by comparing `test.userId` to `_auth.currentUser!.uid`,
     //
     // Or assign `test.userId = _auth.currentUser!.uid` if `test.userId` is not provided.
@@ -89,6 +84,20 @@ Future<String> saveTest(Test test) async {
   }
 
   return 'Ok';
+}
+
+/// Tries to find and return the test in the `tests` Firestore collection
+/// that has `testId` as its key, and has `id: testId`.
+///
+/// TODO: VALIDATE THAT THE TEST IS NOT PRIVATE!
+Future<Test?> testWithId(String testId) async {
+  try {
+    DocumentSnapshot<Map<String, dynamic>> testSnapshot = await _testsCollection.doc(testId).get();
+    Test? result = Test.fromSnapshot(testSnapshot);
+    return result;
+  } catch (error) {
+    return null;
+  }
 }
 
 /// Tries to return `querySnapshot.docs` as an Iterable<Test>.

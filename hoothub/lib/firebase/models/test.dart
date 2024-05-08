@@ -14,12 +14,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `userId` is the ID of the user that created it,
 /// the unique key for the user in the `users` Firestore collection.
 ///
-/// `name` is the "title" of the test
-/// `questions` is a List<Question>.
+/// `isPublic = false` only allows this tests's owner to be able to see it.
+/// `isPublic = true` means than anybody could find and see this test.
+/// `name` is the "title" of the test.
+/// `dateCreated` is a `Timestamp` of the exact micro(?)second this test
+///   was uploaded to Firebase.
+/// `imageUrl` is the FirebaseStorage download URL for this tests' thumbnail.
+/// `questions` is a List<Question>: the questions of the test.
+/// `userResults` is a map of each userId
+///   and their test results, as a `TestResult` object.
+///   (I'M NOT YET SURE IF THIS DATA SHOULD BE SEEN PUBLICALLY)
+/// `usersThatUpvoted`/`usersThatDownvoted` are lists of IDs
+///   of the users that upvoted/downvoted this test.
+/// `comments` are a list of IDs of the `Comment` documents for this test.
 class Test implements Model {
   Test({
     this.id,
     this.userId,
+    bool? isPublic,
     String? name,
     this.dateCreated,
     this.imageUrl,
@@ -27,7 +39,11 @@ class Test implements Model {
     Map<String, TestResult>? userResults,
     List<String>? usersThatUpvoted,
     List<String>? usersThatDownvoted,
+    List<String>? comments,
   }) {
+    if (isPublic != null) {
+      this.isPublic = isPublic;
+    }
     if (name != null) {
       this.name = name;
     }
@@ -43,10 +59,14 @@ class Test implements Model {
     if (usersThatDownvoted != null) {
       this.usersThatDownvoted = usersThatDownvoted;
     }
+    if (comments != null) {
+      this.comments = comments;
+    }
   }
 
   String? id;
   String? userId;
+  bool isPublic = false;
   String name = '';
   Timestamp? dateCreated;
   String? imageUrl;
@@ -54,6 +74,7 @@ class Test implements Model {
   Map<String, TestResult> userResults = <String, TestResult>{};
   List<String> usersThatUpvoted = <String>[];
   List<String> usersThatDownvoted = <String>[];
+  List<String> comments = <String>[];
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
   ///
@@ -162,6 +183,7 @@ class Test implements Model {
       ),
     );
 
+    // TODO: Will this work?
     if (data['userResults'] is! Map<String, Map<String, dynamic>>) {
       throw "`userResults` field of snapshot data is not the correct type!";
     }
@@ -178,6 +200,7 @@ class Test implements Model {
     return Test(
       id: data['id'],
       userId: data['userId'],
+      isPublic: data['isPublic'],
       name: data['name'],
       dateCreated: data['dateCreated'],
       imageUrl: data['imageUrl'],
@@ -185,6 +208,7 @@ class Test implements Model {
       userResults: userResults,
       usersThatUpvoted: data['usersThatUpvoted'],
       usersThatDownvoted: data['usersThatDownvoted'],
+      comments: data['comments'],
     );
   }
 
@@ -192,13 +216,22 @@ class Test implements Model {
   Map<String, dynamic> toJson() => {
     'id': id,
     'userId': userId,
+    'isPublic': isPublic,
     'name': name,
     'dateCreated': dateCreated,
     'imageUrl': imageUrl,
-    'questions': List.from(
+    'questions': List<Map<String, dynamic>>.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson()),
+    ),
+    'userResults': Map<String, Map<String, dynamic>>.from(
+      userResults.map<String, Map<String, dynamic>>(
+        (String userId, TestResult testResult) => MapEntry<String, Map<String, dynamic>>(
+          userId, testResult.toJson(),
+        ),
+      ),
     ),
     'usersThatUpvoted': usersThatUpvoted,
     'usersThatDownvoted': usersThatDownvoted,
+    'comments': comments,
   };
 }
