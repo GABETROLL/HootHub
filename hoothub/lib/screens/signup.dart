@@ -1,4 +1,5 @@
 // back-end
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
@@ -46,20 +47,35 @@ class _SignUpState extends State<SignUp> {
       username: widget.usernameController.text,
     );
 
-    if (!(context.mounted)) return;
-
     if (signupResult != 'Ok') {
+      if (!(context.mounted)) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error signing up: $signupResult')),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Welcome to HootHub, ${widget.usernameController.text}!')),
-      );
+      UserModel? userModel;
+      String signedUpMessage;
 
-      UserModel? userModel = await loggedInUser();
+      try {
+        userModel = await loggedInUser();
+
+        if (userModel != null) {
+          signedUpMessage = 'Welcome back to HootHub, ${userModel.username}';
+        } else {
+          signedUpMessage = 'Unable to retrieve credentials!';
+        }
+      } on FirebaseException catch (error) {
+        signedUpMessage = error.message ?? error.code;
+      } catch (error) {
+        signedUpMessage = error.toString();
+      }
 
       if (!(context.mounted)) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(signedUpMessage)),
+      );
 
       Navigator.pop<UserModel?>(context, userModel);
     }

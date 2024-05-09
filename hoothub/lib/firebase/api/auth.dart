@@ -27,44 +27,70 @@ Future<String> signUpUser({
   required String password,
   required String username
 }) async {
+  final UserCredential userCredential;
+
   try {
-    final UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+    userCredential = await auth.createUserWithEmailAndPassword(
       email: email,
       password: password
     );
+  } on FirebaseException catch (error) {
+    return 'Error signing up and logging in user into FirebaseAuth: ${error.message ?? error.code}';
+  } catch (error) {
+    return 'Error signing up and logging in user into FirebaseAuth: $error';
+  }
 
-    if (userCredential.user == null) {
-      throw 'Failed to create and login user';
-    }
+  final String userId;
 
-    final String userId = userCredential.user!.uid;
+  try {
+    userId = userCredential.user!.uid;
+  } catch (error) {
+    return 'Error reading user credential: $error';
+  }
 
-    // BY DEFAULT, THE USER AND THEIR SCORES SHOULD BE PRIVATE.
-    DocumentReference<Map<String, dynamic>> userScoresReference = privateUsersScoresCollection.doc();
+  final UserScores userScoresModel;
 
-    final UserScores userScoresModel = UserScores(
-      id: userScoresReference.id,
+  try {
+    userScoresModel = UserScores(
       userId: userId,
       isPublic: false,
       questionsAnswered: 0,
       questionsAnsweredCorrect: 0,
     );
+  } catch (error) {
+    return "Error creating user's scores model: $error";
+  }
 
-    final UserModel userModel = UserModel(
+  final UserModel userModel;
+
+  try {
+    userModel = UserModel(
       id: userId,
       username: username,
       dateCreated: Timestamp.now(),
       isPublic: false,
-      userScoresId: userScoresReference.id,
       publicTests: <String>[],
     );
+  } catch (error) {
+    return "Error creating user's model: $error";
+  }
 
-    await userScoresReference.set(userScoresModel.toJson());
+  try {
+    // NEW USER'S SCORES SHOULD BE PRIVATE BY DEFAULT.
+    await privateUsersScoresCollection.doc(userId).set(userScoresModel.toJson());
+  } on FirebaseException catch (error) {
+    return "Error uploading new user's scores model: ${error.message ?? error.code}";
+  } catch (error) {
+    "Error uploading new user's scores model: $error";
+  }
+
+  try {
+    // NEW USER'S PROFILE SHOULD BE PRIVATE BY DEFAULT.
     await privateUsersCollection.doc(userId).set(userModel.toJson());
   } on FirebaseException catch (error) {
-    return error.code;
+    return "Error uploading new user's model: ${error.message ?? error.code}";
   } catch (error) {
-    return error.toString();
+    "Error uploading new user's model: $error";
   }
 
   return 'Ok';
@@ -96,8 +122,6 @@ Future<String> logInUser({required String email, required String password}) asyn
 
   return 'Ok';
 }
-
-
 
 /// Return the `UserModel` representation of the currently logged-in user (`auth.currentUser`),
 /// which should be in the `publicUsers` or `privateUsers` FirebaseFirestore collections.
@@ -132,8 +156,8 @@ Future<UserModel?> loggedInUser() async {
 
 /// Logs off and deletes the current logged in user's account.
 ///
-/// First deletes this user's `UserModel` document from BOTH
-/// the public and private Firestore users collections,
+/// First deletes this user's documents from BOTH
+/// the public and private Firestore collections,
 /// then calls `auth.currentUser!.delete()`.
 ///
 /// Returns 'Ok' if everything seemed to be successful,
@@ -145,12 +169,20 @@ Future<String> deleteLoggedInUser() async {
   if (auth.currentUser == null) return "Cannot delete current user! No user logged in!";
 
   try {
+    String userId = auth.currentUser!.uid;
+
     await privateUsersCollection
-      .doc(auth.currentUser!.uid)
+      .doc(userId)
+      .delete();
+    await publicUsersCollection
+      .doc(userId)
       .delete();
 
-    await publicUsersCollection
-      .doc(auth.currentUser!.uid)
+    await privateUsersScoresCollection
+      .doc(userId)
+      .delete();
+    await publicUsersScoresCollection
+      .doc(userId)
       .delete();
 
     await auth.currentUser!.delete();
@@ -181,23 +213,23 @@ Future<UserModel?> userWithId(String id) async {
 }
 
 /// Adds `testModel.id` to the `UserModel`s `publicTests`.
-Future<String> addTestToUserWithId(String id, Test testModel) async {
+Future<String> addPublicTestToLoggedInUser(String testId) async {
   try {
-    UserModel? userModel = await userWithId(auth.currentUser!.uid);
+    UserModel? userModel = await loggedInUser();
 
     if (userModel == null) {
       return 'Unable to construct user model.';
     }
 
-    if (testModel.isPublic) {
-      if (testModel.id == null) return 'Test has no ID!';
-      userModel.publicTests.add(testModel.id!);
-    }
+    userModel.publicTests.add(testId);
 
+    // The `userModel.isPublic` AND `userModel.id` SHOULD MATCH
+    // THE COLLECTION AND DOCUMENT'S KEY,
+    // BECAUSE OF Firestore Security Rules.
     if (userModel.isPublic) {
-      await publicUsersCollection.doc(id).set(userModel.toJson());
+      await publicUsersCollection.doc(userModel.id).set(userModel.toJson());
     } else {
-      await privateUsersCollection.doc(id).set(userModel.toJson());
+      await privateUsersCollection.doc(userModel.id).set(userModel.toJson());
     }
   } on FirebaseException catch (error) {
     return error.message ?? error.code;

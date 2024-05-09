@@ -4,21 +4,22 @@ import 'package:hoothub/firebase/models/model.dart';
 /// Independent document `Model` that represents a corresponding `UserModel`'s test score statistics.
 class UserScores extends Model {
   UserScores({
-    this.id,
     this.userId,
     required this.isPublic,
     required this.questionsAnswered,
     required this.questionsAnsweredCorrect,
   });
 
-  String? id;
   String? userId;
   bool isPublic;
   int questionsAnswered;
   int questionsAnsweredCorrect;
 
   @override
-  bool isValid() => questionsAnsweredCorrect >= questionsAnswered;
+  bool isValid() => questionsAnsweredCorrect >= 0
+    && questionsAnswered >= 0
+    && questionsAnsweredCorrect <= questionsAnswered
+  ;
 
   static UserScores? fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     Map<String, dynamic>? data = snapshot.data();
@@ -26,7 +27,6 @@ class UserScores extends Model {
     if (data == null) return null;
 
     return UserScores(
-      id: data['id'],
       userId: data['userId'],
       isPublic: data['isPublic'],
       questionsAnswered: data['questionsAnswered'],
@@ -36,7 +36,6 @@ class UserScores extends Model {
 
   @override
   Map<String, dynamic> toJson() => {
-    'id': id,
     'userId': userId,
     'isPublic': isPublic,
     'questionsAnswered': questionsAnswered,

@@ -44,24 +44,25 @@ Future<String> saveTest(Test test) async {
     // And the test's collection will be the public/private one, depending on `isPublic`.
     DocumentReference<Map<String, dynamic>> testReference;
 
+    String userId = auth.currentUser!.uid;
+
     if (test.isPublic == true) {
       testReference = publicTestsCollection.doc(test.id);
+
+      // If `test.id` is null,
+      // I'll ASSUME THAT THE USER DOESN'T HAVE THIS TEST ALREADY,
+      // AND IS CREATING A NEW TEST,
+      // and add `testReference.id` to the user's model's `tests`.
+      if (test.id == null) {
+        addPublicTestToLoggedInUser(testReference.id);
+      }
     } else {
       testReference = privateTestsCollection.doc(test.id);
     }
 
-    String userId = auth.currentUser!.uid;
-
-    // If `test.id` is null,
-    // I'll ASSUME THAT THE USER DOESN'T HAVE THIS TEST ALREADY,
-    // AND IS CREATING A NEW TEST,
-    // and add `testReference.id` to the user's model's `tests`.
-    if (test.id == null) {
-      addTestToUserWithId(userId, test);
-    }
-
     // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
     // (to show the user the changes after the test has been uploaded)
+    // (`userId` and `id` WILL BE VALIDATED BY Firestore Security Rules)
     test.id ??= testReference.id;
     test.userId ??= userId;
     test.dateCreated = Timestamp.now();
@@ -91,7 +92,7 @@ Future<Test?> testWithId(String testId) async {
   try {
     Test? publicResult = Test.fromSnapshot(await publicTestsCollection.doc(testId).get());
     Test? privateResult = Test.fromSnapshot(await privateTestsCollection.doc(testId).get());
-    
+
     if (publicResult != null) return publicResult;
     return privateResult;
   } catch (error) {

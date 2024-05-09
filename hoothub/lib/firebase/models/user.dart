@@ -8,7 +8,6 @@ class UserModel {
     this.profileImageUrl,
     required this.dateCreated,
     required this.isPublic,
-    required this.userScoresId,
     required this.publicTests,
   });
 
@@ -17,7 +16,6 @@ class UserModel {
   String? profileImageUrl;
   Timestamp dateCreated;
   bool isPublic;
-  String userScoresId;
   List<String> publicTests;
 
   /// Returns the `UserModel` representation of `snapshot.data()`.
@@ -35,7 +33,6 @@ class UserModel {
       profileImageUrl: data['profileImageUrl'],
       dateCreated: data['dateCreated'],
       isPublic: data['isPublic'],
-      userScoresId: data['userScoresId'],
       publicTests: (data['publicTests'] as List<dynamic>).cast<String>(),
     );
   }
@@ -46,7 +43,6 @@ class UserModel {
     'profileImageUrl': profileImageUrl,
     'dateCreated': dateCreated,
     'isPublic': isPublic,
-    'userScoresId': userScoresId,
     'publicTests': publicTests,
   };
 }
