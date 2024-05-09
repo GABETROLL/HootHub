@@ -10,7 +10,7 @@ import 'package:hoothub/firebase/models/test.dart';
 ///
 /// Attempts to login+signup user into `FirebaseAuth`.
 /// Attempts to add the user's `UserModel` and `UserScores` documents into `FirebaseFirestore`,
-/// in the `privateUsers` and `privateUserScores` collections.
+/// in their corresponding private collections, found in `clients.dart`.
 ///
 /// The account can be made public, using the other functions in this file.
 ///
@@ -40,7 +40,7 @@ Future<String> signUpUser({
     final String userId = userCredential.user!.uid;
 
     // BY DEFAULT, THE USER AND THEIR SCORES SHOULD BE PRIVATE.
-    DocumentReference<Map<String, dynamic>> userScoresReference = privateUserScoresCollection.doc();
+    DocumentReference<Map<String, dynamic>> userScoresReference = privateUsersScoresCollection.doc();
 
     final UserScores userScoresModel = UserScores(
       id: userScoresReference.id,
