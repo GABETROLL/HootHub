@@ -14,12 +14,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `userId` is the ID of the user that created it,
 /// the unique key for the user in the `users` Firestore collection.
 ///
-/// `isPublic = false` only allows this tests's owner to be able to see it.
-/// `isPublic = true` means than anybody could find and see this test.
 /// `name` is the "title" of the test.
 /// `dateCreated` is a `Timestamp` of the exact micro(?)second this test
 ///   was uploaded to Firebase.
 /// `imageUrl` is the FirebaseStorage download URL for this tests' thumbnail.
+/// `isPublic` dictates weather this test will be visible to other users,
+///   and not just this test's author user.
 /// `questions` is a List<Question>: the questions of the test.
 /// `userResults` is a map of each userId
 ///   and their test results, as a `TestResult` object.
@@ -31,21 +31,21 @@ class Test implements Model {
   Test({
     this.id,
     this.userId,
-    bool? isPublic,
     String? name,
     this.dateCreated,
     this.imageUrl,
+    bool? isPublic,
     List<Question>? questions,
     Map<String, TestResult>? userResults,
     List<String>? usersThatUpvoted,
     List<String>? usersThatDownvoted,
     List<String>? comments,
   }) {
-    if (isPublic != null) {
-      this.isPublic = isPublic;
-    }
     if (name != null) {
       this.name = name;
+    }
+    if (isPublic != null) {
+      this.isPublic = isPublic;
     }
     if (questions != null) {
       this.questions = questions;
@@ -66,10 +66,10 @@ class Test implements Model {
 
   String? id;
   String? userId;
-  bool isPublic = false;
   String name = '';
   Timestamp? dateCreated;
   String? imageUrl;
+  bool isPublic = false;
   List<Question> questions = <Question>[];
   Map<String, TestResult> userResults = <String, TestResult>{};
   List<String> usersThatUpvoted = <String>[];
@@ -177,8 +177,8 @@ class Test implements Model {
       throw "`questions` field of snapshot data is not the correct type!";
     }
 
-    List<Question> questions = List.from(
-      data['questions'].map(
+    List<Question> questions = List<Question>.from(
+      data['questions'].map<Question>(
         (Map<String, dynamic> question) => Question.fromJson(question),
       ),
     );
@@ -188,7 +188,7 @@ class Test implements Model {
       throw "`userResults` field of snapshot data is not the correct type!";
     }
 
-    Map<String, TestResult> userResults = Map.fromEntries(
+    Map<String, TestResult> userResults = Map<String, TestResult>.fromEntries(
       data['userResults'].entries.map<MapEntry<String, TestResult>>(
         (MapEntry<String, Map<String, dynamic>> userResult) => MapEntry<String, TestResult>(
           userResult.key,
@@ -200,15 +200,15 @@ class Test implements Model {
     return Test(
       id: data['id'],
       userId: data['userId'],
-      isPublic: data['isPublic'],
       name: data['name'],
       dateCreated: data['dateCreated'],
       imageUrl: data['imageUrl'],
+      isPublic: data['isPublic'],
       questions: questions,
       userResults: userResults,
-      usersThatUpvoted: data['usersThatUpvoted'],
-      usersThatDownvoted: data['usersThatDownvoted'],
-      comments: data['comments'],
+      usersThatUpvoted: (data['usersThatUpvoted'] as List<dynamic>).cast<String>(),
+      usersThatDownvoted: (data['usersThatDownvoted'] as List<dynamic>).cast<String>(),
+      comments: (data['comments'] as List<dynamic>).cast<String>(),
     );
   }
 
@@ -216,10 +216,10 @@ class Test implements Model {
   Map<String, dynamic> toJson() => {
     'id': id,
     'userId': userId,
-    'isPublic': isPublic,
     'name': name,
     'dateCreated': dateCreated,
     'imageUrl': imageUrl,
+    'isPublic': isPublic,
     'questions': List<Map<String, dynamic>>.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson()),
     ),

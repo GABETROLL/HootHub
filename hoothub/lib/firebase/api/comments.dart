@@ -1,11 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+// APIs
+import 'clients.dart';
 import 'tests.dart';
+// models
 import '../models/test.dart';
 import '../models/comment_tree.dart';
-
-final _auth = FirebaseAuth.instance;
-final _commentsCollection = FirebaseFirestore.instance.collection('comments');
 
 /// Comments on a test in the `tests` Firestore collection,
 /// by uploading a new `CommentTree` document to the `comments` collection,
@@ -13,14 +12,17 @@ final _commentsCollection = FirebaseFirestore.instance.collection('comments');
 ///
 /// THROWS: Shouldn't throw anything.
 Future<String> commentOnTestWithId(String testId, String comment) async {
-  if (_auth.currentUser == null) return "You can't comment without being logged in! Please log in to comment.";
+  if (auth.currentUser == null) return "You can't comment without being logged in! Please log in to comment.";
 
-  DocumentReference<Map<String, dynamic>> commentReference = _commentsCollection
+  // Construct and validate `CommentTree` model
+  DocumentReference<Map<String, dynamic>> commentReference = commentsCollection
     .doc();
 
   final CommentTree commentModel = CommentTree(
     id: commentReference.id,
-    userId: _auth.currentUser!.uid,
+    userId: auth.currentUser!.uid,
+    testId: testId,
+    parentCommentId: null,
     comment: comment,
     usersThatUpvoted: <String>[],
     usersThatDownvoted: <String>[],
@@ -30,15 +32,16 @@ Future<String> commentOnTestWithId(String testId, String comment) async {
   if (!commentModel.isValid()) return "Comment invalid!";
 
   try {
+    // Include the comment in the test
     Test? testModel = await testWithId(testId);
-    if (testModel == null) return 'Test not found.';
-
-    commentReference.set(commentModel.toJson());
-
+    if (testModel == null) return 'Test not found!';
     testModel.comments.add(commentReference.id);
+
+    // Save the changes to the test and save the comment
+    await commentReference.set(commentModel.toJson());
     await saveTest(testModel);
   } on FirebaseException catch (error) {
-    return error.code;
+    return error.message ?? error.code;
   } catch (error) {
     return error.toString();
   }
@@ -58,7 +61,7 @@ Future<String> commentOnTestWithId(String testId, String comment) async {
 /// THROWS: Shouldn't throw anything.
 Future<String> deleteCommentWithId(String commentId) async {
   try {
-    await _commentsCollection.doc(commentId).delete();
+    await commentsCollection.doc(commentId).delete();
     return 'Ok';
   } on FirebaseException catch (error) {
     return error.message ?? error.code;
@@ -70,12 +73,10 @@ Future<String> deleteCommentWithId(String commentId) async {
 /// Tries to return the comment document, in the `comments` collection,
 /// with `commentId` as its document ID key.
 ///
-/// (IT **SHOULD** ALSO HAVE `commentId` AS ITS `id` FIELD)
-///
 /// THROWS: Shouldn't throw anything. 
 Future<CommentTree?> commentWithId(String commentId) async {
   try {
-    DocumentSnapshot<Map<String, dynamic>> commentSnapshot = await _commentsCollection.doc(commentId).get();
+    DocumentSnapshot<Map<String, dynamic>> commentSnapshot = await commentsCollection.doc(commentId).get();
     return CommentTree.fromSnapshot(commentSnapshot);
   } catch (error) {
     return null;
@@ -109,18 +110,21 @@ Future<CommentTree?> commentWithId(String commentId) async {
 ///
 /// THROWS: Shouldn't throw anything.
 Future<String> replyToCommentWithId(String parentCommentId, String comment) async {
-  if (_auth.currentUser == null) return "You can't comment without being logged in! Please log in to comment.";
+  if (auth.currentUser == null) return "You can't comment without being logged in! Please log in to comment.";
 
   try {
+    // Make sure the comment being replied to exists
     CommentTree? parentCommentModel = await commentWithId(parentCommentId);
     if (parentCommentModel == null) return 'Comment not found!';
 
-    DocumentReference<Map<String, dynamic>> commentReference = _commentsCollection.doc();
+    // Construct and validate `CommentTree` model
+    DocumentReference<Map<String, dynamic>> commentReference = commentsCollection.doc();
 
     final CommentTree commentModel = CommentTree(
       id: commentReference.id,
-      userId: _auth.currentUser!.uid,
+      userId: auth.currentUser!.uid,
       testId: parentCommentModel.testId,
+      parentCommentId: parentCommentId,
       comment: comment,
       usersThatUpvoted: <String>[],
       usersThatDownvoted: <String>[],
@@ -129,9 +133,11 @@ Future<String> replyToCommentWithId(String parentCommentId, String comment) asyn
 
     if (!commentModel.isValid()) return 'Comment invalid!';
 
+    // Add comment reply's ID to the parent comment's model
     parentCommentModel.replyIds.add(commentReference.id);
 
-    await _commentsCollection.doc(parentCommentId).set(parentCommentModel.toJson());
+    // Save changes to the parent comment model and save the new reply.
+    await commentsCollection.doc(parentCommentId).set(parentCommentModel.toJson());
     await commentReference.set(commentModel.toJson());
   } on FirebaseException catch (error) {
     return error.message ?? error.code;

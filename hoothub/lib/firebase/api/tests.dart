@@ -1,12 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hoothub/firebase/api/auth.dart';
+import 'clients.dart';
 // models
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
-
-final _auth = FirebaseAuth.instance;
-final _testsCollection = FirebaseFirestore.instance.collection('tests');
-final _usersCollection = FirebaseFirestore.instance.collection('users');
 
 /// Saves `test` as a document in the `tests` FirebaseFirestore collection.
 ///
@@ -38,38 +35,36 @@ final _usersCollection = FirebaseFirestore.instance.collection('users');
 /// -- D userId
 /// ---- tests: <testId>[...]
 Future<String> saveTest(Test test) async {
-  if (_auth.currentUser == null) {
+  if (auth.currentUser == null) {
     return 'No user logged in!';
   }
 
   try {
     // The test's reference will either have `test.id` if that's not null,
     // or a generated unique ID.
-    DocumentReference<Map<String, dynamic>> testReference = _testsCollection.doc(test.id);
+    // And the test's collection will be the public/private one, depending on `isPublic`.
+    DocumentReference<Map<String, dynamic>> testReference;
+
+    if (test.isPublic == true) {
+      testReference = publicTestsCollection.doc(test.id);
+    } else {
+      testReference = privateTestsCollection.doc(test.id);
+    }
+
+    String userId = auth.currentUser!.uid;
 
     // If `test.id` is null,
     // I'll ASSUME THAT THE USER DOESN'T HAVE THIS TEST ALREADY,
     // AND IS CREATING A NEW TEST,
     // and add `testReference.id` to the user's model's `tests`.
     if (test.id == null) {
-      DocumentReference<Map<String, dynamic>> userReference = _usersCollection.doc(_auth.currentUser!.uid);
-      UserModel? userModel = UserModel.fromSnapshot(await userReference.get());
-
-      if (userModel == null) {
-        return 'Unable to construct user model.';
-      }
-
-      userModel.tests.add(testReference.id);
-
-      await userReference.set(userModel.toJson());
+      addTestToUserWithId(userId, test);
     }
 
     // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
-
     // (to show the user the changes after the test has been uploaded)
     test.id ??= testReference.id;
-    // TODO: REVIEW TEST EDITING PERMISSIONS IN THE BACKEND.
-    test.userId ??= _auth.currentUser!.uid;
+    test.userId ??= userId;
     test.dateCreated = Timestamp.now();
 
     // SAVE TEST TO ITS CORRESPONDING REFERENCE.
@@ -83,17 +78,23 @@ Future<String> saveTest(Test test) async {
   return 'Ok';
 }
 
-/// Tries to find and return the test in the `tests` Firestore collection
-/// that has `testId` as its key, and has `id: testId`.
+/// Tries to find and return the test
+/// in both the public and private test collections in the Firestore,
+/// that have `testId` as its key.
+///
+/// If the test is found in both the public and the private collections,
+/// the one in the public collection is returned.
 ///
 /// If the test is private, and the user trying to fetch the test
 /// isn't the test's owner, this function **SHOULD** return null,
 /// BECAUSE THE FIREBASE SECURITY RULES SHOULD PREVENT THE USER FROM SEEING THE TEST.
 Future<Test?> testWithId(String testId) async {
   try {
-    DocumentSnapshot<Map<String, dynamic>> testSnapshot = await _testsCollection.doc(testId).get();
-    Test? result = Test.fromSnapshot(testSnapshot);
-    return result;
+    Test? publicResult = Test.fromSnapshot(await publicTestsCollection.doc(testId).get());
+    Test? privateResult = Test.fromSnapshot(await privateTestsCollection.doc(testId).get());
+    
+    if (publicResult != null) return publicResult;
+    return privateResult;
   } catch (error) {
     return null;
   }
@@ -122,7 +123,7 @@ Future<Iterable<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
 Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool newest }) async {
   return await queryTests(
-    _testsCollection
+    publicTestsCollection
       .orderBy('dateCreated', descending: newest)
       .limit(limit),
   );
@@ -139,11 +140,11 @@ Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool n
   // TODO: IMPLEMENT THE QUERY
 }
  */
-/// Returns **ALL** of the tests made by the `UserModel` with `id: userId`,
-/// ordered according to `orderByNewest`.
+
+/// Returns all public tests that have `userId: userId`, ordered according to `orderByNewest`.
 Future<Iterable<Test?>> testsByUser(String userId, { required bool orderByNewest }) async {
   return await queryTests(
-    _testsCollection
+    publicTestsCollection
       .where('userId', isEqualTo: userId)
       .orderBy('dateCreated', descending: orderByNewest),
   );

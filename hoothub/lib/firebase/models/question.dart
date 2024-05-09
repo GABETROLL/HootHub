@@ -65,7 +65,7 @@ class Question implements Model {
   static Question fromJson(Map<String, dynamic> data) {
     return Question(
       question: data['question'],
-      answers: data['answers'],
+      answers: (data['answers'] as List<dynamic>).cast<String>(),
       correctAnswer: data['correctAnswer'],
       secondsDuration: data['secondsDuration'],
     );

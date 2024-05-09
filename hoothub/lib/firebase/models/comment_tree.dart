@@ -3,9 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CommentTree implements Model {
   CommentTree({
-    this.id,
-    this.userId,
-    this.testId,
+    required this.id,
+    required this.userId,
+    required this.testId,
+    required this.parentCommentId,
     required this.comment,
     required this.usersThatUpvoted,
     required this.usersThatDownvoted,
@@ -15,6 +16,7 @@ class CommentTree implements Model {
   String? id;
   String? userId;
   String? testId;
+  String? parentCommentId;
   String comment;
   List<String> usersThatUpvoted;
   List<String> usersThatDownvoted;
@@ -43,16 +45,22 @@ class CommentTree implements Model {
 
     return CommentTree(
       id: data['id'],
+      userId: data['userId'],
+      testId: data['testId'],
+      parentCommentId: data['parentCommentId'],
       comment: data['comment'],
-      usersThatUpvoted: data['usersThatUpvoted'],
-      usersThatDownvoted: data['usersThatDownvoted'],
-      replyIds: data['replyIds'],
+      usersThatUpvoted: (data['usersThatUpvoted'] as List<dynamic>).cast<String>(),
+      usersThatDownvoted: (data['usersThatDownvoted'] as List<dynamic>).cast<String>(),
+      replyIds: (data['replyIds'] as List<dynamic>).cast<String>(),
     );
   }
 
   @override
   Map<String, dynamic> toJson() => {
     'id': id,
+    'userId': userId,
+    'testId': testId,
+    'parentCommentId': parentCommentId,
     'comment': comment,
     'usersThatUpvoted': usersThatUpvoted,
     'usersThatDownvoted': usersThatDownvoted,

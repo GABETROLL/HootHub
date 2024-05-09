@@ -1,11 +1,19 @@
+// models
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// models
+import 'package:hoothub/firebase/models/user_scores.dart';
+import 'clients.dart';
 import 'package:hoothub/firebase/models/user.dart';
+import 'package:hoothub/firebase/models/test.dart';
 
-final _auth = FirebaseAuth.instance;
-final _collection = FirebaseFirestore.instance.collection('users');
-
+/// Signs up and logs in user with a private account.
+///
+/// Attempts to login+signup user into `FirebaseAuth`.
+/// Attempts to add the user's `UserModel` and `UserScores` documents into `FirebaseFirestore`,
+/// in the `privateUsers` and `privateUserScores` collections.
+///
+/// The account can be made public, using the other functions in this file.
+///
 /// Returns 'Ok' if successful.
 ///
 /// If there was an error,
@@ -20,7 +28,7 @@ Future<String> signUpUser({
   required String username
 }) async {
   try {
-    final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+    final UserCredential userCredential = await auth.createUserWithEmailAndPassword(
       email: email,
       password: password
     );
@@ -31,16 +39,28 @@ Future<String> signUpUser({
 
     final String userId = userCredential.user!.uid;
 
+    // BY DEFAULT, THE USER AND THEIR SCORES SHOULD BE PRIVATE.
+    DocumentReference<Map<String, dynamic>> userScoresReference = privateUserScoresCollection.doc();
+
+    final UserScores userScoresModel = UserScores(
+      id: userScoresReference.id,
+      userId: userId,
+      isPublic: false,
+      questionsAnswered: 0,
+      questionsAnsweredCorrect: 0,
+    );
+
     final UserModel userModel = UserModel(
       id: userId,
       username: username,
       dateCreated: Timestamp.now(),
-      tests: <String>[],
-      upvotedTests: <String>[],
-      downvotedTests: <String>[],
+      isPublic: false,
+      userScoresId: userScoresReference.id,
+      publicTests: <String>[],
     );
 
-    await _collection.doc(userId).set(userModel.toJson());
+    await userScoresReference.set(userScoresModel.toJson());
+    await privateUsersCollection.doc(userId).set(userModel.toJson());
   } on FirebaseException catch (error) {
     return error.code;
   } catch (error) {
@@ -57,10 +77,10 @@ Future<String> signUpUser({
 /// or the error's `toString()`.
 ///
 /// If the `UserCredential` returned by `FirebaseAuth.instance.signInWithEmailAndPassword`
-/// doesn't have a `user`, this function throws 'Failed to login user'.
+/// doesn't have a `user`, this function returns 'Failed to login user'.
 Future<String> logInUser({required String email, required String password}) async {
   try {
-    final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+    final UserCredential userCredential = await auth.signInWithEmailAndPassword(
       email: email,
       password: password
     );
@@ -71,32 +91,89 @@ Future<String> logInUser({required String email, required String password}) asyn
   } on FirebaseException catch (error) {
     return error.code;
   } catch (error) {
-    error.toString();
+    return error.toString();
   }
 
   return 'Ok';
 }
 
-/// Return the `UserModel` representation of the currently logged-in user (`_auth.currentUser`).
-/// The user, if they are logged in, should have their `uid` in `_auth.currentUser!.uid`
+/// Return the `UserModel` representation of the currently logged-in user (`auth.currentUser`),
+/// which should be in the `publicUsers` or `privateUsers` FirebaseFirestore collections.
+///
+/// The `UserModel` document in the public collection should precede the one in the private collection,
+/// if both are found.
+///
+/// The user, if they are logged in, should have their `uid` in `auth.currentUser!.uid`.
+///
+/// If something goes wrong, or the user model is not found in either collection,
+/// or if the user isn't currently logged in, this function returns null.
 Future<UserModel?> loggedInUser() async {
-  if (_auth.currentUser == null) return null;
+  if (auth.currentUser == null) return null;
+
+  UserModel? privateUserModel;
+  UserModel? publicUserModel;
 
   try {
-    final DocumentSnapshot<Map<String, dynamic>> snapshot = await _collection
-      .doc(_auth.currentUser!.uid)
-      .get();
-    return UserModel.fromSnapshot(snapshot);
+    final DocumentSnapshot<Map<String, dynamic>> privateUserSnapshot = await 
+      privateUsersCollection
+        .doc(auth.currentUser!.uid)
+        .get();
+    privateUserModel = UserModel.fromSnapshot(privateUserSnapshot);
+
+    final DocumentSnapshot<Map<String, dynamic>> publicUserSnapshot = await 
+      publicUsersCollection
+        .doc(auth.currentUser!.uid)
+        .get();
+    publicUserModel = UserModel.fromSnapshot(publicUserSnapshot);
   } catch (error) {
     return null;
   }
+
+  if (publicUserModel != null) return publicUserModel;
+  return privateUserModel;
 }
 
-/// Returns the `userModel` representation of the `FirebaseFirestore` user with `id` as its id.
+/// Returns the `UserModel` document in the Firestore with `id` as its key.
+///
+/// The `UserModel` document will be searched in both the public and private users collections,
+/// but the model coming from the public collection, if found, will take precedence over the one
+/// found in the private collection.
 ///
 /// This function THROWS if receiving the user document from the Firestore
 /// failed, or if parsing the document into a `UserModel`,
 /// using `UserModel.fromSnapshot`, also failed.
 Future<UserModel?> userWithId(String id) async {
-  return UserModel.fromSnapshot(await _collection.doc(id).get());
+  final UserModel? privateUserModel = UserModel.fromSnapshot(await privateUsersCollection.doc(id).get());
+  final UserModel? publicUserModel = UserModel.fromSnapshot(await publicUsersCollection.doc(id).get());
+
+  if (privateUserModel != null) return privateUserModel;
+  return publicUserModel;
+}
+
+/// Adds `testModel.id` to the `UserModel`s `publicTests`.
+Future<String> addTestToUserWithId(String id, Test testModel) async {
+  try {
+    UserModel? userModel = await userWithId(auth.currentUser!.uid);
+
+    if (userModel == null) {
+      return 'Unable to construct user model.';
+    }
+
+    if (testModel.isPublic) {
+      if (testModel.id == null) return 'Test has no ID!';
+      userModel.publicTests.add(testModel.id!);
+    }
+
+    if (userModel.isPublic) {
+      await publicUsersCollection.doc(id).set(userModel.toJson());
+    } else {
+      await privateUsersCollection.doc(id).set(userModel.toJson());
+    }
+  } on FirebaseException catch (error) {
+    return error.message ?? error.code;
+  } catch (error) {
+    return error.toString();
+  }
+
+  return 'Ok';
 }
