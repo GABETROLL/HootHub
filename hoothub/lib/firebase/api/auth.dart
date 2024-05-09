@@ -97,6 +97,8 @@ Future<String> logInUser({required String email, required String password}) asyn
   return 'Ok';
 }
 
+
+
 /// Return the `UserModel` representation of the currently logged-in user (`auth.currentUser`),
 /// which should be in the `publicUsers` or `privateUsers` FirebaseFirestore collections.
 ///
@@ -105,32 +107,60 @@ Future<String> logInUser({required String email, required String password}) asyn
 ///
 /// The user, if they are logged in, should have their `uid` in `auth.currentUser!.uid`.
 ///
-/// If something goes wrong, or the user model is not found in either collection,
-/// or if the user isn't currently logged in, this function returns null.
+/// THROWS.
 Future<UserModel?> loggedInUser() async {
   if (auth.currentUser == null) return null;
 
   UserModel? privateUserModel;
   UserModel? publicUserModel;
 
-  try {
-    final DocumentSnapshot<Map<String, dynamic>> privateUserSnapshot = await 
-      privateUsersCollection
-        .doc(auth.currentUser!.uid)
-        .get();
-    privateUserModel = UserModel.fromSnapshot(privateUserSnapshot);
+  final DocumentSnapshot<Map<String, dynamic>> privateUserSnapshot = await
+    privateUsersCollection
+      .doc(auth.currentUser!.uid)
+      .get();
+  privateUserModel = UserModel.fromSnapshot(privateUserSnapshot);
 
-    final DocumentSnapshot<Map<String, dynamic>> publicUserSnapshot = await 
-      publicUsersCollection
-        .doc(auth.currentUser!.uid)
-        .get();
-    publicUserModel = UserModel.fromSnapshot(publicUserSnapshot);
-  } catch (error) {
-    return null;
-  }
+  final DocumentSnapshot<Map<String, dynamic>> publicUserSnapshot = await
+    publicUsersCollection
+      .doc(auth.currentUser!.uid)
+      .get();
+  publicUserModel = UserModel.fromSnapshot(publicUserSnapshot);
 
   if (publicUserModel != null) return publicUserModel;
   return privateUserModel;
+}
+
+/// Logs off and deletes the current logged in user's account.
+///
+/// First deletes this user's `UserModel` document from BOTH
+/// the public and private Firestore users collections,
+/// then calls `auth.currentUser!.delete()`.
+///
+/// Returns 'Ok' if everything seemed to be successful,
+/// or the error string if something failed.
+///
+/// If there's no `auth.currentUser`,
+/// this function returns "Cannot delete current user! No user logged in!".
+Future<String> deleteLoggedInUser() async {
+  if (auth.currentUser == null) return "Cannot delete current user! No user logged in!";
+
+  try {
+    await privateUsersCollection
+      .doc(auth.currentUser!.uid)
+      .delete();
+
+    await publicUsersCollection
+      .doc(auth.currentUser!.uid)
+      .delete();
+
+    await auth.currentUser!.delete();
+  } on FirebaseException catch (error) {
+    return error.message ?? error.code;
+  } catch (error) {
+    return error.toString();
+  }
+
+  return 'Ok';
 }
 
 /// Returns the `UserModel` document in the Firestore with `id` as its key.

@@ -1,4 +1,5 @@
 // back-end
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
@@ -31,7 +32,23 @@ class _HomeState extends State<Home> {
   /// If the `Login` route fails, for some reason, this function
   /// displays a `SnackBar` with the error as a `String`.
   Future<void> checkLogin(BuildContext context) async {
-    UserModel? userModel = await loggedInUser();
+    UserModel? userModel;
+
+    try {
+      userModel = await loggedInUser();
+    } on FirebaseException catch (error) {
+      if (!(context.mounted)) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting current user info: ${error.message ?? error.code}')),
+      );
+    } catch (error) {
+      if (!(context.mounted)) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting current user info: $error')),
+      );
+    }
 
     if (userModel != null) {
       return setState(() {

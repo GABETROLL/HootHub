@@ -1,4 +1,6 @@
 // back-end
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
@@ -40,23 +42,38 @@ class _LoginState extends State<Login> {
   Future<void> _onLogIn(BuildContext context) async {
     String logInResult = await logInUser(
       email: widget.emailController.text,
-      password: widget.passwordController.text
+      password: widget.passwordController.text,
     );
 
-    if (!(context.mounted)) return;
-
     if (logInResult != 'Ok') {
+      if (!(context.mounted)) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error logging in: $logInResult')),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Welcome back to HootHub, ${widget.emailController.text}')),
-      );
+      UserModel? userModel;
+      String loggedInMessage;
 
-      UserModel? userModel = await loggedInUser();
+      try {
+        userModel = await loggedInUser();
+
+        if (userModel != null) {
+          loggedInMessage = 'Welcome back to HootHub, ${userModel.username}';
+        } else {
+          loggedInMessage = 'Unable to retrieve credentials!';
+        }
+      } on FirebaseException catch (error) {
+        loggedInMessage = error.message ?? error.code;
+      } catch (error) {
+        loggedInMessage = error.toString();
+      }
 
       if (!(context.mounted)) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loggedInMessage)),
+      );
 
       Navigator.pop<UserModel?>(context, userModel);
     }
