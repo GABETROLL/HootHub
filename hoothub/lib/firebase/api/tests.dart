@@ -3,7 +3,6 @@ import 'package:hoothub/firebase/api/auth.dart';
 import 'clients.dart';
 // models
 import 'package:hoothub/firebase/models/test.dart';
-import 'package:hoothub/firebase/models/user.dart';
 
 /// Saves `test` as a document in the `tests` FirebaseFirestore collection.
 ///
