@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/models/model.dart';
 
+/// Independent document `Model` that represents a corresponding `UserModel`'s test score statistics.
 class UserScores extends Model {
   UserScores({
     this.id,

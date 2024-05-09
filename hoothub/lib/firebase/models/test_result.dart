@@ -1,5 +1,7 @@
 import 'model.dart';
 
+/// Dependent `Model` for `Test` to use.
+/// Represents a user's answers score for its corresponding `Test`.
 class TestResult implements Model {
   TestResult({
     required this.userId,

@@ -1,5 +1,7 @@
 import 'model.dart';
 
+/// Dependent `Model` for `Test` to use.
+/// Represents a question in its corresponding `Test`.
 class Question implements Model {
   Question({
     required this.question,

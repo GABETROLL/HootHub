@@ -3,7 +3,7 @@ import 'question.dart';
 import 'test_result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Model for test.
+/// Independent `Model` for test.
 ///
 /// `id`, `userId` and `dateCreated` are optional.
 /// If they are not provided, `saveTest` will generate them for

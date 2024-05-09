@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Front-end representation for a user document,
-/// in the `users` collection, in Firestore.
+/// Independent model representing a user.
 class UserModel {
   UserModel({
     required this.id,

@@ -1,6 +1,7 @@
 import 'model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Independent `Model` representing a user's comment.
 class CommentTree implements Model {
   CommentTree({
     required this.id,
