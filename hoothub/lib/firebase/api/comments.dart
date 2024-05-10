@@ -6,40 +6,46 @@ import 'tests.dart';
 import '../models/test.dart';
 import '../models/comment_tree.dart';
 
-/// Comments on a test in the `tests` Firestore collection,
-/// by uploading a new `CommentTree` document to the `comments` collection,
+/// Comments on a test in the `testsCollection`,
+/// by uploading the `CommentTree` representation of `comment`
+/// to the `commentsCollection`,
 /// and by adding the new comment's ID to the test document's `comments`.
+///
+/// If a `FirebaseException` occurs, this function returns its `message ?? code`.
+/// If any other error occurs, this function returns its `toString()`.
 ///
 /// THROWS: Shouldn't throw anything.
 Future<String> commentOnTestWithId(String testId, String comment) async {
   if (auth.currentUser == null) return "You can't comment without being logged in! Please log in to comment.";
 
-  // Construct and validate `CommentTree` model
-  DocumentReference<Map<String, dynamic>> commentReference = commentsCollection
-    .doc();
-
-  final CommentTree commentModel = CommentTree(
-    id: commentReference.id,
-    userId: auth.currentUser!.uid,
-    testId: testId,
-    parentCommentId: null,
-    comment: comment,
-    usersThatUpvoted: <String>[],
-    usersThatDownvoted: <String>[],
-    replyIds: <String>[],
-  );
-
-  if (!commentModel.isValid()) return "Comment invalid!";
+  // 1) Construct and validate `CommentTree` model
+  DocumentReference<Map<String, dynamic>> commentReference = commentsCollection.doc();
 
   try {
-    // Include the comment in the test
-    Test? testModel = await testWithId(testId);
+    // I'm scared that `auth.currentUser!.uid` may fail, because `currentUser`
+    // is a non-final public field, and couldn't be promoted
+    // by the null-guard above. So, I put it in the try-catch.
+    final CommentTree commentModel = CommentTree(
+      id: commentReference.id,
+      userId: auth.currentUser!.uid, // throws?
+      testId: testId,
+      parentCommentId: null,
+      comment: comment,
+      usersThatUpvoted: <String>[],
+      usersThatDownvoted: <String>[],
+      replyIds: <String>[],
+    );
+
+    if (!commentModel.isValid()) return "Comment invalid!";
+
+    // 2) Include the comment in the test
+    Test? testModel = await testWithId(testId); // throws, but caught
     if (testModel == null) return 'Test not found!';
     testModel.comments.add(commentReference.id);
 
     // Save the changes to the test and save the comment
-    await commentReference.set(commentModel.toJson());
-    await saveTest(testModel);
+    await commentReference.set(commentModel.toJson()); // throws, but caught
+    await saveTest(testModel); // throws, but caught
   } on FirebaseException catch (error) {
     return error.message ?? error.code;
   } catch (error) {
@@ -51,8 +57,6 @@ Future<String> commentOnTestWithId(String testId, String comment) async {
 
 /// Tries to DELETE the comment document, in the `comments` collection,
 /// with `commentId` as its document ID key.
-///
-/// (IT **SHOULD** ALSO HAVE `commentId` AS ITS `id` FIELD)
 ///
 /// Returns 'Ok' if everything seems to have gone well,
 /// `error.message ?? error.code` if a FirebaseException occured,
@@ -73,40 +77,14 @@ Future<String> deleteCommentWithId(String commentId) async {
 /// Tries to return the comment document, in the `comments` collection,
 /// with `commentId` as its document ID key.
 ///
-/// THROWS: Shouldn't throw anything. 
+/// THROWS.
 Future<CommentTree?> commentWithId(String commentId) async {
-  try {
-    DocumentSnapshot<Map<String, dynamic>> commentSnapshot = await commentsCollection.doc(commentId).get();
-    return CommentTree.fromSnapshot(commentSnapshot);
-  } catch (error) {
-    return null;
-  }
+  return CommentTree.fromSnapshot(await commentsCollection.doc(commentId).get());
 }
 
 /// Tries to reply to a comment with `commentId` as its Firestore ID / `id` field.
 ///
-/// Tries to:
-/// - download the comment being replied to from the `comments` collection,
-/// - generate a new reference with an auto-generated ID for the new comment being made,
-/// - create the new `CommentTree` model for the comment,
-///   using `comment`, the user's ID, and the parent comment's `testID`
-///   (It will have all of its lists initialized empty),
-/// - add the new comment's ID to the parent comment model's `replyIds` list,
-/// - re-upload the edited `CommentTree` model for the parent comment,
-///   to add the reply to its document in the Firestore,
-/// - upload the new comment in the `comments` collection.
-///
-/// RETURN VALUE
-/// - Should return 'Ok' if everything seems to go OK.
-/// - If the user is not logged in, this function returns 
-///   "You can't comment without being logged in! Please log in to comment.".
-/// - If the parent comment (the comment being replied to) is not found,
-///   this function returns: 'Comment not found!'.
-/// - If the `CommentTree` model constructed for this new comment is not valid,
-///   this function returns: 'Comment invalid!'.
-/// - If a `FirebaseException` occurs, this function tries to return the error's
-///   `message`. If the message is null, this function returns the error's `code`.
-/// - If anything else goes wrong, this function returns the error's `toString()`.
+/// Please review the schema to understand what this function does.
 ///
 /// THROWS: Shouldn't throw anything.
 Future<String> replyToCommentWithId(String parentCommentId, String comment) async {
@@ -122,7 +100,7 @@ Future<String> replyToCommentWithId(String parentCommentId, String comment) asyn
 
     final CommentTree commentModel = CommentTree(
       id: commentReference.id,
-      userId: auth.currentUser!.uid,
+      userId: auth.currentUser!.uid, // throws? `auth.currentUser` cannot be promoted.
       testId: parentCommentModel.testId,
       parentCommentId: parentCommentId,
       comment: comment,
