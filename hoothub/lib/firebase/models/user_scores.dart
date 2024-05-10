@@ -5,13 +5,11 @@ import 'package:hoothub/firebase/models/model.dart';
 class UserScores extends Model {
   UserScores({
     this.userId,
-    required this.isPublic,
     required this.questionsAnswered,
     required this.questionsAnsweredCorrect,
   });
 
   String? userId;
-  bool isPublic;
   int questionsAnswered;
   int questionsAnsweredCorrect;
 
@@ -28,7 +26,6 @@ class UserScores extends Model {
 
     return UserScores(
       userId: data['userId'],
-      isPublic: data['isPublic'],
       questionsAnswered: data['questionsAnswered'],
       questionsAnsweredCorrect: data['questionsAnsweredCorrect'],
     );
@@ -37,7 +34,6 @@ class UserScores extends Model {
   @override
   Map<String, dynamic> toJson() => {
     'userId': userId,
-    'isPublic': isPublic,
     'questionsAnswered': questionsAnswered,
     'questionsAnsweredCorrect': questionsAnsweredCorrect,
   };

@@ -18,8 +18,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `dateCreated` is a `Timestamp` of the exact micro(?)second this test
 ///   was uploaded to Firebase.
 /// `imageUrl` is the FirebaseStorage download URL for this tests' thumbnail.
-/// `isPublic` dictates weather this test will be visible to other users,
-///   and not just this test's author user.
 /// `questions` is a List<Question>: the questions of the test.
 /// `userResults` is a map of each userId
 ///   and their test results, as a `TestResult` object.
@@ -34,7 +32,6 @@ class Test implements Model {
     String? name,
     this.dateCreated,
     this.imageUrl,
-    bool? isPublic,
     List<Question>? questions,
     Map<String, TestResult>? userResults,
     List<String>? usersThatUpvoted,
@@ -43,9 +40,6 @@ class Test implements Model {
   }) {
     if (name != null) {
       this.name = name;
-    }
-    if (isPublic != null) {
-      this.isPublic = isPublic;
     }
     if (questions != null) {
       this.questions = questions;
@@ -69,7 +63,6 @@ class Test implements Model {
   String name = '';
   Timestamp? dateCreated;
   String? imageUrl;
-  bool isPublic = false;
   List<Question> questions = <Question>[];
   Map<String, TestResult> userResults = <String, TestResult>{};
   List<String> usersThatUpvoted = <String>[];
@@ -203,7 +196,6 @@ class Test implements Model {
       name: data['name'],
       dateCreated: data['dateCreated'],
       imageUrl: data['imageUrl'],
-      isPublic: data['isPublic'],
       questions: questions,
       userResults: userResults,
       usersThatUpvoted: (data['usersThatUpvoted'] as List<dynamic>).cast<String>(),
@@ -219,7 +211,6 @@ class Test implements Model {
     'name': name,
     'dateCreated': dateCreated,
     'imageUrl': imageUrl,
-    'isPublic': isPublic,
     'questions': List<Map<String, dynamic>>.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson()),
     ),

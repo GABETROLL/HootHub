@@ -69,7 +69,7 @@ Future<String> signUpUser({
       username: username,
       dateCreated: Timestamp.now(),
       isPublic: false,
-      publicTests: <String>[],
+      tests: <String>[],
     );
   } catch (error) {
     return "Error creating user's model: $error";
@@ -221,7 +221,7 @@ Future<String> addPublicTestToLoggedInUser(String testId) async {
       return 'Unable to construct user model.';
     }
 
-    userModel.publicTests.add(testId);
+    userModel.tests.add(testId);
 
     // The `userModel.isPublic` AND `userModel.id` SHOULD MATCH
     // THE COLLECTION AND DOCUMENT'S KEY,
