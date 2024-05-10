@@ -54,10 +54,10 @@ Future<String> saveTest(Test test) async {
       // AND IS CREATING A NEW TEST,
       // and add `testReference.id` to the user's model's `tests`.
       if (test.id == null) {
-        addPublicTestToLoggedInUser(testReference.id);
+        addTestIdToLoggedInUser(testReference.id);
       }
     } else {
-      testReference = privateTestsCollection.doc(test.id);
+      testReference = testsCollection.doc(test.id);
     }
 
     // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
@@ -91,7 +91,7 @@ Future<String> saveTest(Test test) async {
 Future<Test?> testWithId(String testId) async {
   try {
     Test? publicResult = Test.fromSnapshot(await publicTestsCollection.doc(testId).get());
-    Test? privateResult = Test.fromSnapshot(await privateTestsCollection.doc(testId).get());
+    Test? privateResult = Test.fromSnapshot(await testsCollection.doc(testId).get());
 
     if (publicResult != null) return publicResult;
     return privateResult;

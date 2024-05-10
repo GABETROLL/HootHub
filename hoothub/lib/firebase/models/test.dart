@@ -21,7 +21,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `questions` is a List<Question>: the questions of the test.
 /// `userResults` is a map of each userId
 ///   and their test results, as a `TestResult` object.
-///   (I'M NOT YET SURE IF THIS DATA SHOULD BE SEEN PUBLICALLY)
+///   (I'M NOT YET SURE IF THIS DATA SHOULD BE SEPARATE)
 /// `usersThatUpvoted`/`usersThatDownvoted` are lists of IDs
 ///   of the users that upvoted/downvoted this test.
 /// `comments` are a list of IDs of the `Comment` documents for this test.
