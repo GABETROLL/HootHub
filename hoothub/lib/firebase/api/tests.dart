@@ -4,68 +4,50 @@ import 'clients.dart';
 // models
 import 'package:hoothub/firebase/models/test.dart';
 
-/// Saves `test` as a document in the `tests` FirebaseFirestore collection.
+/// Saves `test` as a document in the `testsCollection`.
 ///
 /// IF THESE FIELDS IN `test` ARE MISSING, THIS FUNCTION CREATES THEM IN-PLACE, IN `test`:
 /// - `id` will be a unique test ID for the test document's key in the `tests` collection.
 /// - `userId` will be the CURRENTLY LOGGED IN USER'S `uid` (_auth.currentUser!.uid)
-///   (IF THE CURRENT USER IS NOT LOGGED IN, THIS FUNCTION JUST RETURNS 'No user logged in!').
+///   (IF THE CURRENT USER IS NOT LOGGED IN, THIS FUNCTION JUST RETURNS 'No user logged in!').///   
 /// - `dateCreated` will be `Timestamp.now()`.
 ///
-/// TODO: VERIFY AND DOCUMENT THE TEST VALIDATION IN THE FIREBASE SECURITY RULES.
+/// IF THE USER UPLOADING THIS TEST DOES NOT OWN THE NEW TEST (`userId` doesn't match `_auth.currentUser!.uid`)
+/// OR THERE ALREADY EXISTS A TEST WITH `test.id` AS ITS KEY, THE FIRESTORE SECURITY RULES
+/// WON'T ALLOW THIS OPERATION.
+///
 /// ANY OTHER IDs PRESENT IN `test`, NO MATTER HOW NESTED,
-/// IS REQUIRED TO BE VALID.
+/// ARE REQUIRED TO BE VALID.
+///
+/// THE DOCUMENT SHOULD BE VERIFIED IN THE FIRESTORE SECURITY RULES.
 ///
 /// RETURN VALUES
 /// If everything seems to go correctly, this function returns 'Ok'.
 /// If no user is currently logged in, this function returns 'No user logged in!'.
-/// If a `FirebaseException` occurs, this function returns its `code`.
+/// If a `FirebaseException` occurs, this function returns its `message ?? code`.
 /// If any other error occurs, this function returns the `error.toString()`.
 ///
 /// ERRORS
 /// This function shouldn't throw.
-///
-/// Schema:
-/// C tests/
-/// -- D testId
-/// ---- userId
-///
-/// C users/
-/// -- D userId
-/// ---- tests: <testId>[...]
 Future<String> saveTest(Test test) async {
-  if (auth.currentUser == null) {
-    return 'No user logged in!';
-  }
+  if (auth.currentUser == null) return 'No user logged in!';
 
   try {
     // The test's reference will either have `test.id` if that's not null,
     // or a generated unique ID.
-    // And the test's collection will be the public/private one, depending on `isPublic`.
-    DocumentReference<Map<String, dynamic>> testReference;
+    DocumentReference<Map<String, dynamic>> testReference = testsCollection.doc(test.id);
 
     String userId = auth.currentUser!.uid;
 
-    if (test.isPublic == true) {
-      testReference = publicTestsCollection.doc(test.id);
-
-      // If `test.id` is null,
-      // I'll ASSUME THAT THE USER DOESN'T HAVE THIS TEST ALREADY,
-      // AND IS CREATING A NEW TEST,
-      // and add `testReference.id` to the user's model's `tests`.
-      if (test.id == null) {
-        addTestIdToLoggedInUser(testReference.id);
-      }
-    } else {
-      testReference = testsCollection.doc(test.id);
-    }
-
     // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
     // (to show the user the changes after the test has been uploaded)
-    // (`userId` and `id` WILL BE VALIDATED BY Firestore Security Rules)
+    // (THE MODEL WILL BE VALIDATED BY FIRESTORE SECURITY RULES)
     test.id ??= testReference.id;
     test.userId ??= userId;
     test.dateCreated = Timestamp.now();
+
+    // ADD TEST TO ITS CORRESPONDING USER.
+    addTestIdToLoggedInUser(testReference.id);
 
     // SAVE TEST TO ITS CORRESPONDING REFERENCE.
     await testReference.set(test.toJson());
@@ -78,29 +60,16 @@ Future<String> saveTest(Test test) async {
   return 'Ok';
 }
 
-/// Tries to find and return the test
-/// in both the public and private test collections in the Firestore,
-/// that have `testId` as its key.
+/// Returns the test in the `testsCollection` with `testId` as its key.
 ///
-/// If the test is found in both the public and the private collections,
-/// the one in the public collection is returned.
+/// If the test is not found, this function returns null.
 ///
-/// If the test is private, and the user trying to fetch the test
-/// isn't the test's owner, this function **SHOULD** return null,
-/// BECAUSE THE FIREBASE SECURITY RULES SHOULD PREVENT THE USER FROM SEEING THE TEST.
+/// THROWS.
 Future<Test?> testWithId(String testId) async {
-  try {
-    Test? publicResult = Test.fromSnapshot(await publicTestsCollection.doc(testId).get());
-    Test? privateResult = Test.fromSnapshot(await testsCollection.doc(testId).get());
-
-    if (publicResult != null) return publicResult;
-    return privateResult;
-  } catch (error) {
-    return null;
-  }
+  return Test.fromSnapshot(await testsCollection.doc(testId).get());
 }
 
-/// Tries to return `querySnapshot.docs` as an Iterable<Test>.
+/// Tries to execute the `query` and return its `docs` result as an Iterable<Test>.
 ///
 /// If transforming an individual test `QueryDocumentSnapshot` to a `Test`
 /// goes wrong, then THE ERROR GETS THROWN IN ITS PLACE IN THE ITERABLE.
@@ -116,14 +85,16 @@ Future<Iterable<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
   );
 }
 
-/// Tries to return the `queryTests` representation of
-/// the first `limit` newest/oldest tests in the Firestore `tests` collection.
+/// Tries to return
+/// the first `limit` newest/oldest tests in the Firestore `tests` collection,
+/// using `queryTests`.
+///
 /// The tests are ordered according to `newest`.
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
 Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool newest }) async {
   return await queryTests(
-    publicTestsCollection
+    testsCollection
       .orderBy('dateCreated', descending: newest)
       .limit(limit),
   );
@@ -141,10 +112,12 @@ Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool n
 }
  */
 
-/// Returns all public tests that have `userId: userId`, ordered according to `orderByNewest`.
+/// Returns all tests made by the user with `userId` as their key
+/// (that have `userId: userId` in their documents),
+/// ordered by `orderByNewest`.
 Future<Iterable<Test?>> testsByUser(String userId, { required bool orderByNewest }) async {
   return await queryTests(
-    publicTestsCollection
+    testsCollection
       .where('userId', isEqualTo: userId)
       .orderBy('dateCreated', descending: orderByNewest),
   );
