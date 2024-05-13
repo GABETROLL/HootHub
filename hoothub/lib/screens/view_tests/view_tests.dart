@@ -82,6 +82,8 @@ class _ViewTestsState extends State<ViewTests> {
       );
     }
 
+    // THIS BRANCH SHOULD HAVE `_testCards != null`!!!
+    //
     // Cannot promote `_testCards` to non-nullable, because it's a non-final field.
     // So, I just catch the error produced when accessing `_testCards` null,
     // and display that text.

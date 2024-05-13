@@ -16,35 +16,46 @@ class TestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double width = 760;
+    const double testImageWidth = width / 2;
     const double userImageWidth = 60;
 
-    final Image defaultImage = Image.asset('assets/default_image.png');
-    final Image defaultUserImage = Image.asset('assets/default_user_image.png', width: userImageWidth);
+    final Image testImage = (
+      testImageUrl != null
+      ? Image.network(testImageUrl!)
+      : Image.asset(
+        'assets/default_image.png',
+        width: testImageWidth,
+      )
+    );
 
-    return Card(
-        child: SizedBox(
-          width: 760,
+    final Image defaultUserImage = (
+      profileImageUrl != null
+      ? Image.network(profileImageUrl!, width: userImageWidth)
+      : Image.asset(
+        'assets/default_user_image.png',
+        width: userImageWidth
+      )
+    );
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: width),
+        child: Card(
           child: Column(
             children: [
-              (
-                testImageUrl != null
-                ? Image.network(testImageUrl!)
-                : defaultImage
-              ),
+              testImage,
               Text(testName, style: const TextStyle(fontSize: 60)),
               Row(
                 children: [
-                  (
-                    profileImageUrl != null
-                      ? Image.network(profileImageUrl!, width: userImageWidth)
-                      : defaultUserImage
-                  ),
+                  defaultUserImage,
                   Text(username),
                 ],
               ),
             ],
           ),
         ),
-      );
+      ),
+    );
   }
 }
