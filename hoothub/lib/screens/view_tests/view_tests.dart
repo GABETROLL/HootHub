@@ -34,6 +34,8 @@ class _ViewTestsState extends State<ViewTests> {
       });
     }
 
+    print('TESTS: $tests');
+
     List<Widget> testCards = [];
 
     for (Test? test in tests) {

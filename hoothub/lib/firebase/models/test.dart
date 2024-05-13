@@ -165,24 +165,49 @@ class Test implements Model {
 
     if (data == null) return null;
 
-    // TODO: Will this work?
-    if (data['questions'] is! List<Map<String, dynamic>>) {
-      throw "`questions` field of snapshot data is not the correct type!";
+    final dynamic questionsData = data['questions'];
+    final List<Map<String, dynamic>> typecastQuestionsData;
+
+    try {
+      // `questionsData` should be a `List<Map<String, dynamic>>`, where each `Map<String, dynamic>`
+      // represents a `Question` object, in its "JSON" form.
+      //
+      // Firestore actually returns the data as a `List<dynamic>`, NOT a `List<T>`,
+      // even if all of its items are of type `T`.
+      //
+      // `data['questions']` MUST be a `List`. If it's not a `List`, we can already know
+      // that it's invalid, and we can throw the below error.
+      //
+      // First, I attempt to treat `data['questions']` as `List<dynamic>`,
+      // and if it is, no error is thrown,
+      // and I then cast it to `List<Map<String, dynamic>>`.
+      // If that's not possible either, then this error is thrown again:
+      typecastQuestionsData = (
+        questionsData as List<dynamic>
+      ).cast<Map<String, dynamic>>();
+    } catch (error) {
+      throw "`questions` field of snapshot data is not valid! Got: $questionsData";
     }
 
     List<Question> questions = List<Question>.from(
-      data['questions'].map<Question>(
+      typecastQuestionsData.map<Question>(
         (Map<String, dynamic> question) => Question.fromJson(question),
       ),
     );
 
-    // TODO: Will this work?
-    if (data['userResults'] is! Map<String, Map<String, dynamic>>) {
-      throw "`userResults` field of snapshot data is not the correct type!";
+    final dynamic userResultsData = data['userResults'];
+    Map<String, Map<String, dynamic>> typecastUserResultsData;
+
+    try {
+      typecastUserResultsData = (
+        userResultsData as Map
+      ).cast<String, Map<String, dynamic>>();
+    } catch (error) {
+      throw "`userResults` field of snapshot data is not valid! Got: $userResultsData";
     }
 
     Map<String, TestResult> userResults = Map<String, TestResult>.fromEntries(
-      data['userResults'].entries.map<MapEntry<String, TestResult>>(
+      typecastUserResultsData.entries.map<MapEntry<String, TestResult>>(
         (MapEntry<String, Map<String, dynamic>> userResult) => MapEntry<String, TestResult>(
           userResult.key,
           TestResult.fromJson(userResult.value),

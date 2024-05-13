@@ -112,9 +112,19 @@ class _MakeTestState extends State<MakeTest> {
       ),
     );
 
+    final testNameTextEditingController = TextEditingController(text: _testModel.name);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_testModel.name),
+        title: TextField(
+          controller: testNameTextEditingController,
+          onEditingComplete: () => setState(() {
+            _testModel.name = testNameTextEditingController.text;
+          }),
+          decoration: const InputDecoration(
+            hintText: 'Title',
+          ),
+        ),
         actions: <Widget>[
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
