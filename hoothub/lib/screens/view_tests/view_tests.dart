@@ -1,11 +1,9 @@
 // back-end
-import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/models/test.dart';
-import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'package:hoothub/widgets/test_card.dart';
+import 'test_card.dart';
 
 /// A UI for viewing different categories of tests from the Firestore.
 ///
@@ -23,7 +21,7 @@ class _ViewTestsState extends State<ViewTests> {
   List<Widget>? _testCards;
   String? _testQueryError;
 
-  Future<void> _fetchTests() async {
+  Future<void> _fetchTests(BuildContext context) async {
     Iterable<Test?> tests;
 
     try {
@@ -45,22 +43,7 @@ class _ViewTestsState extends State<ViewTests> {
         continue;
       }
 
-      UserModel? testAuthor;
-
-      if (test.userId != null) {
-        try {
-          testAuthor = await userWithId(test.userId!);
-        } catch (error) {
-          // continue to next statement
-        }
-      }
-
-      testCards.add(
-        TestCard(
-          testName: test.name,
-          username: testAuthor?.username ?? '...',
-        ),
-      );
+      testCards.add(TestCard(testModel: test));
     }
 
     setState(() {
@@ -71,14 +54,12 @@ class _ViewTestsState extends State<ViewTests> {
   @override
   Widget build(BuildContext context) {
     if (_testCards == null && _testQueryError == null) {
-      _fetchTests();
+      _fetchTests(context);
 
       return const Text('Searching for tests...');
     } else if (_testQueryError != null) {
       return Center(
-        child: Text(
-          'Error searching for tests: $_testQueryError',
-        ),
+        child: Text('Error searching for tests: $_testQueryError'),
       );
     }
 
@@ -88,14 +69,10 @@ class _ViewTestsState extends State<ViewTests> {
     // So, I just catch the error produced when accessing `_testCards` null,
     // and display that text.
     try {
-      return ListView(
-        children: _testCards!,
-      );
+      return ListView(children: _testCards!);
     } catch (error) {
       return Center(
-        child: Text(
-          'Error displaying tests: $error',
-        ),
+        child: Text('Error displaying tests: $error'),
       );
     }
   }
