@@ -4,7 +4,7 @@ import 'model.dart';
 /// Represents a user's answers score for its corresponding `Test`.
 class TestResult implements Model {
   TestResult({
-    required this.userId,
+    this.userId,
     required this.correctAnswers,
     required this.score,
   });
