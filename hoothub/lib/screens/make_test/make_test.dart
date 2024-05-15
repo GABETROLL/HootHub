@@ -89,7 +89,7 @@ class _MakeTestState extends State<MakeTest> {
         return;
       }
 
-      String testImageSaveResult = 'Ok';
+      String? saveError;
 
       // At this point, `testModelCopy` SHOULD have a non-null `id`,
       // since `saveTest` SHOULD HAVE MUTATED IT,
@@ -98,23 +98,41 @@ class _MakeTestState extends State<MakeTest> {
         // Can't promote non-final fields
         try {
           testModelCopy.imageUrl = await uploadTestImage(testModelCopy.id!, _testImage!);
-          saveTestResult = await saveTest(testModelCopy);
         } catch (error) {
-          testImageSaveResult = error.toString();
+          saveError = error.toString();
         }
+
+        for (final (int index, Uint8List? questionImage) in _questionImages.indexed) {
+          if (questionImage != null) {
+            try {
+              testModelCopy.setQuestionImage(
+                index,
+                await uploadQuestionImage(testModelCopy.id!, index, questionImage),
+              );
+            } catch (error) {
+              saveError = error.toString();
+            }
+          }
+        }
+
+        saveTestResult = await saveTest(testModelCopy);
+      }
+
+      String saveResultMessage;
+
+      if (saveError != null) {
+        saveResultMessage = 'Error saving test image: $saveError';
+      } else if (saveTestResult != 'Ok') {
+        saveResultMessage = 'Error saving test: $saveTestResult';
+      } else {
+        saveResultMessage = 'Test saved successfully!';
       }
 
       if (!(context.mounted)) return;
 
-      if (saveTestResult != 'Ok' || testImageSaveResult != 'Ok') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving test: $saveTestResult')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Test saved successfully!')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(saveResultMessage)),
+      );
     }
   }
 
@@ -220,6 +238,7 @@ class _MakeTestState extends State<MakeTest> {
                 setQuestion: (String question) => setState(() {
                   _testModel.setQuestion(_currentSlideIndex, question);
                 }),
+                questionImage: _questionImages[_currentSlideIndex],
                 asyncSetQuestionImage: (Uint8List newImage) {
                   if (!(context.mounted)) return;
 

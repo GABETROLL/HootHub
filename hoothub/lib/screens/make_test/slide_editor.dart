@@ -1,7 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/make_test/image_editor.dart';
 
@@ -77,6 +76,7 @@ class SlideEditor extends StatelessWidget {
     super.key,
     required this.questionModel,
     required this.setQuestion,
+    required this.questionImage,
     required this.asyncSetQuestionImage,
     required this.asyncOnImageNotRecieved,
     required this.addNewEmptyAnswer,
@@ -87,6 +87,7 @@ class SlideEditor extends StatelessWidget {
 
   final Question questionModel;
   final void Function(String) setQuestion;
+  final Uint8List? questionImage;
   final void Function(Uint8List) asyncSetQuestionImage;
   final void Function() asyncOnImageNotRecieved;
   final void Function() addNewEmptyAnswer;
@@ -115,6 +116,7 @@ class SlideEditor extends StatelessWidget {
           alignment: Alignment.center,
           constraints: const BoxConstraints(maxWidth: 500),
           child: ImageEditor(
+            imageData: questionImage,
             asyncOnChange: asyncSetQuestionImage,
             asyncOnImageNotRecieved: asyncOnImageNotRecieved,
           ),
