@@ -155,6 +155,18 @@ class Test implements Model {
     questions[questionIndex].setSecondsDuration(secondsDuration);
   }
 
+  Test copy() => Test(
+    id: id,
+    userId: userId,
+    name: name,
+    dateCreated: dateCreated,
+    imageUrl: imageUrl,
+    questions: questions,
+    userResults: userResults,
+    usersThatUpvoted: usersThatUpvoted,
+    usersThatDownvoted: usersThatDownvoted,
+  );
+
   /// Returns the `Test` representation of `snapshot.data()`.
   ///
   /// If the data is null, this method returns null.

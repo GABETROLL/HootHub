@@ -8,11 +8,14 @@ import 'package:hoothub/firebase/models/test.dart';
 ///
 /// IF THESE FIELDS IN `test` ARE MISSING, THIS FUNCTION CREATES THEM IN-PLACE, IN `test`:
 /// - `id` will be a unique test ID for the test document's key in the `tests` collection.
-/// - `userId` will be the CURRENTLY LOGGED IN USER'S `uid` (_auth.currentUser!.uid)
+/// - `userId` will be the CURRENTLY LOGGED IN USER'S `uid` (auth.currentUser!.uid)
 ///   (IF THE CURRENT USER IS NOT LOGGED IN, THIS FUNCTION JUST RETURNS 'No user logged in!').///   
 /// - `dateCreated` will be `Timestamp.now()`.
+/// 
+/// IF THE `test` DOES NOT HAVE A `userId`, THIS FUNCTION ASSUMES THIS IS A BRAND NEW TEST,
+/// AND ADDS THE TEST'S ID TO THE CURRENTLY LOGGED IN USER, USING `addTestIdToLoggedInUser(testReference.id)`.
 ///
-/// IF THE USER UPLOADING THIS TEST DOES NOT OWN THE NEW TEST (`userId` doesn't match `_auth.currentUser!.uid`)
+/// IF THE USER UPLOADING THIS TEST DOES NOT OWN THE NEW TEST (`userId` doesn't match `auth.currentUser!.uid`)
 /// OR THERE ALREADY EXISTS A TEST WITH `test.id` AS ITS KEY, THE FIRESTORE SECURITY RULES
 /// WON'T ALLOW THIS OPERATION.
 ///
@@ -46,8 +49,12 @@ Future<String> saveTest(Test test) async {
     test.userId ??= userId;
     test.dateCreated = Timestamp.now();
 
-    // ADD TEST TO ITS CORRESPONDING USER.
-    addTestIdToLoggedInUser(testReference.id);
+    // IF THE TEST DOESN'T HAVE A `userId`,
+    // ASSUME THAT IT'S BRAND NEW, AND
+    // ADD THE TEST'S ID TO ITS CORRESPONDING USER.
+    if (test.userId == null) {
+      addTestIdToLoggedInUser(testReference.id);
+    }
 
     // SAVE TEST TO ITS CORRESPONDING REFERENCE.
     await testReference.set(test.toJson());

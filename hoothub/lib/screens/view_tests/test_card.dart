@@ -79,16 +79,16 @@ class _TestCardState extends State<TestCard> {
     );
 
     try {
-      testImage = Image.network(widget.testModel.imageUrl!);
+      testImage = Image.network(widget.testModel.imageUrl!, width: userImageWidth);
     } catch (error) {
       // What probably happened, is that `widget.testModel.imageUrl` was null.
     }
 
     Image userImage = Image.asset(
       'assets/default_user_image.png',
-      width: userImageWidth
+      width: userImageWidth,
     );
-    
+
     try {
       userImage = Image.network(_testAuthor!.profileImageUrl!, width: userImageWidth);
     } catch (error) {

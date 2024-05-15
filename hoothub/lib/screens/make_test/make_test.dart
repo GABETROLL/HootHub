@@ -6,10 +6,13 @@ library;
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/api/tests.dart';
+import 'package:hoothub/firebase/api/images.dart';
 // frontend
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
 import 'package:hoothub/screens/slide_preview.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddSlideButton extends StatelessWidget {
   const AddSlideButton({super.key, required this.onPressed});
@@ -45,8 +48,8 @@ class _MakeTestState extends State<MakeTest> {
   // default index. May not be in the bounds of `testModel!.questions`,
   // since that could be empty!
   int _currentSlideIndex = 0;
-  // assigned by `initState`.
   late Test _testModel;
+  Uint8List? _testImage;
 
   @override
   void initState() {
@@ -54,19 +57,81 @@ class _MakeTestState extends State<MakeTest> {
     _testModel = widget.testModel;
   }
 
-  Future<void> onTestSaved(BuildContext context) async {
+  /// Awaits the user picking the image from their gallery,
+  /// then, if the `context` is still mounted, sets `_testImage`
+  /// equal to the user's picked image's bytes.
+  ///
+  /// `context` should be this `Widget`'s `context` argument
+  /// from its `Widget build(BuildContext context)` method.
+  Future<void> _onTestImageSaved(BuildContext context) async {
+    final ImagePicker imagePicker = ImagePicker();
+    final XFile? testImage = await imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (!(context.mounted)) return;
+
+    if (testImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image not recieved!')),
+      );
+      return;
+    }
+
+    final Uint8List testImageBytes = await testImage.readAsBytes();
+
+    if (!(context.mounted)) return;
+
+    setState(() {
+      _testImage = testImageBytes;
+    });
+  }
+
+  /// Tries to save the test and the image.
+  ///
+  /// If something seems to go wrong, tries to spawn a `SnackBar`
+  /// with the error.
+  Future<void> _onTestSaved(BuildContext context) async {
     if (!(_testModel.isValid()) && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid Test!')),
       );
     } else {
-      String saveResult = await saveTest(_testModel);
+      // TO NOT ALTER THIS WIDGET'S STATE,
+      // AND ONLY ADD THE TEST'S IMAGEURL TO BOTH THE FRONT-END AND BACK-END
+      // TEST MODELS AFTER THE IMAGE WAS UPLOADED,
+      // CREATE A COPY OF THE TEST MODEL, THEN ALLOW THIS ONE TO BE MODIFIED:
+      Test testModelCopy = _testModel.copy();
+
+      String saveTestResult = await saveTest(testModelCopy);
+
+      if (saveTestResult != 'Ok') {
+        if (!(context.mounted)) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving test: $saveTestResult')),
+        );
+        return;
+      }
+
+      String testImageSaveResult = 'Ok';
+
+      // At this point, `testModelCopy` SHOULD have a non-null `id`,
+      // since `saveTest` SHOULD HAVE MUTATED IT,
+      // BUT, I'm checking, just to be sure.
+      if (testModelCopy.id != null && _testImage != null) {
+        // Can't promote non-final fields
+        try {
+          testModelCopy.imageUrl = await uploadTestImage(testModelCopy.id!, _testImage!);
+          saveTestResult = await saveTest(testModelCopy);
+        } catch (error) {
+          testImageSaveResult = error.toString();
+        }
+      }
 
       if (!(context.mounted)) return;
 
-      if (saveResult != 'Ok') {
+      if (saveTestResult != 'Ok' || testImageSaveResult != 'Ok') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving test: $saveResult')),
+          SnackBar(content: Text('Error saving test: $saveTestResult')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -78,10 +143,23 @@ class _MakeTestState extends State<MakeTest> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> slidePreviews = [];
+    Image testImage;
+
+    try {
+      testImage = Image.memory(_testImage!);
+    } catch (error) {
+      testImage = Image.asset('default_image.png');
+    }
+
+    final List<Widget> sidePanelWithSlidePreviews = [
+      InkWell(
+        onTap: () => _onTestImageSaved(context),
+        child: testImage,
+      ),
+    ];
 
     for (final (int index, Question question) in _testModel.questions.indexed) {
-      slidePreviews.add(
+      sidePanelWithSlidePreviews.add(
         IconButton(
           onPressed: () => setState(() {
             // `index` should be within the index bounds of `testModel.questions`,
@@ -101,7 +179,7 @@ class _MakeTestState extends State<MakeTest> {
       This means that pressing this `AddSlideButton` will automatically jump to the last
       slide, where the user SHOULD be able to edit the last question.
     */
-    slidePreviews.add(
+    sidePanelWithSlidePreviews.add(
       AddSlideButton(
         onPressed: () {
           setState(() {
@@ -132,7 +210,7 @@ class _MakeTestState extends State<MakeTest> {
           ),
           Builder(
             builder: (BuildContext context) =>  ElevatedButton(
-              onPressed: () => onTestSaved(context),
+              onPressed: () => _onTestSaved(context),
               child: const Text('Save'),
             ),
           ),
@@ -140,8 +218,11 @@ class _MakeTestState extends State<MakeTest> {
       ),
       body: Row(
         children: <Widget>[
-          Column(
-            children: slidePreviews,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: ListView(
+              children: sidePanelWithSlidePreviews,
+            ),
           ),
           // `_currentSlideIndex` may be out of the range of the list.
           // In the case that it is,

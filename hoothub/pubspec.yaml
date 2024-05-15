@@ -40,6 +40,8 @@ dependencies:
   firebase_auth: ^4.19.4
   uuid: ^4.4.0
   timer_count_down: ^2.2.0
+  firebase_storage: ^11.7.5
+  image_picker: ^1.1.1
 
 dev_dependencies:
   flutter_test:
