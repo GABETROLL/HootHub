@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/make_test/image_editor.dart';
 
 /// WARNING: Tries to expand to fill its parent,
 /// so its parent must have finite width.
@@ -74,6 +77,8 @@ class SlideEditor extends StatelessWidget {
     super.key,
     required this.questionModel,
     required this.setQuestion,
+    required this.asyncSetQuestionImage,
+    required this.asyncOnImageNotRecieved,
     required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
     required this.setAnswer,
@@ -82,6 +87,8 @@ class SlideEditor extends StatelessWidget {
 
   final Question questionModel;
   final void Function(String) setQuestion;
+  final void Function(Uint8List) asyncSetQuestionImage;
+  final void Function() asyncOnImageNotRecieved;
   final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
   final void Function(int, String) setAnswer;
@@ -91,7 +98,7 @@ class SlideEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     final questionTextEditingController = TextEditingController(text: questionModel.question);
 
-    return Column(
+    return ListView(
       children: <Widget>[
         TextField(
           controller: questionTextEditingController,
@@ -102,6 +109,14 @@ class SlideEditor extends StatelessWidget {
           },
           decoration: const InputDecoration(
             hintText: 'Question',
+          ),
+        ),
+        Container(
+          alignment: Alignment.center,
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: ImageEditor(
+            asyncOnChange: asyncSetQuestionImage,
+            asyncOnImageNotRecieved: asyncOnImageNotRecieved,
           ),
         ),
         Row(

@@ -10,9 +10,9 @@ import 'package:hoothub/firebase/api/images.dart';
 // frontend
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/make_test/image_editor.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
 import 'package:hoothub/screens/slide_preview.dart';
-import 'package:image_picker/image_picker.dart';
 
 class AddSlideButton extends StatelessWidget {
   const AddSlideButton({super.key, required this.onPressed});
@@ -50,39 +50,16 @@ class _MakeTestState extends State<MakeTest> {
   int _currentSlideIndex = 0;
   late Test _testModel;
   Uint8List? _testImage;
+  // [null for Question question in widget.testModel.questions]
+  late List<Uint8List?> _questionImages;
 
   @override
   void initState() {
     super.initState();
     _testModel = widget.testModel;
-  }
-
-  /// Awaits the user picking the image from their gallery,
-  /// then, if the `context` is still mounted, sets `_testImage`
-  /// equal to the user's picked image's bytes.
-  ///
-  /// `context` should be this `Widget`'s `context` argument
-  /// from its `Widget build(BuildContext context)` method.
-  Future<void> _onTestImageSaved(BuildContext context) async {
-    final ImagePicker imagePicker = ImagePicker();
-    final XFile? testImage = await imagePicker.pickImage(source: ImageSource.gallery);
-
-    if (!(context.mounted)) return;
-
-    if (testImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Image not recieved!')),
-      );
-      return;
-    }
-
-    final Uint8List testImageBytes = await testImage.readAsBytes();
-
-    if (!(context.mounted)) return;
-
-    setState(() {
-      _testImage = testImageBytes;
-    });
+    _questionImages = List<Uint8List?>.from(
+      widget.testModel.questions.map<Uint8List?>((Question question) => null),
+    );
   }
 
   /// Tries to save the test and the image.
@@ -143,18 +120,23 @@ class _MakeTestState extends State<MakeTest> {
 
   @override
   Widget build(BuildContext context) {
-    Image testImage;
-
-    try {
-      testImage = Image.memory(_testImage!);
-    } catch (error) {
-      testImage = Image.asset('default_image.png');
-    }
-
     final List<Widget> sidePanelWithSlidePreviews = [
-      InkWell(
-        onTap: () => _onTestImageSaved(context),
-        child: testImage,
+      ImageEditor(
+        imageData: _testImage,
+        asyncOnChange: (Uint8List newImage) {
+          if (!(context.mounted)) return;
+
+          setState(() {
+            _testImage = newImage;
+          });
+        },
+        asyncOnImageNotRecieved: () {
+          if (!(context.mounted)) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image not recieved!')),
+          );
+        },
       ),
     ];
 
@@ -174,6 +156,7 @@ class _MakeTestState extends State<MakeTest> {
     /*
       Add an `AddSlideButton` at the bottom of the `slidePreviews` `List<Widget>`.
       When pressed, it should add a new (EMPTY) question to `testModel.questions`,
+      add a new null image to `_questionImages`,
       and automatically change `_currentSlideIndex` to the index of this new `Question`.
 
       This means that pressing this `AddSlideButton` will automatically jump to the last
@@ -184,6 +167,7 @@ class _MakeTestState extends State<MakeTest> {
         onPressed: () {
           setState(() {
             _testModel.addNewEmptyQuestion();
+            _questionImages.add(null);
             _currentSlideIndex = _testModel.questions.length - 1;
           });
         },
@@ -236,6 +220,20 @@ class _MakeTestState extends State<MakeTest> {
                 setQuestion: (String question) => setState(() {
                   _testModel.setQuestion(_currentSlideIndex, question);
                 }),
+                asyncSetQuestionImage: (Uint8List newImage) {
+                  if (!(context.mounted)) return;
+
+                  setState(() {
+                    _questionImages[_currentSlideIndex] = newImage;
+                  });
+                },
+                asyncOnImageNotRecieved: () {
+                  if (!(context.mounted)) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Question's image not recieved!")),
+                  );
+                },
                 addNewEmptyAnswer: () => setState(() {
                   _testModel.addNewEmptyAnswer(_currentSlideIndex);
                 }),

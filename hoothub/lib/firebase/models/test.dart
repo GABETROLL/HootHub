@@ -121,6 +121,12 @@ class Test implements Model {
     questions[questionIndex].setQuestion(question);
   }
 
+  /// Sets `imageUrl: questionImageUrl` to the `questionIndex`-th question.
+  void setQuestionImage(int questionIndex, String questionImageUrl) {
+    _checkQuestionIndex(questionIndex);
+    questions[questionIndex].setImage(questionImageUrl);
+  }
+
   /// Assigns `answer` to the `answerIndex`-th answer of the `questionIndex`-th question.
   /// 
   /// Throws if either the `questionIndex` is out of range of `questions`,
