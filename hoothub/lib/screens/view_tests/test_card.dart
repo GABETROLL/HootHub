@@ -1,3 +1,4 @@
+import 'package:hoothub/firebase/api/clients.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
@@ -96,6 +97,42 @@ class _TestCardState extends State<TestCard> {
       // or `_testAuthor!.profileImageUrl` was null.
     }
 
+    List<Widget> options = [
+      ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => PlayTestSolo(
+                testModel: widget.testModel,
+              ),
+            ),
+          );
+        },
+        child: const Text('Play solo'),
+      ),
+    ];
+
+    // If a user is logged in, and they own this widget's `Test`,
+    // we can allow them to edit it.
+    if (auth.currentUser?.uid == widget.testModel.userId) {
+      options.add(
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => MakeTest(
+                  testModel: widget.testModel,
+                ),
+              ),
+            );
+          },
+          child: const Text('Edit'),
+        ),
+      );
+    }
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: width),
@@ -112,32 +149,7 @@ class _TestCardState extends State<TestCard> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (BuildContext context) => PlayTestSolo(
-                            testModel: widget.testModel,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('Play solo'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (BuildContext context) => MakeTest(testModel: widget.testModel),
-                        ),
-                      );
-                    },
-                    child: const Text('Edit'),
-                  ),
-                ],
+                children: options,
               ),
               QuestionsCard(questions: widget.testModel.questions),
             ],

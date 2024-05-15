@@ -21,17 +21,18 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   UserModel? _userModel;
+  bool _userChecked = false;
 
   /// Tries to get the user's `UserModel` from `loggedInUser`,
-  /// to then assign it to `_userModel`.
+  /// then sets `_userModel` to its result, if it was eventually recieved,
+  /// and `_userChecked` to true.
   ///
-  /// If that result is null, it pushes the `Login` screen to the `Navigator`,
-  /// and tries to get its route's result,
-  /// to then assign it to `_userModel` instead, even if it's null.
+  /// If `context` is unmounted by the time the user info has arrived,
+  /// this method DOESN'T change this widget's state.
   ///
-  /// If the `Login` route fails, for some reason, this function
-  /// displays a `SnackBar` with the error as a `String`.
-  Future<void> checkLogin(BuildContext context) async {
+  /// If anything goes wrong, and `context` is still mounted,
+  /// this method spawns a `SnackBar` that shows the error.
+  Future<void> _checkLogin(BuildContext context) async {
     UserModel? userModel;
 
     try {
@@ -50,24 +51,33 @@ class _HomeState extends State<Home> {
       );
     }
 
-    if (userModel != null) {
-      return setState(() {
-        _userModel = userModel;
-      });
-    }
-
-    if (!(context.mounted)) return;
-
+    return setState(() {
+      _userModel = userModel;
+      _userChecked = true;
+    });
+  }
+  /// Tries to push `Login` screen, then set `_userModel` to its result,
+  /// then sets `_userChecked` to true.
+  ///
+  /// If by the time the `Login` route pops, `context` has already unmounted,
+  /// this method DOESN'T change this widget's state.
+  ///
+  /// If anything goes wrong, and `context` is still mounted,
+  /// this method spawns a SnackBar` that shows the error.
+  Future<void> _onLogin(BuildContext context) async {
     try {
-      userModel = await Navigator.push<UserModel?>(
+      UserModel? userModel = await Navigator.push<UserModel?>(
         context,
         MaterialPageRoute<UserModel?>(
           builder: (BuildContext context) => Login(),
         ),
       );
 
-      setState(() {
+      if (!(context.mounted)) return;
+
+      return setState(() {
         _userModel = userModel;
+        _userChecked = true;
       });
     } catch (error) {
       if (!(context.mounted)) return;
@@ -80,34 +90,60 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    if (_userModel == null) {
-      checkLogin(context);
+    if (!_userChecked) {
+      _checkLogin(context);
+    }
 
-      return const Scaffold(
-        body: Center(
-          child: Text('Loading...'),
-        )
-      );
+    List<Widget> actions;
+
+    if (_userModel != null) {
+      final Image profileImage;
+
+      if (_userModel!.profileImageUrl != null) {
+        profileImage = Image.network(_userModel!.profileImageUrl!);
+      } else {
+        profileImage = Image.asset('default_user_image.png');
+      }
+
+      actions = <Widget>[
+        IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => MakeTest(
+                  testModel: Test(),
+                ),
+              ),
+            );
+          },
+          icon: const Icon(Icons.add),
+        ),
+        InkWell(
+          onTap: () {
+            // TODO: GO TO USER'S PROFILE HERE
+          },
+          child: Row(
+            children: [
+              profileImage,
+              Text(_userModel!.username),
+            ],
+          ),
+        ),
+      ];
+    } else {
+      actions = <Widget>[
+        ElevatedButton(
+          onPressed: () => _onLogin(context),
+          child: const Text('Login'),
+        ),
+      ];
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('HootHub'),
-        actions: <Widget>[
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => MakeTest(
-                    testModel: Test(),
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.add),
-          ),
-        ],
+        actions: actions,
       ),
       body: const ViewTests(),
     );
