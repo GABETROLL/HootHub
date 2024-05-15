@@ -23,9 +23,16 @@ class MultipleChoicePlayer extends StatelessWidget {
 
     for (final (int index, String answer) in questionModel.answers.indexed) {
       choices.add(
-        ElevatedButton(
-          onPressed: () => onAnswerSelected(index),
-          child: Text(answer),
+        InkWell(
+          onTap: () => onAnswerSelected(index),
+          child: Row(
+            children: <Widget>[
+              const Icon(null),
+              Expanded(
+                child: Text(answer, style: const TextStyle(fontSize: 75)),
+              ),
+            ],
+          ),
         ),
       );
     }

@@ -35,22 +35,26 @@ class MultipleChoiceRevelation extends StatelessWidget {
     final List<Widget> choices = <Widget>[];
 
     for (final (int index, String answer) in questionModel.answers.indexed) {
-      final List<Widget> choiceChildren = <Widget>[
-        (
-          index == questionModel.correctAnswer
-          ? const Icon(
-              Icons.check,
-              color: Colors.green,
-            )
-          : Icon(
-              Icons.close,
-              color: Color(chosenAnswer == null || index == chosenAnswer ? 0xFFFF0000 : 0x00000000),
-            )
+      choices.add(
+        Row(
+          children: <Widget>[
+            (
+              index == questionModel.correctAnswer
+              ? const Icon(
+                  Icons.check,
+                  color: Colors.green,
+                )
+              : Icon(
+                  Icons.close,
+                  color: Color(chosenAnswer == null || index == chosenAnswer ? 0xFFFF0000 : 0x00000000),
+                )
+            ),
+            Expanded(
+              child: Text(answer, style: const TextStyle(fontSize: 75)),
+            ),
+          ],
         ),
-        Expanded(child: Text(answer)),
-      ];
-
-      choices.add(Row(children: choiceChildren));
+      );
     }
 
     choices.add(
@@ -62,6 +66,8 @@ class MultipleChoiceRevelation extends StatelessWidget {
       ),
     );
 
-    return Column(children: choices);
+    return Scaffold(
+      body: Column(children: choices),
+    );
   }
 }

@@ -87,7 +87,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
               print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');
               _nextQuestion(
                 context: context,
-                currentQuestion: currentQuestion
+                currentQuestion: currentQuestion,
               );
             },
           ),
@@ -99,7 +99,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
               _nextQuestion(
                 context: context,
                 currentQuestion: currentQuestion,
-                answerSelectedIndex: answerSelectedIndex
+                answerSelectedIndex: answerSelectedIndex,
               );
             }
           ),

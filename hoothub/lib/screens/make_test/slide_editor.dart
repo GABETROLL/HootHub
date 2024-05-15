@@ -2,7 +2,7 @@ import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
 
-/// WARNING: I think this one also tries to expand to fill its parent,
+/// WARNING: Tries to expand to fill its parent,
 /// so its parent must have finite width.
 ///
 /// (Built `Widget` is a `Column`)
@@ -28,7 +28,7 @@ class MultipleChoiceEditor extends StatelessWidget {
       final answerTextEditingController = TextEditingController(text: answer);
 
       final choice = Row(
-        children: [
+        children: <Widget>[
           Checkbox(
             value: index == questionModel.correctAnswer,
             onChanged: (bool? checked) {
@@ -42,6 +42,7 @@ class MultipleChoiceEditor extends StatelessWidget {
               controller: answerTextEditingController,
               // TODO: Make text save even when the user doesn't press ENTER or submits the text...
               onEditingComplete: () => setAnswer(index, answerTextEditingController.text),
+              style: const TextStyle(fontSize: 75),
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
               ),
