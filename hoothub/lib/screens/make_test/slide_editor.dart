@@ -44,7 +44,7 @@ class MultipleChoiceEditor extends StatelessWidget {
               controller: answerTextEditingController,
               // TODO: Make text save even when the user doesn't press ENTER or submits the text...
               onEditingComplete: () => setAnswer(index, answerTextEditingController.text),
-              style: const TextStyle(fontSize: 75),
+              style: const TextStyle(fontSize: 50),
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
               ),
@@ -108,9 +108,8 @@ class SlideEditor extends StatelessWidget {
             print('STOPPED EDITING QUESTION');
             setQuestion(questionTextEditingController.text);
           },
-          decoration: const InputDecoration(
-            hintText: 'Question',
-          ),
+          style: const TextStyle(fontSize: 60),
+          decoration: const InputDecoration(hintText: 'Question'),
         ),
         Center(
           child: Container(

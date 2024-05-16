@@ -13,7 +13,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/make_test/image_editor.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
-import 'package:hoothub/screens/slide_preview.dart';
+import 'package:hoothub/screens/make_test/slide_preview.dart';
 
 class AddSlideButton extends StatelessWidget {
   const AddSlideButton({super.key, required this.onPressed});
@@ -128,7 +128,7 @@ class _MakeTestState extends State<MakeTest> {
       ImageEditor(
         imageData: _testImage,
         asyncOnChange: (Uint8List newImage) {
-          if (!(context.mounted)) return;
+          if (!mounted) return;
 
           setState(() {
             _testImage = newImage;
@@ -146,13 +146,17 @@ class _MakeTestState extends State<MakeTest> {
 
     for (final (int index, Question question) in _testModel.questions.indexed) {
       sidePanelWithSlidePreviews.add(
-        IconButton(
-          onPressed: () => setState(() {
+        InkWell(
+          onTap: () => setState(() {
             // `index` should be within the index bounds of `testModel.questions`,
             // so `_currentSlideIndex` should also be, after this `setState` call.
             _currentSlideIndex = index;
           }),
-          icon: const SlidePreview(),
+          child: SlidePreview(
+            testId: _testModel.id,
+            questionIndex: index,
+            question: question,
+          ),
         ),
       );
     }

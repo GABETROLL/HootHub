@@ -79,7 +79,11 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
 
       body = ListView(
         children: <Widget>[
-          Text(currentQuestion.question, style: const TextStyle(fontSize: 60)),
+          Text(
+            currentQuestion.question,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 60),
+          ),
           InfoDownloader<String>(
             downloadName: "Image for test ${widget.testModel.id} question $_currentQuestionIndex",
             downloadInfo: () => questionImageDownloadUrl(widget.testModel.id!, _currentQuestionIndex),
@@ -93,7 +97,11 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
           Countdown(
             controller: countdownController,
             seconds: currentQuestion.secondsDuration,
-            build: (BuildContext context, double time) => Text(time.toString()),
+            build: (BuildContext context, double time) => Text(
+              time.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 40),
+            ),
             onFinished: () {
               _nextQuestion(
                 context: context,

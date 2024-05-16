@@ -29,7 +29,7 @@ class MultipleChoicePlayer extends StatelessWidget {
             children: <Widget>[
               const Icon(null),
               Expanded(
-                child: Text(answer, style: const TextStyle(fontSize: 75)),
+                child: Text(answer, style: const TextStyle(fontSize: 50)),
               ),
             ],
           ),
