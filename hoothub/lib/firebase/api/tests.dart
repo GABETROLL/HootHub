@@ -47,7 +47,7 @@ Future<String> saveTest(Test test) async {
     // (THE MODEL WILL BE VALIDATED BY FIRESTORE SECURITY RULES)
     test.id ??= testReference.id;
     test.userId ??= userId;
-    test.dateCreated = Timestamp.now();
+    test.dateCreated ??= Timestamp.now();
 
     // IF THE TEST DOESN'T HAVE A `userId`,
     // ASSUME THAT IT'S BRAND NEW, AND
