@@ -1,16 +1,26 @@
 import 'dart:typed_data';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'clients.dart';
 
-Future<String> uploadImage(Reference reference, Uint8List data) async {
-  await reference.putData(data);
-  return reference.getDownloadURL();
+Future<void> uploadUserImage(String userId, Uint8List data) async {
+  await usersImages.child(userId).putData(data);
 }
 
-Future<String> uploadTestImage(String testId, Uint8List data) {
-  return uploadImage(testsImages.child('$testId/$testId'), data);
+Future<void> uploadTestImage(String testId, Uint8List data) async {
+  await testsImages.child('$testId/$testId').putData(data);
 }
 
-Future<String> uploadQuestionImage(String testId, int questionIndex, Uint8List data) {
-  return uploadImage(testsImages.child('$testId/$questionIndex'), data);
+Future<void> uploadQuestionImage(String testId, int questionIndex, Uint8List data) async {
+  await testsImages.child('$testId/$questionIndex').putData(data);
+}
+
+Future<Uint8List?> downloadUserImage(String userId) {
+  return usersImages.child(userId).getData();
+}
+
+Future<Uint8List?> downloadTestImage(String testId) {
+  return testsImages.child('$testId/$testId').getData();
+}
+
+Future<Uint8List?> downloadQuestionImage(String testId, int questionIndex) {
+  return testsImages.child('$testId/$questionIndex').getData();
 }

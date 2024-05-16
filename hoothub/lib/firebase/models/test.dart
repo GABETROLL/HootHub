@@ -17,7 +17,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `name` is the "title" of the test.
 /// `dateCreated` is a `Timestamp` of the exact micro(?)second this test
 ///   was uploaded to Firebase.
-/// `imageUrl` is the FirebaseStorage download URL for this tests' thumbnail.
 /// `questions` is a List<Question>: the questions of the test.
 /// `userResults` is a map of each userId
 ///   and their test results, as a `TestResult` object.
@@ -31,7 +30,6 @@ class Test implements Model {
     this.userId,
     String? name,
     this.dateCreated,
-    this.imageUrl,
     List<Question>? questions,
     Map<String, TestResult>? userResults,
     List<String>? usersThatUpvoted,
@@ -62,7 +60,6 @@ class Test implements Model {
   String? userId;
   String name = '';
   Timestamp? dateCreated;
-  String? imageUrl;
   List<Question> questions = <Question>[];
   Map<String, TestResult> userResults = <String, TestResult>{};
   List<String> usersThatUpvoted = <String>[];
@@ -75,9 +72,8 @@ class Test implements Model {
   /// if all of its questions are valid,
   /// and if all of the `userResults.values` are valid, according to this test.
   ///
-  /// `id`, `userId`, `dateCreated` and `imageUrl` ARE NOT NEEDED TO VALIDATE A TEST,
-  /// because the first 3 fields (HOPEFULLY WERE) created automatically by `saveTest`,
-  /// and because tests may not always have an image.
+  /// `id`, `userId`, `dateCreated` ARE NOT NEEDED TO VALIDATE A TEST,
+  /// because they SHOULD be created automatically by `saveTest`.
   @override
   bool isValid() {
     for (Question question in questions) {
@@ -121,12 +117,6 @@ class Test implements Model {
     questions[questionIndex].setQuestion(question);
   }
 
-  /// Sets `imageUrl: questionImageUrl` to the `questionIndex`-th question.
-  void setQuestionImage(int questionIndex, String questionImageUrl) {
-    _checkQuestionIndex(questionIndex);
-    questions[questionIndex].setImage(questionImageUrl);
-  }
-
   /// Assigns `answer` to the `answerIndex`-th answer of the `questionIndex`-th question.
   /// 
   /// Throws if either the `questionIndex` is out of range of `questions`,
@@ -166,7 +156,6 @@ class Test implements Model {
     userId: userId,
     name: name,
     dateCreated: dateCreated,
-    imageUrl: imageUrl,
     questions: questions,
     userResults: userResults,
     usersThatUpvoted: usersThatUpvoted,
@@ -238,7 +227,6 @@ class Test implements Model {
       userId: data['userId'],
       name: data['name'],
       dateCreated: data['dateCreated'],
-      imageUrl: data['imageUrl'],
       questions: questions,
       userResults: userResults,
       usersThatUpvoted: (data['usersThatUpvoted'] as List<dynamic>).cast<String>(),
@@ -253,7 +241,6 @@ class Test implements Model {
     'userId': userId,
     'name': name,
     'dateCreated': dateCreated,
-    'imageUrl': imageUrl,
     'questions': List<Map<String, dynamic>>.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson()),
     ),

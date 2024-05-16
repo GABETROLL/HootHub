@@ -1,14 +1,17 @@
 import 'package:hoothub/firebase/api/clients.dart';
-import 'package:hoothub/firebase/models/test.dart';
-import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
+import 'package:hoothub/firebase/models/user.dart';
+import 'package:hoothub/firebase/models/test.dart';
+import 'package:hoothub/firebase/api/images.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
+import 'package:hoothub/screens/widgets/image_downloader.dart';
+import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'questions_card.dart';
 
-class TestCard extends StatefulWidget {
+class TestCard extends StatelessWidget {
   const TestCard({
     super.key,
     required this.testModel,
@@ -17,50 +20,14 @@ class TestCard extends StatefulWidget {
   final Test testModel;
 
   @override
-  State<TestCard> createState() => _TestCardState();
-}
-
-class _TestCardState extends State<TestCard> {
-  UserModel? _testAuthor;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // If the test model is not valid,
-    // just display that.
-    if (!(widget.testModel.isValid())) return;
-
-    // Get the test's author's `UserModel`.
-    //
-    // We need it, to display the author's username
-    // right underneath the test's name and image.
-    try {
-      if (widget.testModel.userId != null) {
-        userWithId(widget.testModel.userId!)
-          .then(
-            (UserModel? testAuthor) {
-              setState(() {
-                _testAuthor = testAuthor;
-              });
-            },
-            onError: (error) {
-              print('error initting state: $error');
-            },
-          );
-      }
-    } catch (error) {
-      print('error initting state: $error');
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     const double width = 760;
     const double testImageWidth = width / 2;
     const double userImageWidth = 60;
 
-    if (!(widget.testModel.isValid())) {
+    // We NEED the test to have a valid `id` and `userId`,
+    // if we want to display its image, and author's image!
+    if (!(testModel.isValid()) || testModel.id == null || testModel.userId == null) {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: width),
@@ -74,29 +41,6 @@ class _TestCardState extends State<TestCard> {
       );
     }
 
-    Image testImage = Image.asset(
-      'assets/default_image.png',
-      width: testImageWidth,
-    );
-
-    try {
-      testImage = Image.network(widget.testModel.imageUrl!, width: userImageWidth);
-    } catch (error) {
-      // What probably happened, is that `widget.testModel.imageUrl` was null.
-    }
-
-    Image userImage = Image.asset(
-      'assets/default_user_image.png',
-      width: userImageWidth,
-    );
-
-    try {
-      userImage = Image.network(_testAuthor!.profileImageUrl!, width: userImageWidth);
-    } catch (error) {
-      // What probably happened, is that `_testAuthor` was null,
-      // or `_testAuthor!.profileImageUrl` was null.
-    }
-
     List<Widget> options = [
       ElevatedButton(
         onPressed: () {
@@ -104,7 +48,7 @@ class _TestCardState extends State<TestCard> {
             context,
             MaterialPageRoute(
               builder: (BuildContext context) => PlayTestSolo(
-                testModel: widget.testModel,
+                testModel: testModel,
               ),
             ),
           );
@@ -115,7 +59,18 @@ class _TestCardState extends State<TestCard> {
 
     // If a user is logged in, and they own this widget's `Test`,
     // we can allow them to edit it.
-    if (auth.currentUser?.uid == widget.testModel.userId) {
+    bool userOwnsTest = false;
+    try {
+      userOwnsTest = (
+        auth.currentUser != null
+        && testModel.userId != null
+        && auth.currentUser!.uid == testModel.userId
+      );
+    } catch (error) {
+      // SOMEHOW ACCESSED NULL FIELDS. FOR NOW, JUST ASSUME THEY DON'T.
+    }
+
+    if (userOwnsTest) {
       options.add(
         ElevatedButton(
           onPressed: () {
@@ -123,7 +78,7 @@ class _TestCardState extends State<TestCard> {
               context,
               MaterialPageRoute(
                 builder: (BuildContext context) => MakeTest(
-                  testModel: widget.testModel,
+                  testModel: testModel,
                 ),
               ),
             );
@@ -139,19 +94,38 @@ class _TestCardState extends State<TestCard> {
         child: Card(
           child: Column(
             children: [
-              testImage,
-              Text(widget.testModel.name, style: const TextStyle(fontSize: 60)),
+              ImageDownloader(
+                imageName: "${testModel.id}'s image",
+                downloadImage: () => downloadTestImage(testModel.id!),
+                defaultImageAssetName: 'default_image.png',
+                width: testImageWidth,
+              ),
+              Text(testModel.name, style: const TextStyle(fontSize: 60)),
               Row(
                 children: [
-                  userImage,
-                  Text(_testAuthor?.username ?? '...'),
+                  ImageDownloader(
+                    imageName: "${testModel.userId}'s user image",
+                    downloadImage: () => downloadUserImage(testModel.userId!),
+                    defaultImageAssetName: 'default_user_image.png',
+                    width: userImageWidth,
+                  ),
+                  InfoDownloader(
+                    downloadName: "${testModel.userId}'s username",
+                    downloadInfo: () => userWithId(testModel.userId!),
+                    buildSuccess: (BuildContext context, UserModel testAuthor) {
+                      return Text(testAuthor.username);
+                    },
+                    buildLoading: (BuildContext context) {
+                      return const Text('Loading...');
+                    },
+                  ),
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: options,
               ),
-              QuestionsCard(questions: widget.testModel.questions),
+              QuestionsCard(questions: testModel.questions),
             ],
           ),
         ),

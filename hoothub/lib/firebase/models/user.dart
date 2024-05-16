@@ -5,14 +5,12 @@ class UserModel {
   UserModel({
     required this.id,
     required this.username,
-    this.profileImageUrl,
     required this.dateCreated,
     required this.tests,
   });
 
   String id;
   String username;
-  String? profileImageUrl;
   Timestamp dateCreated;
   List<String> tests;
 
@@ -28,7 +26,6 @@ class UserModel {
     return UserModel(
       id: data['id'],
       username: data['username'],
-      profileImageUrl: data['profileImageUrl'],
       dateCreated: data['dateCreated'],
       tests: (data['tests'] as List<dynamic>).cast<String>(),
     );
@@ -37,7 +34,6 @@ class UserModel {
   Map<String, dynamic> toJson() => {
     'id': id,
     'username': username,
-    'profileImageUrl': profileImageUrl,
     'dateCreated': dateCreated,
     'tests': tests,
   };

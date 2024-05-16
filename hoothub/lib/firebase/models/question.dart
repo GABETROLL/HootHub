@@ -5,14 +5,12 @@ import 'model.dart';
 class Question implements Model {
   Question({
     required this.question,
-    this.imageUrl,
     required this.answers,
     required this.correctAnswer,
     this.secondsDuration = 20,
   });
 
   String question;
-  String? imageUrl;
   List<String> answers;
   int correctAnswer;
   int secondsDuration;
@@ -33,11 +31,6 @@ class Question implements Model {
   /// Sets `this.question: question`.
   void setQuestion(String question) {
     this.question = question;
-  }
-
-  /// Sets `imageUrl: imageUrl`.
-  void setImage(String imageUrl) {
-    this.imageUrl = imageUrl;
   }
 
   /// Throws error if `index` is out of the range of `answers`.
@@ -76,7 +69,6 @@ class Question implements Model {
   static Question fromJson(Map<String, dynamic> data) {
     return Question(
       question: data['question'],
-      imageUrl: data['imageUrl'],
       answers: (data['answers'] as List<dynamic>).cast<String>(),
       correctAnswer: data['correctAnswer'],
       secondsDuration: data['secondsDuration'],
@@ -86,7 +78,6 @@ class Question implements Model {
   @override
   Map<String, dynamic> toJson() => {
     'question': question,
-    'imageUrl': imageUrl,
     'answers': answers,
     'correctAnswer': correctAnswer,
     'secondsDuration': secondsDuration,

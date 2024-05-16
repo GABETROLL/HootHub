@@ -3,6 +3,7 @@
 library;
 
 // backend
+import 'package:firebase_core/firebase_core.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/api/tests.dart';
@@ -72,13 +73,7 @@ class _MakeTestState extends State<MakeTest> {
         const SnackBar(content: Text('Invalid Test!')),
       );
     } else {
-      // TO NOT ALTER THIS WIDGET'S STATE,
-      // AND ONLY ADD THE TEST'S IMAGEURL TO BOTH THE FRONT-END AND BACK-END
-      // TEST MODELS AFTER THE IMAGE WAS UPLOADED,
-      // CREATE A COPY OF THE TEST MODEL, THEN ALLOW THIS ONE TO BE MODIFIED:
-      Test testModelCopy = _testModel.copy();
-
-      String saveTestResult = await saveTest(testModelCopy);
+      String saveTestResult = await saveTest(_testModel);
 
       if (saveTestResult != 'Ok') {
         if (!(context.mounted)) return;
@@ -89,43 +84,34 @@ class _MakeTestState extends State<MakeTest> {
         return;
       }
 
-      String? saveError;
+      String saveResultMessage = 'Test saved successfully!';
+
+      // Save test image, and question's images:
 
       // At this point, `testModelCopy` SHOULD have a non-null `id`,
       // since `saveTest` SHOULD HAVE MUTATED IT,
       // BUT, I'm checking, just to be sure.
-      if (testModelCopy.id != null && _testImage != null) {
+      if (_testModel.id != null && _testImage != null) {
         // Can't promote non-final fields
         try {
-          testModelCopy.imageUrl = await uploadTestImage(testModelCopy.id!, _testImage!);
+          await uploadTestImage(_testModel.id!, _testImage!);
+        } on FirebaseException catch (error) {
+          saveResultMessage = 'Error saving test image: ${error.message ?? error.code}';
         } catch (error) {
-          saveError = error.toString();
+          saveResultMessage = 'Error saving test image: $error';
         }
 
         for (final (int index, Uint8List? questionImage) in _questionImages.indexed) {
           if (questionImage != null) {
             try {
-              testModelCopy.setQuestionImage(
-                index,
-                await uploadQuestionImage(testModelCopy.id!, index, questionImage),
-              );
+              await uploadQuestionImage(_testModel.id!, index, questionImage);
+            } on FirebaseException catch (error) {
+              saveResultMessage = "Error saving question $index's image: ${error.message ?? error.code}";
             } catch (error) {
-              saveError = error.toString();
+              saveResultMessage = "Error saving question $index's image: $error";
             }
           }
         }
-
-        saveTestResult = await saveTest(testModelCopy);
-      }
-
-      String saveResultMessage;
-
-      if (saveError != null) {
-        saveResultMessage = 'Error saving test image: $saveError';
-      } else if (saveTestResult != 'Ok') {
-        saveResultMessage = 'Error saving test: $saveTestResult';
-      } else {
-        saveResultMessage = 'Test saved successfully!';
       }
 
       if (!(context.mounted)) return;
