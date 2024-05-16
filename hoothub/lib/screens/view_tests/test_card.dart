@@ -94,20 +94,28 @@ class TestCard extends StatelessWidget {
         child: Card(
           child: Column(
             children: [
-              ImageDownloader(
-                imageName: "${testModel.id}'s image",
-                downloadImage: () => downloadTestImage(testModel.id!),
-                defaultImageAssetName: 'default_image.png',
-                width: testImageWidth,
+              InfoDownloader<String>(
+                downloadName: "${testModel.id}'s test image download URL",
+                downloadInfo: () => testImageDownloadUrl(testModel.id!),
+                buildSuccess: (BuildContext context, String imageUrl) {
+                  return Image.network(imageUrl, width: testImageWidth);
+                },
+                buildLoading: (BuildContext context) {
+                  return Image.asset('default_image.png', width: testImageWidth);
+                },
               ),
               Text(testModel.name, style: const TextStyle(fontSize: 60)),
               Row(
                 children: [
-                  ImageDownloader(
-                    imageName: "${testModel.userId}'s user image",
-                    downloadImage: () => downloadUserImage(testModel.userId!),
-                    defaultImageAssetName: 'default_user_image.png',
-                    width: userImageWidth,
+                  InfoDownloader<String>(
+                    downloadName: "${testModel.userId}'s user image download URL",
+                    downloadInfo: () => userImageDownloadUrl(testModel.userId!),
+                    buildSuccess: (BuildContext context, String imageUrl) {
+                      return Image.network(imageUrl, width: userImageWidth);
+                    },
+                    buildLoading: (BuildContext context) {
+                      return Image.asset('default_user_image.png', width: userImageWidth);
+                    },
                   ),
                   InfoDownloader(
                     downloadName: "${testModel.userId}'s username",

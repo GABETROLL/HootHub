@@ -13,6 +13,18 @@ Future<void> uploadQuestionImage(String testId, int questionIndex, Uint8List dat
   await testsImages.child('$testId/$questionIndex').putData(data);
 }
 
+Future<String> userImageDownloadUrl(String userId) {
+  return testsImages.child(userId).getDownloadURL();
+}
+
+Future<String> testImageDownloadUrl(String testId) {
+  return testsImages.child('$testId/$testId').getDownloadURL();
+}
+
+Future<String> questionImageDownloadUrl(String testId, int questionIndex) {
+  return testsImages.child('$testId/$questionIndex').getDownloadURL();
+}
+
 Future<Uint8List?> downloadUserImage(String userId) {
   return usersImages.child(userId).getData();
 }
