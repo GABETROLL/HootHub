@@ -112,13 +112,15 @@ class SlideEditor extends StatelessWidget {
             hintText: 'Question',
           ),
         ),
-        Container(
-          alignment: Alignment.center,
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: ImageEditor(
-            imageData: questionImage,
-            asyncOnChange: asyncSetQuestionImage,
-            asyncOnImageNotRecieved: asyncOnImageNotRecieved,
+        Center(
+          child: Container(
+            alignment: Alignment.center,
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: ImageEditor(
+              imageData: questionImage,
+              asyncOnChange: asyncSetQuestionImage,
+              asyncOnImageNotRecieved: asyncOnImageNotRecieved,
+            ),
           ),
         ),
         Row(

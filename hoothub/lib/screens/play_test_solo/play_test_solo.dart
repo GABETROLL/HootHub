@@ -1,9 +1,11 @@
 // back-end
+import 'package:hoothub/firebase/api/images.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/firebase/models/test_result.dart';
+import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'package:timer_count_down/timer_controller.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 import 'multiple_choice_player.dart';
@@ -74,17 +76,25 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
     } else {
       final Question currentQuestion = widget.testModel.questions[_currentQuestionIndex];
       countdownController.restart();
-      print('Restarted timer');
 
       body = ListView(
         children: <Widget>[
-          Text(currentQuestion.question),
+          Text(currentQuestion.question, style: const TextStyle(fontSize: 60)),
+          InfoDownloader<String>(
+            downloadName: "Image for test ${widget.testModel.id} question $_currentQuestionIndex",
+            downloadInfo: () => questionImageDownloadUrl(widget.testModel.id!, _currentQuestionIndex),
+            buildSuccess: (BuildContext context, String imageUrl) {
+              return Image.network(imageUrl, width: 300);
+            },
+            buildLoading: (BuildContext context) {
+              return Image.asset('default_image.png', width: 300);
+            },
+          ),
           Countdown(
             controller: countdownController,
             seconds: currentQuestion.secondsDuration,
             build: (BuildContext context, double time) => Text(time.toString()),
             onFinished: () {
-              print('COUNTDOWN FOR QUESTION $_currentQuestionIndex FINISHED!');
               _nextQuestion(
                 context: context,
                 currentQuestion: currentQuestion,
@@ -95,7 +105,6 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             questionModel: currentQuestion,
             onAnswerSelected: (int answerSelectedIndex) {
               countdownController.pause();
-              print('Paused timer');
               _nextQuestion(
                 context: context,
                 currentQuestion: currentQuestion,
