@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/api/images.dart';
+import 'package:hoothub/firebase/api/tests.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
 // front-end
@@ -26,6 +27,11 @@ class _HomeState extends State<Home> {
   bool _userChecked = false;
   Uint8List? _userProfileImage;
   bool _userProfileImageFetched = false;
+
+  int _limit = 100;
+  bool _newestFirst = true;
+  String? _queryUserId;
+  int _queryType = 0;
 
   /// Tries to get the user's `UserModel` from `loggedInUser`,
   /// then sets `_userModel` to its result, if it was eventually recieved,
@@ -185,12 +191,48 @@ class _HomeState extends State<Home> {
       ];
     }
 
+    final List<TestQuery> testQueries = [
+      () => testsByDateCreated(limit: _limit, newest: _newestFirst),
+      () async {
+        if (_queryUserId == null) {
+          return [];
+        }
+        else {
+          try {
+            return testsByUser(_queryUserId!, orderByNewest: _newestFirst);
+          } catch (error) {
+            return [];
+          }
+        }
+      },
+    ];
+
+    print(_queryType);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('HootHub'),
         actions: actions,
       ),
-      body: const ViewTests(),
+      body: ViewTests(query: testQueries[_queryType]),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _queryType,
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.calendar_month),
+            label: 'By date',
+          ),
+          NavigationDestination(
+            icon: Image.asset('default_user_image.png'),
+            label: 'By user',
+          ),
+        ],
+        onDestinationSelected: (int index) {
+          setState(() {
+            _queryType = index;
+          });
+        },
+      ),
     );
   }
 }

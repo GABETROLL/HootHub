@@ -7,7 +7,6 @@ import 'package:hoothub/firebase/api/images.dart';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
-import 'package:hoothub/screens/widgets/image_downloader.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'questions_card.dart';
 

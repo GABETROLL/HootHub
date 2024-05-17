@@ -112,8 +112,7 @@ Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool n
 ///
 /// NET UPVOTES ===== (upvotes - downvotes)
 ///
-/// If something goes wrong with getting the tests or anything else in this function,
-/// THE ERROR IS RETURNED.
+/// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
 /* Future<Iterable<Test?>> testsByNetUpvotes(int limit) async {
   // TODO: IMPLEMENT THE QUERY
 }
@@ -122,6 +121,8 @@ Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool n
 /// Returns all tests made by the user with `userId` as their key
 /// (that have `userId: userId` in their documents),
 /// ordered by `orderByNewest`.
+///
+/// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
 Future<Iterable<Test?>> testsByUser(String userId, { required bool orderByNewest }) async {
   return await queryTests(
     testsCollection
@@ -133,3 +134,5 @@ Future<Iterable<Test?>> testsByUser(String userId, { required bool orderByNewest
 Future<dynamic> testsByName(String nameQuery) async {
   return await 
 } */
+
+typedef TestQuery = Future<Iterable<Test?>> Function();

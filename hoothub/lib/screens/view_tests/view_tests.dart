@@ -11,7 +11,12 @@ import 'test_card.dart';
 /// AND IT'S MEANT TO BE WRAPPED BY `Home`, OR BY A WIDGET THAT IS.
 /// IT'S NOT MEANT TO BE USED DIRECTLY IN A ROUTE.
 class ViewTests extends StatefulWidget {
-  const ViewTests({super.key});
+  const ViewTests({
+    super.key,
+    required this.query,
+  });
+
+  final TestQuery query;
 
   @override
   State<ViewTests> createState() => _ViewTestsState();
@@ -25,7 +30,7 @@ class _ViewTestsState extends State<ViewTests> {
     Iterable<Test?> tests;
 
     try {
-      tests = await testsByDateCreated(limit: 100, newest: true);
+      tests = await widget.query();
     } catch (error) {
       return setState(() {
         _testQueryError = error.toString();
