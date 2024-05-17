@@ -76,19 +76,24 @@ Future<Test?> testWithId(String testId) async {
   return Test.fromSnapshot(await testsCollection.doc(testId).get());
 }
 
-/// Tries to execute the `query` and return its `docs` result as an Iterable<Test>.
+/// Tries to execute the `query` and return its `docs` result as an List<Test?>.
 ///
-/// If transforming an individual test `QueryDocumentSnapshot` to a `Test`
-/// goes wrong, then THE ERROR GETS THROWN IN ITS PLACE IN THE ITERABLE.
+/// Some tests in the result may be null, if their snapshots don't have
+/// any data.
 ///
-/// If anything else goes wrong with this function, THE ERROR IS THROWN.
-Future<Iterable<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
+/// IF AN ERROR HAPPENS WHILE CONVERTING ANY `QueryDocumentSnapshot`
+/// TO A `Test`, ITERATING OVER ANY `QueryDocumentSnapshot`,
+/// OR ANYWHERE ELSE, IT'S THROWN, AND THE WHOLE QUERY RESULT WILL
+/// NOT BE RETURNED.
+Future<List<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
   QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
 
-  return querySnapshot.docs.map<Test?>(
-    (QueryDocumentSnapshot<Map<String, dynamic>> queryDocumentSnapshot) {
-      return Test.fromSnapshot(queryDocumentSnapshot);
-    },
+  return List<Test?>.from(
+    querySnapshot.docs.map<Test?>(
+      (QueryDocumentSnapshot<Map<String, dynamic>> queryDocumentSnapshot) {
+        return Test.fromSnapshot(queryDocumentSnapshot);
+      },
+    ),
   );
 }
 
@@ -99,7 +104,7 @@ Future<Iterable<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
 /// The tests are ordered according to `newest`.
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool newest }) async {
+Future<List<Test?>> testsByDateCreated({ required int limit, required bool newest }) async {
   return await queryTests(
     testsCollection
       .orderBy('dateCreated', descending: newest)
@@ -113,7 +118,7 @@ Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool n
 /// NET UPVOTES ===== (upvotes - downvotes)
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-/* Future<Iterable<Test?>> testsByNetUpvotes(int limit) async {
+/* Future<List<Test?>> testsByNetUpvotes(int limit) async {
   // TODO: IMPLEMENT THE QUERY
 }
  */
@@ -123,7 +128,7 @@ Future<Iterable<Test?>> testsByDateCreated({ required int limit, required bool n
 /// ordered by `orderByNewest`.
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<Iterable<Test?>> testsByUser(String userId, { required bool orderByNewest }) async {
+Future<List<Test?>> testsByUser(String userId, { required bool orderByNewest }) async {
   return await queryTests(
     testsCollection
       .where('userId', isEqualTo: userId)
@@ -135,4 +140,4 @@ Future<dynamic> testsByName(String nameQuery) async {
   return await 
 } */
 
-typedef TestQuery = Future<Iterable<Test?>> Function();
+typedef TestQuery = Future<List<Test?>> Function();

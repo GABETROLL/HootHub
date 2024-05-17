@@ -59,6 +59,8 @@ class _ViewTestsState extends State<ViewTests> {
   bool _newest = true;
   QueryType _queryType = QueryType.date;
 
+  static const testNotFoundCard = Text('Test not found!');
+
   Widget buildSearchMenu(BuildContext context) {
     return Row(
       children: <Widget>[
@@ -103,35 +105,38 @@ class _ViewTestsState extends State<ViewTests> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(
-        children: <Widget>[
-          buildSearchMenu(context),
-          InfoDownloader<Iterable<Test?>>(
-            downloadName: 'Tests',
-            downloadInfo: () => query()(),
-            buildSuccess: (BuildContext context, Iterable<Test?> tests) {
-              // TODO: MAYBE USE SOME TYPE OF STREAM-BUILT LISTVIEW?
-              List<Widget> testCards = [];
+      body: InfoDownloader<List<Test?>>(
+        downloadName: 'Tests',
+        downloadInfo: () => query()(),
+        buildSuccess: (BuildContext context, List<Test?> tests) {
+          // TODO: MAYBE USE SOME TYPE OF STREAM-BUILT LISTVIEW?
 
-              for (Test? test in tests) {
-                // TODO: HANDLE TEST THROWING
-                if (test == null) {
-                  testCards.add(const Text('Could not find test.'));
-                  continue;
-                }
-
-                testCards.add(TestCard(testModel: test));
+          return ListView.builder(
+            itemCount: tests.length + 1,
+            itemBuilder: (BuildContext context, int index) {
+              if (index == 0) {
+                return buildSearchMenu(context);
               }
 
-              return ListView(children: testCards);
-            },
-            buildLoading: (BuildContext context) {
-              return const Center(
-                child: Text('Loading tests...', style: TextStyle(fontSize: 100)),
-              );
-            },
-          ),
-        ],
+              Test? testForCard = tests[index - 1];
+              if (testForCard != null) {
+                try {
+                  return TestCard(testModel: testForCard);
+                } catch (error) {
+                  return testNotFoundCard;
+                }
+
+              } else {
+                return testNotFoundCard;
+              }
+            }
+          );
+        },
+        buildLoading: (BuildContext context) {
+          return const Center(
+            child: Text('Loading tests...', style: TextStyle(fontSize: 100)),
+          );
+        },
       ),
     );
   }
