@@ -116,7 +116,7 @@ class TestCard extends StatelessWidget {
                       return Image.asset('default_user_image.png', width: userImageWidth);
                     },
                   ),
-                  InfoDownloader(
+                  InfoDownloader<UserModel>(
                     downloadName: "${testModel.userId}'s username",
                     downloadInfo: () => userWithId(testModel.userId!),
                     buildSuccess: (BuildContext context, UserModel testAuthor) {
