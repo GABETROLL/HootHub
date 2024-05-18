@@ -4,7 +4,6 @@ import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'test_card.dart';
 
 enum QueryType {
@@ -84,6 +83,18 @@ class SearchMenu extends StatelessWidget {
   }
 }
 
+class QuerySettings {
+  QuerySettings({
+    required this.limit,
+    required this.queryType,
+    required this.orderByNewest,
+  });
+
+  int limit;
+  QueryType queryType;
+  bool orderByNewest;
+}
+
 /// A UI for viewing different categories of tests from the Firestore.
 ///
 ///  MEANT TO BE WRAPPED BY `Home`.
@@ -96,20 +107,19 @@ class ViewTests extends StatefulWidget {
 }
 
 class _ViewTestsState extends State<ViewTests> {
-  int _limit = 100;
-  bool _orderByNewest = true;
-  QueryType _queryType = QueryType.date;
-
   Widget? _child;
 
-  Widget buildChild(List<Test?> tests) {
+  Widget buildWithQuery({
+    required QuerySettings querySettings,
+    required List<Test?> tests,
+  }) {
     return ListView.builder(
       itemCount: tests.length + 1,
       itemBuilder: (BuildContext context, int index) {
         if (index == 0) {
           return SearchMenu(
-            queryType: _queryType,
-            orderByNewest: _orderByNewest,
+            queryType: querySettings.queryType,
+            orderByNewest: querySettings.orderByNewest,
             queryTypeEntries: List<DropdownMenuEntry<QueryType>>.from(
               QueryType.values.map<DropdownMenuEntry<QueryType>>(
                 (QueryType queryType) => DropdownMenuEntry<QueryType>(
@@ -131,12 +141,20 @@ class _ViewTestsState extends State<ViewTests> {
                 leadingIcon: Icon(Icons.arrow_upward),
               ),
             ],
-            setQueryType: (QueryType newQueryType) => setState(() {
-              _queryType = newQueryType;
-            }),
-            setOrderByNewest: (bool newOrderBy) => setState(() {
-              _orderByNewest = newOrderBy;
-            }),
+            setQueryType: (QueryType queryType) => _downloadTestsAndReplaceChild(
+              querySettings: QuerySettings(
+                limit: querySettings.limit,
+                queryType: queryType,
+                orderByNewest: querySettings.orderByNewest,
+              )
+            ),
+            setOrderByNewest: (bool orderByNewest) => _downloadTestsAndReplaceChild(
+              querySettings: QuerySettings(
+                limit: querySettings.limit,
+                queryType: querySettings.queryType,
+                orderByNewest: orderByNewest,
+              ),
+            ),
           );
         }
 
@@ -150,14 +168,14 @@ class _ViewTestsState extends State<ViewTests> {
     );
   }
 
-  Future<void> _downloadTestsAndReplaceChild() async {
+  Future<void> _downloadTestsAndReplaceChild({required QuerySettings querySettings}) async {
     List<Test?> tests = <Test?>[];
 
     TestQuery testQuery;
 
-    switch (_queryType) {
+    switch (querySettings.queryType) {
       case QueryType.date: {
-        testQuery = () => testsByDateCreated(limit: _limit, newest: _orderByNewest);
+        testQuery = () => testsByDateCreated(limit: querySettings.limit, newest: querySettings.orderByNewest);
       }
     }
 
@@ -169,29 +187,30 @@ class _ViewTestsState extends State<ViewTests> {
       print('Error downloading tests: $error');
     }
 
-    print('tests: $tests');
-
     if (!mounted) return;
 
-    print('STILL MOUNTED!!!');
-
     setState(() {
-      _child = buildChild(tests);
+      _child = buildWithQuery(querySettings: querySettings, tests: tests);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    QuerySettings initialQuerySettings = QuerySettings(
+      limit: 100,
+      queryType: QueryType.date,
+      orderByNewest: true,
+    );
+
     if (_child == null) {
-      print('FETCHING TESTS AND REPLACING CHILD');
-      _downloadTestsAndReplaceChild();
-      return buildChild(<Test?>[]);
+      _downloadTestsAndReplaceChild(querySettings: initialQuerySettings);
+      return buildWithQuery(querySettings: initialQuerySettings, tests: <Test?>[]);
     }
     try {
       return _child!;
     } catch (error) {
       print('Error reading `ViewTests` child: $error');
-      return buildChild(<Test?>[]);
+      return buildWithQuery(querySettings: initialQuerySettings, tests: <Test?>[]);
     }
   }
 }
