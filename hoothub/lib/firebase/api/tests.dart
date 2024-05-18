@@ -104,8 +104,8 @@ Future<List<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
 /// The tests are ordered according to `newest`.
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<List<Test?>> testsByDateCreated({ required int limit, required bool newest }) async {
-  return await queryTests(
+Future<List<Test?>> testsByDateCreated({ required int limit, required bool newest }) {
+  return queryTests(
     testsCollection
       .orderBy('dateCreated', descending: newest)
       .limit(limit),
@@ -113,15 +113,45 @@ Future<List<Test?>> testsByDateCreated({ required int limit, required bool newes
 }
 
 /// Tries to return the first `limit` tests in the Firestore `tests` collection,
-/// that have the most/least NET UPVOTES.
+/// that have the MOST/LEAST NET UPVOTES.
 ///
 /// NET UPVOTES ===== (upvotes - downvotes)
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-/* Future<List<Test?>> testsByNetUpvotes(int limit) async {
-  // TODO: IMPLEMENT THE QUERY
+Future<List<Test?>> testsByNetUpvotes({ required int limit, required bool most }) {
+  return queryTests(
+    testsCollection
+      .orderBy('usersThatUpvoted', descending: most)
+      .orderBy('usersThatDownvoted', descending: !most)
+      .limit(limit),
+  );
 }
- */
+
+/// Tries to return the first `limit` tests in the Firestore `tests` collection,
+/// that have the MOST/LEAST UPVOTES.
+///
+/// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
+Future<List<Test?>> testsByUpvotes({ required int limit, required bool most }) {
+  return queryTests(
+    testsCollection
+      .orderBy('usersThatUpvoted', descending: most)
+      .limit(limit),
+  );
+}
+
+/// Tries to return the first `limit` tests in the Firestore `tests` collection,
+/// that have the MOST/LEAST DOWNVOTES
+///
+/// NET UPVOTES ===== (upvotes - downvotes)
+///
+/// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
+Future<List<Test?>> testsByDownvotes({required int limit, required bool most }) {
+  return  queryTests(
+    testsCollection
+      .orderBy('usersThatDownvoted', descending: most)
+      .limit(limit),
+  );
+}
 
 /// Returns all tests made by the user with `userId` as their key
 /// (that have `userId: userId` in their documents),

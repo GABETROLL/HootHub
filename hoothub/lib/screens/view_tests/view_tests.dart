@@ -7,7 +7,10 @@ import 'package:flutter/material.dart';
 import 'test_card.dart';
 
 enum QueryType {
-  date(label: 'Date', leadingIcon: Icon(Icons.calendar_month));
+  date(label: 'Date', leadingIcon: Icon(Icons.calendar_month)),
+  netUpvotes(label: 'Net Upvotes', leadingIcon: Icon(Icons.arrow_upward)),
+  upvotes(label: 'Upvotes', leadingIcon: Icon(Icons.arrow_upward)),
+  downvotes(label: 'Downvotes', leadingIcon: Icon(Icons.arrow_downward));
 
   const QueryType({
     required this.label,
@@ -50,33 +53,34 @@ class SearchMenu extends StatelessWidget {
   const SearchMenu({
     super.key,
     required this.queryType,
-    required this.orderByNewest,
+    required this.reverse,
     required this.queryTypeEntries,
-    required this.orderByNewestEntries,
     required this.setQueryType,
-    required this.setOrderByNewest,
+    required this.setReverse,
   });
 
   final QueryType queryType;
-  final bool orderByNewest;
+  final bool reverse;
   final List<DropdownMenuEntry<QueryType>> queryTypeEntries;
-  final List<DropdownMenuEntry<bool>> orderByNewestEntries;
   final void Function(QueryType) setQueryType;
-  final void Function(bool) setOrderByNewest;
+  final void Function(bool) setReverse;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: <TestsSearchMenu>[
+      children: <Widget>[
         TestsSearchMenu<QueryType>(
           queryOption: queryType,
           setQueryOption: setQueryType,
           queryOptionEntries: queryTypeEntries,
         ),
-        TestsSearchMenu<bool>(
-          queryOption: orderByNewest,
-          setQueryOption: setOrderByNewest,
-          queryOptionEntries: orderByNewestEntries,
+        Checkbox(
+          semanticLabel: 'Reverse order',
+          value: reverse,
+          onChanged: (bool? reverse) {
+            if (reverse == null) return;
+            setReverse(reverse);
+          },
         ),
       ],
     );
@@ -87,12 +91,12 @@ class QuerySettings {
   QuerySettings({
     required this.limit,
     required this.queryType,
-    required this.orderByNewest,
+    required this.reverse,
   });
 
   int limit;
   QueryType queryType;
-  bool orderByNewest;
+  bool reverse;
 }
 
 /// A UI for viewing different categories of tests from the Firestore.
@@ -119,7 +123,7 @@ class _ViewTestsState extends State<ViewTests> {
         if (index == 0) {
           return SearchMenu(
             queryType: querySettings.queryType,
-            orderByNewest: querySettings.orderByNewest,
+            reverse: querySettings.reverse,
             queryTypeEntries: List<DropdownMenuEntry<QueryType>>.from(
               QueryType.values.map<DropdownMenuEntry<QueryType>>(
                 (QueryType queryType) => DropdownMenuEntry<QueryType>(
@@ -129,30 +133,18 @@ class _ViewTestsState extends State<ViewTests> {
                 ),
               ),
             ),
-            orderByNewestEntries: const <DropdownMenuEntry<bool>>[
-              DropdownMenuEntry<bool>(
-                value: true,
-                label: 'Newest First',
-                leadingIcon: Icon(Icons.arrow_downward),
-              ),
-              DropdownMenuEntry(
-                value: false,
-                label: 'Oldest First',
-                leadingIcon: Icon(Icons.arrow_upward),
-              ),
-            ],
             setQueryType: (QueryType queryType) => _downloadTestsAndReplaceChild(
               querySettings: QuerySettings(
                 limit: querySettings.limit,
                 queryType: queryType,
-                orderByNewest: querySettings.orderByNewest,
+                reverse: querySettings.reverse,
               )
             ),
-            setOrderByNewest: (bool orderByNewest) => _downloadTestsAndReplaceChild(
+            setReverse: (bool reverse) => _downloadTestsAndReplaceChild(
               querySettings: QuerySettings(
                 limit: querySettings.limit,
                 queryType: querySettings.queryType,
-                orderByNewest: orderByNewest,
+                reverse: reverse,
               ),
             ),
           );
@@ -175,7 +167,16 @@ class _ViewTestsState extends State<ViewTests> {
 
     switch (querySettings.queryType) {
       case QueryType.date: {
-        testQuery = () => testsByDateCreated(limit: querySettings.limit, newest: querySettings.orderByNewest);
+        testQuery = () => testsByDateCreated(limit: querySettings.limit, newest: !querySettings.reverse);
+      }
+      case QueryType.netUpvotes: {
+        testQuery = () => testsByNetUpvotes(limit: querySettings.limit, most: !querySettings.reverse);
+      }
+      case QueryType.upvotes: {
+        testQuery = () => testsByUpvotes(limit: querySettings.limit, most: !querySettings.reverse);
+      }
+      case QueryType.downvotes: {
+        testQuery = () => testsByUpvotes(limit: querySettings.limit, most: !querySettings.reverse);
       }
     }
 
@@ -199,7 +200,7 @@ class _ViewTestsState extends State<ViewTests> {
     QuerySettings initialQuerySettings = QuerySettings(
       limit: 100,
       queryType: QueryType.date,
-      orderByNewest: true,
+      reverse: true,
     );
 
     if (_child == null) {
