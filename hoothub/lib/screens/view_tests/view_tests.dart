@@ -1,4 +1,5 @@
 // back-end
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 // front-end
@@ -99,103 +100,98 @@ class _ViewTestsState extends State<ViewTests> {
   bool _orderByNewest = true;
   QueryType _queryType = QueryType.date;
 
-  late InfoDownloader<List<Test?>> _testsDownloader;
+  Widget? _child;
 
-  final queryTypeEntries = List<DropdownMenuEntry<QueryType>>.from(
-    QueryType.values.map<DropdownMenuEntry<QueryType>>(
-      (QueryType queryType) => DropdownMenuEntry<QueryType>(
-        value: queryType,
-        label: queryType.label,
-        leadingIcon: queryType.leadingIcon,
-      ),
-    ),
-  );
-
-  final orderByEntries = <DropdownMenuEntry<bool>>[
-    const DropdownMenuEntry<bool>(
-      value: true,
-      label: 'Newest First',
-      leadingIcon: Icon(Icons.arrow_downward),
-    ),
-    const DropdownMenuEntry(
-      value: false,
-      label: 'Oldest First',
-      leadingIcon: Icon(Icons.arrow_upward),
-    ),
-  ];
-
-  InfoDownloader<List<Test?>> buildTestsDownloader() {
-    return InfoDownloader<List<Test?>>(
-      downloadName: "Tests",
-      downloadInfo: () {
-        switch (_queryType) {
-          case QueryType.date: {
-            return testsByDateCreated(limit: _limit, newest: _orderByNewest);
-          }
-        }
-      },
-      buildSuccess: (BuildContext context, List<Test?> tests) {
-        return ListView.builder(
-          itemCount: tests.length,
-          itemBuilder: (BuildContext context, int index) {
-            if (index == 0) {
-              return SearchMenu(
-                queryType: _queryType,
-                orderByNewest: _orderByNewest,
-                queryTypeEntries: queryTypeEntries,
-                orderByNewestEntries: orderByEntries,
-                setQueryType: (QueryType newQueryType) => setState(() {
-                  _queryType = newQueryType;
-                  _testsDownloader = buildTestsDownloader();
-                }),
-                setOrderByNewest: (bool newOrderBy) => setState(() {
-                  _orderByNewest = newOrderBy;
-                  _testsDownloader = buildTestsDownloader();
-                }),
-              );
-            }
-
-            Test? test = tests[index - 1];
-
-              if (test == null) {
-                return const Text('Test not found!');
-              }
-
-              return TestCard(testModel: test);
-            },
-          );
-        },
-        buildLoading: (BuildContext context) {
-          return ListView(
-            children: <Widget>[
-              SearchMenu(
-                queryType: _queryType,
-                orderByNewest: _orderByNewest,
-                queryTypeEntries: queryTypeEntries,
-                orderByNewestEntries: orderByEntries,
-                setQueryType: (QueryType newQueryType) => setState(() {
-                  _queryType = newQueryType;
-                }),
-                setOrderByNewest: (bool newOrderBy) => setState(() {
-                  _orderByNewest = newOrderBy;
-                }),
+  Widget buildChild(List<Test?> tests) {
+    return ListView.builder(
+      itemCount: tests.length + 1,
+      itemBuilder: (BuildContext context, int index) {
+        if (index == 0) {
+          return SearchMenu(
+            queryType: _queryType,
+            orderByNewest: _orderByNewest,
+            queryTypeEntries: List<DropdownMenuEntry<QueryType>>.from(
+              QueryType.values.map<DropdownMenuEntry<QueryType>>(
+                (QueryType queryType) => DropdownMenuEntry<QueryType>(
+                  value: queryType,
+                  label: queryType.label,
+                  leadingIcon: queryType.leadingIcon,
+                ),
+              ),
+            ),
+            orderByNewestEntries: const <DropdownMenuEntry<bool>>[
+              DropdownMenuEntry<bool>(
+                value: true,
+                label: 'Newest First',
+                leadingIcon: Icon(Icons.arrow_downward),
+              ),
+              DropdownMenuEntry(
+                value: false,
+                label: 'Oldest First',
+                leadingIcon: Icon(Icons.arrow_upward),
               ),
             ],
+            setQueryType: (QueryType newQueryType) => setState(() {
+              _queryType = newQueryType;
+            }),
+            setOrderByNewest: (bool newOrderBy) => setState(() {
+              _orderByNewest = newOrderBy;
+            }),
           );
-        },
+        }
+
+        Test? test = tests[index - 1];
+         if (test == null) {
+          return const Text('Test not found!');
+        }
+
+        return TestCard(testModel: test);
+      },
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _testsDownloader = buildTestsDownloader();
+  Future<void> _downloadTestsAndReplaceChild() async {
+    List<Test?> tests = <Test?>[];
+
+    TestQuery testQuery;
+
+    switch (_queryType) {
+      case QueryType.date: {
+        testQuery = () => testsByDateCreated(limit: _limit, newest: _orderByNewest);
+      }
+    }
+
+    try {
+      tests = await testQuery();
+    } on FirebaseException catch (error) {
+      print('Error downloading tests: ${error.message ?? error.code}');
+    } catch (error) {
+      print('Error downloading tests: $error');
+    }
+
+    print('tests: $tests');
+
+    if (!mounted) return;
+
+    print('STILL MOUNTED!!!');
+
+    setState(() {
+      _child = buildChild(tests);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _testsDownloader,
-    );
+    if (_child == null) {
+      print('FETCHING TESTS AND REPLACING CHILD');
+      _downloadTestsAndReplaceChild();
+      return buildChild(<Test?>[]);
+    }
+    try {
+      return _child!;
+    } catch (error) {
+      print('Error reading `ViewTests` child: $error');
+      return buildChild(<Test?>[]);
+    }
   }
 }
