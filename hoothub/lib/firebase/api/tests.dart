@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 import 'clients.dart';
 // models
@@ -74,6 +75,33 @@ Future<String> saveTest(Test test) async {
 /// THROWS.
 Future<Test?> testWithId(String testId) async {
   return Test.fromSnapshot(await testsCollection.doc(testId).get());
+}
+
+/// MODIFIES `test` IN-PLACE, ADDING `auth.currentUser!.uid` TO
+/// THE CORRESPONDING VOTING LIST IN `test`,
+/// then saves `test` back to the `testsCollection`.
+///
+/// SHOULDN'T THROW.
+Future<String> voteOnTest({ required Test test, required bool up }) async {
+  if (auth.currentUser == null) {
+    return "You're not logged in! Log in to ${up ? 'up' : 'down'}vote!";
+  }
+
+  try {
+    if (test.id == null) return "Test has no id!";
+
+    if (up) {
+      test.usersThatUpvoted.add(auth.currentUser!.uid);
+    } else {
+      test.usersThatDownvoted.add(auth.currentUser!.uid);
+    }
+
+    return saveTest(test);
+  } on FirebaseException catch (error) {
+    return error.message ?? error.code;
+  } catch (error) {
+    return error.toString();
+  }
 }
 
 /// Tries to execute the `query` and return its `docs` result as an List<Test?>.

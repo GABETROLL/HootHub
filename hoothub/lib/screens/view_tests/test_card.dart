@@ -1,5 +1,6 @@
 import 'package:hoothub/firebase/api/clients.dart';
 import 'package:hoothub/firebase/api/auth.dart';
+import 'package:hoothub/firebase/api/tests.dart';
 import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/images.dart';
@@ -17,6 +18,16 @@ class TestCard extends StatelessWidget {
   });
 
   final Test testModel;
+
+  Future<void> onVote({ required BuildContext context, required bool up }) async {
+    String voteResult = await voteOnTest(test: testModel, up: up);
+
+    if (voteResult != 'Ok' && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("You're not logged in! Log in to ${up ? 'up' : 'down'}vote.")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +117,18 @@ class TestCard extends StatelessWidget {
               Text(testModel.name, style: const TextStyle(fontSize: 60)),
               Row(
                 children: [
+                  Column(
+                    children: <IconButton>[
+                      IconButton(
+                        onPressed: () => onVote(context: context, up: true),
+                        icon: const Icon(Icons.arrow_upward),
+                      ),
+                      IconButton(
+                        onPressed: () => onVote(context: context, up: false),
+                        icon: const Icon(Icons.arrow_downward),
+                      ),
+                    ],
+                  ),
                   InfoDownloader<String>(
                     downloadName: "${testModel.userId}'s user image download URL",
                     downloadInfo: () => userImageDownloadUrl(testModel.userId!),
