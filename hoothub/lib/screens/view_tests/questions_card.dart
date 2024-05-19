@@ -5,9 +5,11 @@ class QuestionCard extends StatefulWidget {
   const QuestionCard({
     super.key,
     required this.questionModel,
+    this.startPadding = 20,
   });
 
   final Question questionModel;
+  final double startPadding;
 
   @override
   State<QuestionCard> createState() => _QuestionCardState();
@@ -18,6 +20,8 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final padding = EdgeInsetsDirectional.only(start: widget.startPadding);
+
     List<Widget> questionChildren = [
       TextButton(
         onPressed: () => setState(() {
@@ -45,13 +49,19 @@ class _QuestionCardState extends State<QuestionCard> {
       }
 
       questionChildren.add(
-        Row(children: answerChildren),
+        Padding(
+          padding: padding,
+          child: Row(children: answerChildren),
+        ),
       );
     }
 
-    return ExpansionTile(
-      title: Text(widget.questionModel.question),
-      children: questionChildren,
+    return Padding(
+      padding: padding,
+      child: ExpansionTile(
+        title: Text(widget.questionModel.question),
+        children: questionChildren,
+      ),
     );
   }
 }
@@ -70,7 +80,10 @@ class QuestionsCard extends StatelessWidget {
       title: const Text('Questions'),
       children: List<Widget>.from(
         questions.map<Widget>(
-          (Question question) => QuestionCard(questionModel: question),
+          (Question question) => Padding(
+            padding: const EdgeInsetsDirectional.only(start: 20),
+            child: QuestionCard(questionModel: question),
+          ),
         ),
       ),
     );
