@@ -118,14 +118,24 @@ class TestCard extends StatelessWidget {
               Row(
                 children: [
                   Column(
-                    children: <IconButton>[
-                      IconButton(
-                        onPressed: () => onVote(context: context, up: true),
-                        icon: const Icon(Icons.arrow_upward),
+                    children: <Row>[
+                      Row(
+                        children: <Widget>[
+                          IconButton(
+                            onPressed: () => onVote(context: context, up: true),
+                            icon: const Icon(Icons.arrow_upward),
+                          ),
+                          Text(testModel.usersThatUpvoted.length.toString()),
+                        ],
                       ),
-                      IconButton(
-                        onPressed: () => onVote(context: context, up: false),
-                        icon: const Icon(Icons.arrow_downward),
+                      Row(
+                        children: <Widget>[
+                          IconButton(
+                            onPressed: () => onVote(context: context, up: false),
+                            icon: const Icon(Icons.arrow_downward),
+                          ),
+                          Text(testModel.usersThatDownvoted.length.toString()),
+                        ],
                       ),
                     ],
                   ),
