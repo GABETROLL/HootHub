@@ -44,12 +44,6 @@ class TestSoloResults extends StatelessWidget {
               },
               child: const Text('Back to Test Card'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Back to Test Card'),
-            ),
           ],
         ),
       ],
