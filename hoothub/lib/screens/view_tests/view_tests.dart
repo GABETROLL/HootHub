@@ -163,6 +163,11 @@ class _ViewTestsState extends State<ViewTests> {
   Future<void> _downloadTestsAndReplaceChild({required QuerySettings querySettings}) async {
     List<Test?> tests = <Test?>[];
 
+    // While waiting for the new tests to download, remove the test cards.
+    setState(() {
+      _child = buildWithQuery(querySettings: querySettings, tests: tests);
+    });
+
     TestQuery testQuery;
 
     switch (querySettings.queryType) {
