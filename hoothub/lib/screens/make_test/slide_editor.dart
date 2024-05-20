@@ -2,7 +2,8 @@ import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/make_test/image_editor.dart';
+import 'image_editor.dart';
+import 'package:hoothub/screens/styles.dart';
 
 /// WARNING: Tries to expand to fill its parent,
 /// so its parent must have finite width.
@@ -44,7 +45,7 @@ class MultipleChoiceEditor extends StatelessWidget {
               controller: answerTextEditingController,
               // TODO: Make text save even when the user doesn't press ENTER or submits the text...
               onEditingComplete: () => setAnswer(index, answerTextEditingController.text),
-              style: const TextStyle(fontSize: 50),
+              style: answerTextStyle,
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
               ),
@@ -108,13 +109,13 @@ class SlideEditor extends StatelessWidget {
             print('STOPPED EDITING QUESTION');
             setQuestion(questionTextEditingController.text);
           },
-          style: const TextStyle(fontSize: 60),
+          style: questionTextStyle,
           decoration: const InputDecoration(hintText: 'Question'),
         ),
         Center(
           child: Container(
             alignment: Alignment.center,
-            constraints: const BoxConstraints(maxWidth: 300),
+            constraints: const BoxConstraints(maxHeight: questionImageHeight),
             child: ImageEditor(
               imageData: questionImage,
               asyncOnChange: asyncSetQuestionImage,

@@ -2,6 +2,7 @@
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/styles.dart';
 
 /// Displays all of the answers in `questionModel.questions` in a vertical list,
 /// with a green checkmark beside the correct answer and an 'x' icon beside the
@@ -50,7 +51,7 @@ class MultipleChoiceRevelation extends StatelessWidget {
                 )
             ),
             Expanded(
-              child: Text(answer, style: const TextStyle(fontSize: 50)),
+              child: Text(answer, style: answerTextStyle),
             ),
           ],
         ),
