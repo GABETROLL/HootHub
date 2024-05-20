@@ -48,19 +48,51 @@ class MakeTest extends StatefulWidget {
 class _MakeTestState extends State<MakeTest> {
   // default index. May not be in the bounds of `testModel!.questions`,
   // since that could be empty!
-  int _currentSlideIndex = 0;
+  late int _currentSlideIndex;
   late Test _testModel;
   Uint8List? _testImage;
   // [null for Question question in widget.testModel.questions]
   late List<Uint8List?> _questionImages;
+  late bool _downloadedImages;
 
   @override
   void initState() {
     super.initState();
+    _currentSlideIndex = 0;
     _testModel = widget.testModel;
+    _testImage = null;
     _questionImages = List<Uint8List?>.from(
       widget.testModel.questions.map<Uint8List?>((Question question) => null),
     );
+    _downloadedImages = false;
+  }
+
+  Future<void> _downloadImages() async {
+    try {
+      Uint8List? testImage = await downloadTestImage(widget.testModel.id!);
+
+      if (!mounted) return;
+
+      setState(() {
+        _testImage = testImage;
+      });
+    } catch (error) {
+      print("`_MakeTestState`: Error downloading test ${widget.testModel.id}'s image: $error");
+    }
+
+    for (int questionIndex = 0; questionIndex < _questionImages.length; questionIndex++) {
+      try {
+        Uint8List? questionImage = await downloadQuestionImage(widget.testModel.id!, questionIndex);
+
+        if (!mounted) return;
+
+        setState(() {
+          _questionImages[questionIndex] = questionImage;
+        });
+      } catch (error) {
+        print("`_MakeTestState`: Error downloading question #$questionIndex's image of test ${widget.testModel.id}: $error");
+      }
+    }
   }
 
   /// Tries to save the test and the image.
@@ -86,31 +118,30 @@ class _MakeTestState extends State<MakeTest> {
 
       String saveResultMessage = 'Test saved successfully!';
 
-      // Save test image, and question's images:
+      // Save test's images.
 
-      // At this point, `testModelCopy` SHOULD have a non-null `id`,
-      // since `saveTest` SHOULD HAVE MUTATED IT,
-      // BUT, I'm checking, just to be sure.
-      if (_testModel.id != null && _testImage != null) {
+      if (_testImage != null) {
         // Can't promote non-final fields
         try {
           await uploadTestImage(_testModel.id!, _testImage!);
+          print("UPLOADED TEST ${_testModel.id}'s IMAGE SUCCESSFULLLY!");
         } on FirebaseException catch (error) {
           saveResultMessage = 'Error saving test image: ${error.message ?? error.code}';
         } catch (error) {
           saveResultMessage = 'Error saving test image: $error';
         }
+      }
 
-        for (final (int index, Uint8List? questionImage) in _questionImages.indexed) {
-          if (questionImage != null) {
-            try {
-              await uploadQuestionImage(_testModel.id!, index, questionImage);
-            } on FirebaseException catch (error) {
-              saveResultMessage = "Error saving question $index's image: ${error.message ?? error.code}";
-            } catch (error) {
-              saveResultMessage = "Error saving question $index's image: $error";
-            }
-          }
+      for (final (int index, Uint8List? questionImage) in _questionImages.indexed) {
+        if (questionImage == null) continue;
+
+        try {
+          await uploadQuestionImage(_testModel.id!, index, questionImage);
+          print("UPLOADED TEST ${_testModel.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
+        } on FirebaseException catch (error) {
+          saveResultMessage = "Error saving question $index's image: ${error.message ?? error.code}";
+        } catch (error) {
+          saveResultMessage = "Error saving question $index's image: $error";
         }
       }
 
@@ -124,6 +155,10 @@ class _MakeTestState extends State<MakeTest> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_downloadedImages) {
+      _downloadImages();
+    }
+
     final List<Widget> sidePanelWithSlidePreviews = [
       ImageEditor(
         imageData: _testImage,
@@ -153,9 +188,9 @@ class _MakeTestState extends State<MakeTest> {
             _currentSlideIndex = index;
           }),
           child: SlidePreview(
-            testId: _testModel.id,
             questionIndex: index,
             question: question,
+            questionImage: _questionImages[index],
           ),
         ),
       );
@@ -228,21 +263,23 @@ class _MakeTestState extends State<MakeTest> {
                 setQuestion: (String question) => setState(() {
                   _testModel.setQuestion(_currentSlideIndex, question);
                 }),
-                questionImage: _questionImages[_currentSlideIndex],
-                asyncSetQuestionImage: (Uint8List newImage) {
-                  if (!(context.mounted)) return;
+                questionImageEditor: ImageEditor(
+                  imageData: _questionImages[_currentSlideIndex],
+                  asyncOnChange: (Uint8List newImage) {
+                    if (!(context.mounted)) return;
 
-                  setState(() {
-                    _questionImages[_currentSlideIndex] = newImage;
-                  });
-                },
-                asyncOnImageNotRecieved: () {
-                  if (!(context.mounted)) return;
+                    setState(() {
+                      _questionImages[_currentSlideIndex] = newImage;
+                    });
+                  },
+                  asyncOnImageNotRecieved: () {
+                    if (!(context.mounted)) return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Question's image not recieved!")),
-                  );
-                },
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Question's image not recieved!")),
+                    );
+                  },
+                ),
                 addNewEmptyAnswer: () => setState(() {
                   _testModel.addNewEmptyAnswer(_currentSlideIndex);
                 }),
