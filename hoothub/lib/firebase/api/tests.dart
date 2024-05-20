@@ -77,23 +77,47 @@ Future<Test?> testWithId(String testId) async {
   return Test.fromSnapshot(await testsCollection.doc(testId).get());
 }
 
-/// MODIFIES `test` IN-PLACE, ADDING `auth.currentUser!.uid` TO
-/// THE CORRESPONDING VOTING LIST IN `test`,
-/// then saves `test` back to the `testsCollection`.
+/// Votes on test IN-PLACE, according to `up`.
+///
+/// If the user has already voted in the opposite voting list,
+/// that vote is removed.
+///
+/// If the user has already voted in the current list,
+/// that vote is removed, and the current vote is NOT ADDED.
+///
+/// If the user has not already voted in the current list,
+/// the vote is added.
 ///
 /// SHOULDN'T THROW.
 Future<String> voteOnTest({ required Test test, required bool up }) async {
-  if (auth.currentUser == null) {
-    return "You're not logged in! Log in to ${up ? 'up' : 'down'}vote!";
-  }
-
   try {
+    String voteString = up ? 'up' : 'down';
+
+    if (auth.currentUser == null) {
+      return "You're not logged in! Log in to ${voteString}vote!";
+    }
+
     if (test.id == null) return "Test has no id!";
 
-    if (up) {
-      test.usersThatUpvoted.add(auth.currentUser!.uid);
+    List<String> votingList = (
+      up
+      ? test.usersThatUpvoted
+      : test.usersThatDownvoted
+    );
+    List<String> oppositeVotingList = (
+      up
+      ? test.usersThatDownvoted
+      : test.usersThatUpvoted
+    );
+
+    if (oppositeVotingList.contains(auth.currentUser!.uid)) {
+      oppositeVotingList.remove(auth.currentUser!.uid);
+    }
+
+    if (votingList.contains(auth.currentUser!.uid)) {
+      votingList.remove(auth.currentUser!.uid);
     } else {
-      test.usersThatDownvoted.add(auth.currentUser!.uid);
+      votingList.add(auth.currentUser!.uid);
     }
 
     return saveTest(test);
