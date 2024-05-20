@@ -2,6 +2,7 @@
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'answer.dart';
 
 /// WARNING: I think this one also tries to expand to fill its parent,
 /// so its parent must have finite width.
@@ -25,14 +26,7 @@ class MultipleChoicePlayer extends StatelessWidget {
       choices.add(
         InkWell(
           onTap: () => onAnswerSelected(index),
-          child: Row(
-            children: <Widget>[
-              const Icon(null),
-              Expanded(
-                child: Text(answer, style: const TextStyle(fontSize: 50)),
-              ),
-            ],
-          ),
+          child: Answer(icon: const Icon(null), answer: answer),
         ),
       );
     }
