@@ -67,6 +67,8 @@ class TestCard extends StatelessWidget {
       ),
     ];
 
+    String? currentUserId = auth.currentUser?.uid;
+
     // If a user is logged in, and they own this widget's `Test`,
     // we can allow them to edit it.
     bool userOwnsTest = false;
@@ -123,7 +125,14 @@ class TestCard extends StatelessWidget {
                         children: <Widget>[
                           IconButton(
                             onPressed: () => onVote(context: context, up: true),
-                            icon: const Icon(Icons.arrow_upward),
+                            icon: Icon(
+                              Icons.arrow_upward,
+                              color: (
+                                currentUserId != null && testModel.userUpvotedTest(currentUserId)
+                                ? Colors.orange
+                                : Colors.grey
+                              ),
+                            ),
                           ),
                           Text(testModel.usersThatUpvoted.length.toString()),
                         ],
@@ -132,7 +141,14 @@ class TestCard extends StatelessWidget {
                         children: <Widget>[
                           IconButton(
                             onPressed: () => onVote(context: context, up: false),
-                            icon: const Icon(Icons.arrow_downward),
+                            icon: Icon(
+                              Icons.arrow_downward,
+                              color: (
+                                currentUserId != null && testModel.userDownvotedTest(currentUserId)
+                                ? Colors.blue
+                                : Colors.grey
+                              ),
+                            ),
                           ),
                           Text(testModel.usersThatDownvoted.length.toString()),
                         ],

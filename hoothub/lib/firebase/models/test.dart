@@ -90,6 +90,14 @@ class Test implements Model {
     return name.isNotEmpty && questions.isNotEmpty;
   }
 
+  bool userUpvotedTest(String userId) {
+    return usersThatUpvoted.contains(userId);
+  }
+
+  bool userDownvotedTest(String userId) {
+    return usersThatDownvoted.contains(userId);
+  }
+
   /// Sets `this.name: name`.
   void setName(String name) {
     this.name = name;
