@@ -68,31 +68,28 @@ class _MakeTestState extends State<MakeTest> {
   }
 
   Future<void> _downloadImages() async {
+    Uint8List? testImage;
+    List<Uint8List?> questionImages = List<Uint8List?>.from(_questionImages);
+
     try {
-      Uint8List? testImage = await downloadTestImage(widget.testModel.id!);
-
-      if (!mounted) return;
-
-      setState(() {
-        _testImage = testImage;
-      });
+      testImage = await downloadTestImage(_testModel.id!);
     } catch (error) {
-      print("`_MakeTestState`: Error downloading test ${widget.testModel.id}'s image: $error");
+      print("`_MakeTestState`: Error downloading test ${_testModel.id}'s image: $error");
     }
 
-    for (int questionIndex = 0; questionIndex < _questionImages.length; questionIndex++) {
+    for (final (int questionIndex, Question _) in _testModel.questions.indexed) {
       try {
-        Uint8List? questionImage = await downloadQuestionImage(widget.testModel.id!, questionIndex);
-
-        if (!mounted) return;
-
-        setState(() {
-          _questionImages[questionIndex] = questionImage;
-        });
+        questionImages[questionIndex] = await downloadQuestionImage(_testModel.id!, questionIndex);
       } catch (error) {
-        print("`_MakeTestState`: Error downloading question #$questionIndex's image of test ${widget.testModel.id}: $error");
+        print("`_MakeTestState`: Error downloading question #$questionIndex's image of test ${_testModel.id}: $error");
       }
     }
+
+    setState(() {
+      _testImage = testImage;
+      _questionImages = questionImages;
+      _downloadedImages = true;
+    });
   }
 
   /// Tries to save the test and the image.
