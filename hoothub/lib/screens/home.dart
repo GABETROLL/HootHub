@@ -97,9 +97,16 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     if (!_userChecked) {
       _checkLogin(context);
+
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('HootHub'),
+        ),
+        body: const Center(child: Text('Loading credentials...')),
+      );
     }
 
-    List<Widget> actions;
+    final List<Widget> actions;
 
     if (_userModel != null) {
       actions = <Widget>[
@@ -151,7 +158,7 @@ class _HomeState extends State<Home> {
         title: const Text('HootHub'),
         actions: actions,
       ),
-      body: const ViewTests(),
+      body: ViewTests(key: UniqueKey()),
     );
   }
 }
