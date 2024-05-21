@@ -86,6 +86,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             style: questionTextStyle,
           ),
           InfoDownloader<String>(
+            key: UniqueKey(),
             downloadName: "Image for test ${widget.testModel.id} question $_currentQuestionIndex",
             downloadInfo: () => questionImageDownloadUrl(widget.testModel.id!, _currentQuestionIndex),
             buildSuccess: (BuildContext context, String imageUrl) {
