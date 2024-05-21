@@ -151,7 +151,7 @@ class _HomeState extends State<Home> {
         title: const Text('HootHub'),
         actions: actions,
       ),
-      body: ViewTests(),
+      body: const ViewTests(),
     );
   }
 }
