@@ -20,34 +20,45 @@ class InfoDownloader<T> extends StatefulWidget {
 
 class _InfoDownloaderState<T> extends State<InfoDownloader<T>> {
   T? _result;
+  Object? _error;
   bool _triedDownloadingResult = false;
 
   // THROWS.
   Future<void> _fetchResult() async {
-    T? result = await widget.downloadInfo();
+    T? result;
+    Object? error;
+
+    try {
+      result = await widget.downloadInfo();
+    } catch (e) {
+      error = e;
+    }
 
     if (!mounted) return;
 
     setState(() {
       _result = result;
+      _error = error;
       _triedDownloadingResult = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    try {
-      if (!_triedDownloadingResult) {
-        _fetchResult();
-      }
+    if (!_triedDownloadingResult) {
+      _fetchResult();
+    }
 
-      if (_result != null) {
+    try {
+      if (_error != null) {
+        return widget.buildError(context, _error!);
+      } else if (_result != null) {
         return widget.buildSuccess(context, _result!);
       } else {
         return widget.buildLoading(context);
       }
     } catch (error) {
-      return widget.buildError(context, error);
+        return widget.buildError(context, error);
     }
   }
 }
