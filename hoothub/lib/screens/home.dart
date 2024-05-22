@@ -130,13 +130,15 @@ class _HomeState extends State<Home> {
           child: Row(
             children: [
               InfoDownloader<String>(
-                downloadName: "Logged in user's image",
                 downloadInfo: () => userImageDownloadUrl(_userModel!.id),
                 buildSuccess: (BuildContext context, String imageUrl) {
                   return Image.network(imageUrl);
                 },
                 buildLoading: (BuildContext context) {
                   return Image.asset('default_user_image.png');
+                },
+                buildError: (BuildContext context, Object error) {
+                  return Text("Error loading current user's profile image: $error");
                 },
               ),
               Text(_userModel!.username),

@@ -106,15 +106,20 @@ class TestCard extends StatelessWidget {
         child: Card(
           child: Column(
             children: [
-              InfoDownloader<String>(
-                downloadName: "${testModel.id}'s test image download URL",
-                downloadInfo: () => testImageDownloadUrl(testModel.id!),
-                buildSuccess: (BuildContext context, String imageUrl) {
-                  return Image.network(imageUrl, width: testImageWidth);
-                },
-                buildLoading: (BuildContext context) {
-                  return Image.asset('default_image.png', width: testImageWidth);
-                },
+              SizedBox(
+                width: testImageWidth,
+                child: InfoDownloader<String>(
+                  downloadInfo: () => testImageDownloadUrl(testModel.id!),
+                  buildSuccess: (BuildContext context, String imageUrl) {
+                    return Image.network(imageUrl);
+                  },
+                  buildLoading: (BuildContext context) {
+                    return Image.asset('default_image.png');
+                  },
+                  buildError: (BuildContext context, Object error) {
+                    return Center(child: Text("Error loading or displaying test ${testModel.id}'s image: $error"));
+                  },
+                ),
               ),
               Text(testModel.name, style: const TextStyle(fontSize: 60)),
               Row(
@@ -155,24 +160,31 @@ class TestCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  InfoDownloader<String>(
-                    downloadName: "${testModel.userId}'s user image download URL",
-                    downloadInfo: () => userImageDownloadUrl(testModel.userId!),
-                    buildSuccess: (BuildContext context, String imageUrl) {
-                      return Image.network(imageUrl, width: userImageWidth);
-                    },
-                    buildLoading: (BuildContext context) {
-                      return Image.asset('default_user_image.png', width: userImageWidth);
-                    },
+                  SizedBox(
+                    width: userImageWidth,
+                    child: InfoDownloader<String>(
+                      downloadInfo: () => userImageDownloadUrl(testModel.userId!),
+                      buildSuccess: (BuildContext context, String imageUrl) {
+                        return Image.network(imageUrl);
+                      },
+                      buildLoading: (BuildContext context) {
+                        return Image.asset('default_user_image.png');
+                      },
+                      buildError: (BuildContext context, Object error) {
+                        return Center(child: Text("Error loading or displaying user ${testModel.userId}'s image: $error"));
+                      },
+                    ),
                   ),
                   InfoDownloader<UserModel>(
-                    downloadName: "${testModel.userId}'s username",
                     downloadInfo: () => userWithId(testModel.userId!),
                     buildSuccess: (BuildContext context, UserModel testAuthor) {
                       return Text(testAuthor.username);
                     },
                     buildLoading: (BuildContext context) {
                       return const Text('Loading...');
+                    },
+                    buildError: (BuildContext context, Object error) {
+                      return Text("Error loading or displaying user ${testModel.userId}'s username: $error");
                     },
                   ),
                 ],

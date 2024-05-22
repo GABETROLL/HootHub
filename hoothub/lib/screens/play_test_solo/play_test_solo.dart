@@ -85,16 +85,25 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             textAlign: TextAlign.center,
             style: questionTextStyle,
           ),
-          InfoDownloader<String>(
-            key: UniqueKey(),
-            downloadName: "Image for test ${widget.testModel.id} question $_currentQuestionIndex",
-            downloadInfo: () => questionImageDownloadUrl(widget.testModel.id!, _currentQuestionIndex),
-            buildSuccess: (BuildContext context, String imageUrl) {
-              return Image.network(imageUrl, height: questionImageHeight);
-            },
-            buildLoading: (BuildContext context) {
-              return Image.asset('default_image.png', height: questionImageHeight);
-            },
+          SizedBox(
+            height: questionImageHeight,
+            child: InfoDownloader<String>(
+              key: UniqueKey(),
+              downloadInfo: () => questionImageDownloadUrl(widget.testModel.id!, _currentQuestionIndex),
+              buildSuccess: (BuildContext context, String imageUrl) {
+                return Image.network(imageUrl);
+              },
+              buildLoading: (BuildContext context) {
+                return Image.asset('default_image.png');
+              },
+              buildError: (BuildContext context, Object error) {
+                return Center(
+                  child: Text(
+                    "Error loading or displaying test ${widget.testModel.id}'s question #$_currentQuestionIndex's image: $error",
+                  ),
+                );
+              },
+            ),
           ),
           Countdown(
             controller: countdownController,
