@@ -140,7 +140,7 @@ class _ViewTestsState extends State<ViewTests> {
         testQuery = () => testsByUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
       }
       case QueryType.downvotes: {
-        testQuery = () => testsByUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
+        testQuery = () => testsByDownvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
       }
     }
 

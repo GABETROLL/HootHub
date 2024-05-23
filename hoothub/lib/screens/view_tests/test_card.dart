@@ -194,7 +194,10 @@ class TestCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: options,
               ),
-              QuestionsCard(questions: testModel.questions),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                child: QuestionsCard(questions: testModel.questions),
+              ),
             ],
           ),
         ),
