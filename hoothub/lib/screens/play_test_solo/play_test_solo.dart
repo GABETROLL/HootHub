@@ -1,4 +1,6 @@
 // back-end
+import 'dart:typed_data';
+
 import 'package:hoothub/firebase/api/images.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
@@ -87,13 +89,13 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
           ),
           SizedBox(
             height: questionImageHeight,
-            child: InfoDownloader<String>(
+            child: InfoDownloader<Uint8List>(
               key: UniqueKey(),
-              downloadInfo: () => questionImageDownloadUrl(widget.testModel.id!, _currentQuestionIndex),
-              buildSuccess: (BuildContext context, String imageUrl) {
-                return Image.network(imageUrl);
-              },
-              buildLoading: (BuildContext context) {
+              downloadInfo: () => downloadQuestionImage(widget.testModel.id!, _currentQuestionIndex),
+              builder: (BuildContext context, Uint8List? imageData) {
+                if (imageData != null) {
+                  return Image.memory(imageData);
+                }
                 return Image.asset('default_image.png');
               },
               buildError: (BuildContext context, Object error) {

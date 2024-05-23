@@ -1,4 +1,6 @@
 // back-end
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/api/images.dart';
@@ -129,12 +131,12 @@ class _HomeState extends State<Home> {
           },
           child: Row(
             children: [
-              InfoDownloader<String>(
-                downloadInfo: () => userImageDownloadUrl(_userModel!.id),
-                buildSuccess: (BuildContext context, String imageUrl) {
-                  return Image.network(imageUrl);
-                },
-                buildLoading: (BuildContext context) {
+              InfoDownloader<Uint8List>(
+                downloadInfo: () => downloadUserImage(_userModel!.id),
+                builder: (BuildContext context, Uint8List? imageUrl) {
+                  if (imageUrl != null) {
+                    return Image.memory(imageUrl);
+                  }
                   return Image.asset('default_user_image.png');
                 },
                 buildError: (BuildContext context, Object error) {

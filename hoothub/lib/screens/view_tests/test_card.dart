@@ -5,6 +5,7 @@ import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/images.dart';
 // front-end
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
@@ -108,12 +109,12 @@ class TestCard extends StatelessWidget {
             children: [
               SizedBox(
                 width: testImageWidth,
-                child: InfoDownloader<String>(
-                  downloadInfo: () => testImageDownloadUrl(testModel.id!),
-                  buildSuccess: (BuildContext context, String imageUrl) {
-                    return Image.network(imageUrl);
-                  },
-                  buildLoading: (BuildContext context) {
+                child: InfoDownloader<Uint8List>(
+                  downloadInfo: () => downloadTestImage(testModel.id!),
+                  builder: (BuildContext context, Uint8List? imageData) {
+                    if (imageData != null) {
+                      return Image.memory(imageData);
+                    }
                     return Image.asset('default_image.png');
                   },
                   buildError: (BuildContext context, Object error) {
@@ -162,12 +163,12 @@ class TestCard extends StatelessWidget {
                   ),
                   SizedBox(
                     width: userImageWidth,
-                    child: InfoDownloader<String>(
-                      downloadInfo: () => userImageDownloadUrl(testModel.userId!),
-                      buildSuccess: (BuildContext context, String imageUrl) {
-                        return Image.network(imageUrl);
-                      },
-                      buildLoading: (BuildContext context) {
+                    child: InfoDownloader<Uint8List>(
+                      downloadInfo: () => downloadUserImage(testModel.userId!),
+                      builder: (BuildContext context, Uint8List? imageData) {
+                        if (imageData != null) {
+                          return Image.memory(imageData);
+                        }
                         return Image.asset('default_user_image.png');
                       },
                       buildError: (BuildContext context, Object error) {
@@ -177,10 +178,10 @@ class TestCard extends StatelessWidget {
                   ),
                   InfoDownloader<UserModel>(
                     downloadInfo: () => userWithId(testModel.userId!),
-                    buildSuccess: (BuildContext context, UserModel testAuthor) {
-                      return Text(testAuthor.username);
-                    },
-                    buildLoading: (BuildContext context) {
+                    builder: (BuildContext context, UserModel? testAuthor) {
+                      if (testAuthor != null) {
+                        return Text(testAuthor.username);
+                      }
                       return const Text('Loading...');
                     },
                     buildError: (BuildContext context, Object error) {

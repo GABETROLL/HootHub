@@ -147,7 +147,11 @@ class _ViewTestsState extends State<ViewTests> {
     return InfoDownloader<List<Test?>>(
       key: UniqueKey(),
       downloadInfo: testQuery,
-      buildSuccess: (BuildContext context, List<Test?> tests) {
+      builder: (BuildContext context, List<Test?>? tests) {
+        if (tests == null) {
+          return const Center(child: Text('Loading tests...'));
+        }
+
         return ListView.builder(
           itemCount: tests.length + 1,
           itemBuilder: (BuildContext context, int index) {
@@ -174,9 +178,6 @@ class _ViewTestsState extends State<ViewTests> {
             return TestCard(testModel: test);
           },
         );
-      },
-      buildLoading: (BuildContext context) {
-        return const Center(child: Text('Loading tests...'));
       },
       buildError: (BuildContext context, Object error) {
         return Center(child: Text('Error loading tests: $error'));

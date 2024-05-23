@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'clients.dart';
 
 Future<void> uploadUserImage(String userId, Uint8List data) async {
@@ -13,26 +14,31 @@ Future<void> uploadQuestionImage(String testId, int questionIndex, Uint8List dat
   await testsImages.child('$testId/$questionIndex').putData(data);
 }
 
-Future<String> userImageDownloadUrl(String userId) {
-  return testsImages.child(userId).getDownloadURL();
-}
-
-Future<String> testImageDownloadUrl(String testId) {
-  return testsImages.child('$testId/$testId').getDownloadURL();
-}
-
-Future<String> questionImageDownloadUrl(String testId, int questionIndex) {
-  return testsImages.child('$testId/$questionIndex').getDownloadURL();
+/// Tries to await and return `reference.getData()`, which may or may not be null.
+///
+/// If a `FirebaseException` with `code: 'object-not-found'` is caught,
+/// this function ALSO returns null, to indicate nothing was found.
+///
+/// ANY OTHER ERROR IS THROWN.
+Future<Uint8List?> downloadImage(Reference reference) async {
+  try {
+    return await reference.getData();
+  } on FirebaseException catch (error) {
+    if (error.code == 'object-not-found') {
+      return null;
+    }
+    rethrow;
+  }
 }
 
 Future<Uint8List?> downloadUserImage(String userId) {
-  return usersImages.child(userId).getData();
+  return downloadImage(usersImages.child(userId));
 }
 
 Future<Uint8List?> downloadTestImage(String testId) {
-  return testsImages.child('$testId/$testId').getData();
+  return downloadImage(testsImages.child('$testId/$testId'));
 }
 
 Future<Uint8List?> downloadQuestionImage(String testId, int questionIndex) {
-  return testsImages.child('$testId/$questionIndex').getData();
+  return downloadImage(testsImages.child('$testId/$questionIndex'));
 }

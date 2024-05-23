@@ -4,14 +4,12 @@ class InfoDownloader<T> extends StatefulWidget {
   const InfoDownloader({
     super.key,
     required this.downloadInfo,
-    required this.buildSuccess,
-    required this.buildLoading,
+    required this.builder,
     required this.buildError,
   });
 
   final Future<T?> Function() downloadInfo;
-  final Widget Function(BuildContext, T) buildSuccess;
-  final Widget Function(BuildContext) buildLoading;
+  final Widget Function(BuildContext, T?) builder;
   final Widget Function(BuildContext, Object) buildError;
 
   @override
@@ -52,13 +50,11 @@ class _InfoDownloaderState<T> extends State<InfoDownloader<T>> {
     try {
       if (_error != null) {
         return widget.buildError(context, _error!);
-      } else if (_result != null) {
-        return widget.buildSuccess(context, _result!);
       } else {
-        return widget.buildLoading(context);
+        return widget.builder(context, _result);
       }
     } catch (error) {
-        return widget.buildError(context, error);
+      return widget.buildError(context, error);
     }
   }
 }
