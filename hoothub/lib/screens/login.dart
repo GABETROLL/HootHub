@@ -5,6 +5,7 @@ import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'styles.dart';
 import 'signup.dart';
 
 /// This Widget, INTENDED TO BE USED AS A ROUTE,
@@ -102,7 +103,7 @@ class _LoginState extends State<Login> {
       body: Align(
         alignment: Alignment.center,
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 760),
+          constraints: const BoxConstraints(maxWidth: mediumScreenWidth),
           child: Column(
             children: <Widget>[
               TextField(

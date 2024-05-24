@@ -7,6 +7,7 @@ import 'package:hoothub/firebase/api/images.dart';
 // front-end
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/styles.dart';
 import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
@@ -32,7 +33,7 @@ class TestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double width = 760;
+    const double width = mediumScreenWidth;
     const double testImageWidth = width / 2;
     const double userImageWidth = 60;
 

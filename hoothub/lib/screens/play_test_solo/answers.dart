@@ -47,7 +47,12 @@ class Answers extends StatelessWidget {
     final List<Widget> choices = <Widget>[];
 
     for (final (int index, String answer) in questionModel.answers.indexed) {
-      choices.add(answerMaker(context, index, answer));
+      choices.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: answerMaker(context, index, answer),
+        ),
+      );
     }
 
     if (nextButton != null) {

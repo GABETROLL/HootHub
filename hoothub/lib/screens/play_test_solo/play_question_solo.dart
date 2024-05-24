@@ -1,4 +1,6 @@
 // back-end
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
@@ -72,18 +74,23 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
             _onQuestionFinished(answerSelectedIndex: null);
           },
         ),
-        (
-          _answerRevealed
-          ? MultipleChoiceRevelation(
-            questionModel: widget.currentQuestion,
-            chosenAnswer: _answerSelectedIndex,
-            onNext: widget.onNext,
-          )
-          : MultipleChoicePlayer(
-            questionModel: widget.currentQuestion,
-            onAnswerSelected: _onQuestionFinished,
-          )
-        )
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 991),
+            child: (
+              _answerRevealed
+              ? MultipleChoiceRevelation(
+                questionModel: widget.currentQuestion,
+                chosenAnswer: _answerSelectedIndex,
+                onNext: widget.onNext,
+              )
+              : MultipleChoicePlayer(
+                questionModel: widget.currentQuestion,
+                onAnswerSelected: _onQuestionFinished,
+              )
+            ),
+          ),
+        ),
       ],
     );
   }
