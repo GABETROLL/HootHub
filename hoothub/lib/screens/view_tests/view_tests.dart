@@ -4,6 +4,7 @@ import 'package:hoothub/firebase/api/tests.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
+import 'package:hoothub/screens/styles.dart';
 import 'test_card.dart';
 
 enum QueryType {
@@ -170,12 +171,16 @@ class _ViewTestsState extends State<ViewTests> {
               );
             }
 
-            Test? test = tests[index - 1];
+            int testIndex = index - 1;
+
+            Test? test = tests[testIndex];
             if (test == null) {
               return const Text('Test not found!');
             }
 
-            return TestCard(testModel: test);
+            Color testCardColor = themeColors[testIndex % themeColors.length];
+
+            return TestCard(testModel: test, color: testCardColor);
           },
         );
       },

@@ -17,9 +17,11 @@ class TestCard extends StatelessWidget {
   const TestCard({
     super.key,
     required this.testModel,
+    required this.color,
   });
 
   final Test testModel;
+  final Color color;
 
   Future<void> onVote({ required BuildContext context, required bool up }) async {
     String voteResult = await voteOnTest(test: testModel, up: up);
@@ -105,7 +107,8 @@ class TestCard extends StatelessWidget {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: width),
-        child: Card(
+        child: ColoredBox(
+          color: color,
           child: Column(
             children: [
               SizedBox(
