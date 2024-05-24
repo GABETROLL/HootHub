@@ -39,6 +39,7 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
 
   void _onQuestionFinished({ required int? answerSelectedIndex }) {
     setState(() {
+      _countdownController.pause();
       _answerSelectedIndex = answerSelectedIndex;
       _answerRevealed = true;
     });
