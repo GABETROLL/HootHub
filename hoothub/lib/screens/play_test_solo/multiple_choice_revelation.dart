@@ -37,17 +37,23 @@ class MultipleChoiceRevelation extends StatelessWidget {
     return Answers(
       questionModel: questionModel,
       answerMaker: (BuildContext context, int index, String answer) {
+        final Icon icon;
+        final Color color;
 
-        return Answer(
-          icon: Icon(
-            index == questionModel.correctAnswer
-            ? Icons.check
-            : Icons.close,
-            color: Colors.white,
-          ),
-          answer: answer,
-          color: chosenAnswer == index ? Colors.green : Colors.red,
-        );
+        if (index == questionModel.correctAnswer) {
+          icon = const Icon(Icons.check, color: Colors.white);
+          color = Colors.green;
+        } else {
+          color = Colors.red;
+
+          if (chosenAnswer == null || chosenAnswer == index) {
+            icon = const Icon(Icons.close, color: Colors.white);
+          } else {
+            icon = const Icon(null);
+          }
+        }
+
+        return Answer(icon: icon, answer: answer, color: color);
       },
       nextButton: ElevatedButton(
         onPressed: onNext,
