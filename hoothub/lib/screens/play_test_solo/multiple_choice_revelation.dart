@@ -42,9 +42,9 @@ class MultipleChoiceRevelation extends StatelessWidget {
 
         if (index == questionModel.correctAnswer) {
           icon = const Icon(Icons.check, color: Colors.white);
-          color = Colors.green;
+          color = const Color.fromARGB(255, 0, 255, 0);
         } else {
-          color = Colors.red;
+          color = const Color.fromARGB(255, 255, 0, 0);
 
           if (chosenAnswer == null || chosenAnswer == index) {
             icon = const Icon(Icons.close, color: Colors.white);
