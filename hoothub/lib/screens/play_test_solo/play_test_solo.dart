@@ -1,18 +1,13 @@
 // back-end
 import 'dart:typed_data';
-
-import 'package:hoothub/firebase/api/images.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
+import 'package:hoothub/firebase/api/images.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/firebase/models/test_result.dart';
-import 'package:hoothub/screens/styles.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
-import 'package:timer_count_down/timer_controller.dart';
-import 'package:timer_count_down/timer_count_down.dart';
-import 'multiple_choice_player.dart';
-import 'multiple_choice_revelation.dart';
+import 'play_question_solo.dart';
 import 'test_results.dart';
 
 class PlayTestSolo extends StatefulWidget {
@@ -33,38 +28,20 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
     score: 0,
   );
   int _currentQuestionIndex = 0;
-  final countdownController = CountdownController(autoStart: true);
 
-  Future<void> _nextQuestion({
-    required BuildContext context,
-    required Question currentQuestion,
-    int? answerSelectedIndex,
-  }) async {
-    int testResultCorrectAnswers = _testResult.correctAnswers;
-
-    if (answerSelectedIndex == currentQuestion.correctAnswer) {
-      testResultCorrectAnswers++;
-    }
-
-    await Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) => MultipleChoiceRevelation(
-          questionModel: currentQuestion,
-          chosenAnswer: answerSelectedIndex,
-        ),
-      ),
-    );
-
-    setState(() {
-      _currentQuestionIndex++;
-      _testResult.correctAnswers = testResultCorrectAnswers;
-    });
-  }
+  void _next() => setState(() {
+    _currentQuestionIndex++;
+  });
 
   @override
   Widget build(BuildContext context) {
     final Widget body;
+
+    final String? testId = widget.testModel.id;
+
+    if (testId == null) {
+      return const Center(child: Text("Unfortunately, you can't play this test. It has a null id!"));
+    }
 
     if (_currentQuestionIndex < 0) {
       body = const Center(
@@ -78,62 +55,34 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
       );
     } else {
       final Question currentQuestion = widget.testModel.questions[_currentQuestionIndex];
-      countdownController.restart();
 
-      body = ListView(
-        children: <Widget>[
-          Text(
-            currentQuestion.question,
-            textAlign: TextAlign.center,
-            style: questionTextStyle,
-          ),
-          SizedBox(
-            height: questionImageHeight,
-            child: InfoDownloader<Uint8List>(
-              key: UniqueKey(),
-              downloadInfo: () => downloadQuestionImage(widget.testModel.id!, _currentQuestionIndex),
-              builder: (BuildContext context, Uint8List? imageData) {
-                if (imageData != null) {
-                  return Image.memory(imageData);
-                }
-                return Image.asset('default_image.png');
-              },
-              buildError: (BuildContext context, Object error) {
-                return Center(
-                  child: Text(
-                    "Error loading or displaying test ${widget.testModel.id}'s question #$_currentQuestionIndex's image: $error",
-                  ),
-                );
-              },
+      body = InfoDownloader<Uint8List>(
+        key: UniqueKey(),
+        downloadInfo: () => downloadQuestionImage(testId, _currentQuestionIndex),
+        builder: (BuildContext context, Uint8List? imageData) {
+          final Image questionImage;
+
+          if (imageData != null) {
+            questionImage = Image.memory(imageData);
+          } else {
+            questionImage = Image.asset('default_image.png');
+          }
+
+          return PlayQuestionSolo(
+            key: UniqueKey(),
+            currentQuestionIndex: _currentQuestionIndex,
+            currentQuestion: currentQuestion,
+            questionImage: questionImage,
+            onNext: _next,
+          );
+        },
+        buildError: (BuildContext context, Object error) {
+          return Center(
+            child: Text(
+              "Error loading or displaying test $testId's question #$_currentQuestionIndex's image: $error",
             ),
-          ),
-          Countdown(
-            controller: countdownController,
-            seconds: currentQuestion.secondsDuration,
-            build: (BuildContext context, double time) => Text(
-              time.toString(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 40),
-            ),
-            onFinished: () {
-              _nextQuestion(
-                context: context,
-                currentQuestion: currentQuestion,
-              );
-            },
-          ),
-          MultipleChoicePlayer(
-            questionModel: currentQuestion,
-            onAnswerSelected: (int answerSelectedIndex) {
-              countdownController.pause();
-              _nextQuestion(
-                context: context,
-                currentQuestion: currentQuestion,
-                answerSelectedIndex: answerSelectedIndex,
-              );
-            }
-          ),
-        ],
+          );
+        },
       );
     }
 
@@ -141,6 +90,9 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
       appBar: AppBar(
         title: Text(widget.testModel.name),
       ),
+      // WARNING: KEEP THE KEY!
+      // (Downloads the question's image, before any playing
+      // or answer revealing can begin)
       body: body,
     );
   }

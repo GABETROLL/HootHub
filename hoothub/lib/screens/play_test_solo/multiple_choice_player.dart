@@ -16,7 +16,7 @@ class MultipleChoicePlayer extends StatelessWidget {
   });
 
   final Question questionModel;
-  final void Function(int) onAnswerSelected;
+  final void Function({ required int answerSelectedIndex }) onAnswerSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class MultipleChoicePlayer extends StatelessWidget {
     for (final (int index, String answer) in questionModel.answers.indexed) {
       choices.add(
         InkWell(
-          onTap: () => onAnswerSelected(index),
+          onTap: () => onAnswerSelected(answerSelectedIndex: index),
           child: Answer(icon: const Icon(null), answer: answer),
         ),
       );

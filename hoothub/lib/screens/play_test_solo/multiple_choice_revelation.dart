@@ -11,8 +11,7 @@ import 'package:hoothub/screens/play_test_solo/answer.dart';
 /// For the rest of the answers,
 /// completely transparent 'x' icons are displayed.
 ///
-/// This widget has a 'Next' button, that POPS BACK TO THE PREVIOUS SCREEN
-/// USING `Navigator.pop(context)`, WITH `void` AS THE RESULT.
+/// This widget has a 'Next' button, that calls `onNext` when pressed.
 /// 
 /// WARNING: I think this one also tries to expand to fill its parent,
 /// so its parent must have finite width.
@@ -22,6 +21,7 @@ class MultipleChoiceRevelation extends StatelessWidget {
     super.key,
     required this.questionModel,
     required this.chosenAnswer,
+    required this.onNext,
   });
 
   final Question questionModel;
@@ -30,6 +30,7 @@ class MultipleChoiceRevelation extends StatelessWidget {
   // If the player didn't choose any answers before their timer ran out,
   // `chosenAnswer` should be null.
   final int? chosenAnswer;
+  final void Function() onNext;
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +57,7 @@ class MultipleChoiceRevelation extends StatelessWidget {
 
     choices.add(
       ElevatedButton(
-        onPressed: () {
-          Navigator.pop<void>(context);
-        },
+        onPressed: onNext,
         child: const Text('Next'),
       ),
     );
