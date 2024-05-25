@@ -104,105 +104,135 @@ class TestCard extends StatelessWidget {
       );
     }
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: width),
-        child: ColoredBox(
-          color: color,
-          child: Column(
-            children: [
-              SizedBox(
-                width: testImageWidth,
-                child: InfoDownloader<Uint8List>(
-                  downloadInfo: () => downloadTestImage(testModel.id!),
-                  builder: (BuildContext context, Uint8List? imageData) {
-                    if (imageData != null) {
-                      return Image.memory(imageData);
-                    }
-                    return Image.asset('default_image.png');
-                  },
-                  buildError: (BuildContext context, Object error) {
-                    return Center(child: Text("Error loading or displaying test ${testModel.id}'s image: $error"));
-                  },
-                ),
-              ),
-              Text(testModel.name, style: const TextStyle(fontSize: 60)),
-              Row(
-                children: [
-                  Column(
-                    children: <Row>[
-                      Row(
-                        children: <Widget>[
-                          IconButton(
-                            onPressed: () => onVote(context: context, up: true),
-                            icon: Icon(
-                              Icons.arrow_upward,
-                              color: (
-                                currentUserId != null && testModel.userUpvotedTest(currentUserId)
-                                ? Colors.orange
-                                : Colors.grey
-                              ),
-                            ),
-                          ),
-                          Text(testModel.usersThatUpvoted.length.toString()),
-                        ],
-                      ),
-                      Row(
-                        children: <Widget>[
-                          IconButton(
-                            onPressed: () => onVote(context: context, up: false),
-                            icon: Icon(
-                              Icons.arrow_downward,
-                              color: (
-                                currentUserId != null && testModel.userDownvotedTest(currentUserId)
-                                ? Colors.blue
-                                : Colors.grey
-                              ),
-                            ),
-                          ),
-                          Text(testModel.usersThatDownvoted.length.toString()),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    width: userImageWidth,
-                    child: InfoDownloader<Uint8List>(
-                      downloadInfo: () => downloadUserImage(testModel.userId!),
-                      builder: (BuildContext context, Uint8List? imageData) {
-                        if (imageData != null) {
-                          return Image.memory(imageData);
-                        }
-                        return Image.asset('default_user_image.png');
-                      },
-                      buildError: (BuildContext context, Object error) {
-                        return Center(child: Text("Error loading or displaying user ${testModel.userId}'s image: $error"));
-                      },
-                    ),
-                  ),
-                  InfoDownloader<UserModel>(
-                    downloadInfo: () => userWithId(testModel.userId!),
-                    builder: (BuildContext context, UserModel? testAuthor) {
-                      if (testAuthor != null) {
-                        return Text(testAuthor.username);
+    ThemeData outerTheme = Theme.of(context);
+
+    return Theme(
+      data: ThemeData(
+        colorScheme: ColorScheme(
+          brightness: Brightness.dark,
+          primary: color,
+          onPrimary: Colors.white, // needed ?
+          secondary: HSVColor.fromColor(color)
+            .withSaturation(5 / 6)
+            .withValue(5 / 6)
+            .toColor(), // needed ?
+          onSecondary: Colors.white, // needed ?
+          error: Colors.red, // needed ?
+          onError: Colors.white, // needed ?
+          background: Colors.white, // needed ?
+          onBackground: color, // needed ?
+          surface: color,
+          onSurface: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: MaterialStatePropertyAll(color),
+            backgroundColor: const MaterialStatePropertyAll(Colors.white),
+          ),
+        ),
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: width),
+          child: Card(
+            child: Column(
+              children: [
+                SizedBox(
+                  width: testImageWidth,
+                  child: InfoDownloader<Uint8List>(
+                    downloadInfo: () => downloadTestImage(testModel.id!),
+                    builder: (BuildContext context, Uint8List? imageData) {
+                      if (imageData != null) {
+                        return Image.memory(imageData);
                       }
-                      return const Text('Loading...');
+                      return Image.asset('default_image.png');
                     },
                     buildError: (BuildContext context, Object error) {
-                      return Text("Error loading or displaying user ${testModel.userId}'s username: $error");
+                      return Center(child: Text("Error loading or displaying test ${testModel.id}'s image: $error"));
                     },
                   ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: options,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 7),
-                child: QuestionsCard(questions: testModel.questions),
-              ),
-            ],
+                ),
+                Text(testModel.name, style: const TextStyle(fontSize: 60)),
+                Row(
+                  children: [
+                    Column(
+                      children: <Row>[
+                        Row(
+                          children: <Widget>[
+                            IconButton(
+                              onPressed: () => onVote(context: context, up: true),
+                              icon: Icon(
+                                Icons.arrow_upward,
+                                color: (
+                                  currentUserId != null && testModel.userUpvotedTest(currentUserId)
+                                  ? Colors.orange
+                                  : Colors.grey
+                                ),
+                              ),
+                            ),
+                            Text(testModel.usersThatUpvoted.length.toString()),
+                          ],
+                        ),
+                        Row(
+                          children: <Widget>[
+                            IconButton(
+                              onPressed: () => onVote(context: context, up: false),
+                              icon: Icon(
+                                Icons.arrow_downward,
+                                color: (
+                                  currentUserId != null && testModel.userDownvotedTest(currentUserId)
+                                  ? Colors.blue
+                                  : Colors.grey
+                                ),
+                              ),
+                            ),
+                            Text(testModel.usersThatDownvoted.length.toString()),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      width: userImageWidth,
+                      child: InfoDownloader<Uint8List>(
+                        downloadInfo: () => downloadUserImage(testModel.userId!),
+                        builder: (BuildContext context, Uint8List? imageData) {
+                          if (imageData != null) {
+                            return Image.memory(imageData);
+                          }
+                          return Image.asset('default_user_image.png');
+                        },
+                        buildError: (BuildContext context, Object error) {
+                          return Center(child: Text("Error loading or displaying user ${testModel.userId}'s image: $error"));
+                        },
+                      ),
+                    ),
+                    InfoDownloader<UserModel>(
+                      downloadInfo: () => userWithId(testModel.userId!),
+                      builder: (BuildContext context, UserModel? testAuthor) {
+                        if (testAuthor != null) {
+                          return Text(testAuthor.username);
+                        }
+                        return const Text('Loading...');
+                      },
+                      buildError: (BuildContext context, Object error) {
+                        return Text("Error loading or displaying user ${testModel.userId}'s username: $error");
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: options,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 7),
+                  child: Theme(
+                    data: outerTheme,
+                    child: QuestionsCard(questions: testModel.questions),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
