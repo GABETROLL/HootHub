@@ -104,30 +104,14 @@ class TestCard extends StatelessWidget {
       );
     }
 
-    ThemeData outerTheme = Theme.of(context);
-
     return Theme(
       data: ThemeData(
-        colorScheme: ColorScheme(
-          brightness: Brightness.dark,
-          primary: color,
-          onPrimary: Colors.white, // needed ?
-          secondary: HSVColor.fromColor(color)
-            .withSaturation(5 / 6)
-            .withValue(5 / 6)
-            .toColor(), // needed ?
-          onSecondary: Colors.white, // needed ?
-          error: Colors.red, // needed ?
-          onError: Colors.white, // needed ?
-          background: Colors.white, // needed ?
-          onBackground: color, // needed ?
-          surface: color,
-          onSurface: Colors.white,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
+        // WARNING: DO NOT USE `cardColor`, IT DOESN'T WORK!
+        cardTheme: CardTheme(color: color),
+        elevatedButtonTheme: const ElevatedButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStatePropertyAll(color),
-            backgroundColor: const MaterialStatePropertyAll(Colors.white),
+            foregroundColor: MaterialStatePropertyAll(Colors.white),
+            backgroundColor: MaterialStatePropertyAll(primaryColor),
           ),
         ),
       ),
