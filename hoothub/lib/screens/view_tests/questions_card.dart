@@ -1,5 +1,6 @@
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/styles.dart';
 
 class QuestionCard extends StatefulWidget {
   const QuestionCard({
@@ -27,6 +28,10 @@ class _QuestionCardState extends State<QuestionCard> {
         onPressed: () => setState(() {
           _correctAnswerRevealed = !_correctAnswerRevealed;
         }),
+        style: const ButtonStyle(
+          backgroundColor: MaterialStatePropertyAll(white),
+          foregroundColor: MaterialStatePropertyAll(primaryColor),
+        ),
         child: Text('${_correctAnswerRevealed ? 'Hide' : 'Reveal'} correct answer'),
       ),
     ];
@@ -76,13 +81,25 @@ class QuestionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      title: const Text('Questions'),
-      children: List<Widget>.from(
-        questions.map<Widget>(
-          (Question question) => Padding(
-            padding: const EdgeInsetsDirectional.only(start: 20),
-            child: QuestionCard(questionModel: question),
+    return Theme(
+      data: ThemeData(
+        expansionTileTheme: const ExpansionTileThemeData(
+          backgroundColor: primaryColor,
+          collapsedBackgroundColor: primaryColor,
+          iconColor: white,
+          collapsedIconColor: white,
+          textColor: white,
+          collapsedTextColor: white,
+        ),
+      ),
+      child: ExpansionTile(
+        title: const Text('Questions'),
+        children: List<Widget>.from(
+          questions.map<Widget>(
+            (Question question) => Padding(
+              padding: const EdgeInsetsDirectional.only(start: 20),
+              child: QuestionCard(questionModel: question),
+            ),
           ),
         ),
       ),
