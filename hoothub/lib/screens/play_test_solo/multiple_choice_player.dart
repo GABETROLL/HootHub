@@ -2,6 +2,7 @@
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/styles.dart';
 import 'answers.dart';
 
 /// WARNING: I think this one also tries to expand to fill its parent,
@@ -23,18 +24,9 @@ class MultipleChoicePlayer extends StatelessWidget {
     return Answers(
       questionModel: questionModel,
       answerMaker: (BuildContext context, int index, String answer) {
-        final double hue = (index / questionModel.answers.length * 360).floorToDouble();
-
-        final Color answerColor = HSVColor.fromAHSV(
-          1,
-          hue,
-          1,
-          1,
-        ).toColor();
-
         return InkWell(
           onTap: () => onAnswerSelected(answerSelectedIndex: index),
-          child: Answer(icon: const Icon(null), answer: answer, color: answerColor),
+          child: Answer(icon: const Icon(null), answer: answer, color: answerColor(index)),
         );
       },
     );

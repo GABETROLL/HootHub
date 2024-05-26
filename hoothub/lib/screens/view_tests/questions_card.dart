@@ -1,16 +1,39 @@
+// back-end
 import 'package:hoothub/firebase/models/question.dart';
+// front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
+
+class QuestionAnswerPreview extends StatelessWidget {
+  const QuestionAnswerPreview({
+    super.key,
+    required this.answer,
+    required this.answerIcon,
+    required this.color,
+  });
+
+  final String answer;
+  final Icon answerIcon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        answerIcon,
+        Text(answer, style: TextStyle(color: color)),
+      ],
+    );
+  }
+}
 
 class QuestionCard extends StatefulWidget {
   const QuestionCard({
     super.key,
     required this.questionModel,
-    this.startPadding = 20,
   });
 
   final Question questionModel;
-  final double startPadding;
 
   @override
   State<QuestionCard> createState() => _QuestionCardState();
@@ -21,8 +44,6 @@ class _QuestionCardState extends State<QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
-    final padding = EdgeInsetsDirectional.only(start: widget.startPadding);
-
     List<Widget> questionChildren = [
       TextButton(
         onPressed: () => setState(() {
@@ -37,36 +58,30 @@ class _QuestionCardState extends State<QuestionCard> {
     ];
 
     for (final (int index, String answer) in widget.questionModel.answers.indexed) {
-      final List<Widget> answerChildren = [
-        Text(answer),
-      ];
+      final bool isCorrectAnswer = index == widget.questionModel.correctAnswer;
 
-      if (_correctAnswerRevealed) {
-        final bool currentAnswerCorrect = index == widget.questionModel.correctAnswer;
-
-        answerChildren.insert(
-          0,
-          Icon(
-            currentAnswerCorrect ? Icons.check : Icons.close,
-            color: currentAnswerCorrect ? Colors.green : Colors.red
-          ),
-        );
-      }
+      final Icon questionPreviewIcon = (
+        _correctAnswerRevealed
+        ? (
+          isCorrectAnswer
+          ? Icon(Icons.check, color: (const HSVColor.fromAHSV(1, 120, 5 / 6, 5 / 6)).toColor())
+          : Icon(Icons.close, color: (const HSVColor.fromAHSV(1, 0, 5 / 6, 5 / 6)).toColor())
+        )
+        : const Icon(null)
+      );
 
       questionChildren.add(
-        Padding(
-          padding: padding,
-          child: Row(children: answerChildren),
+        QuestionAnswerPreview(
+          answer: answer,
+          answerIcon: questionPreviewIcon,
+          color: answerColor(index),
         ),
       );
     }
 
-    return Padding(
-      padding: padding,
-      child: ExpansionTile(
-        title: Text(widget.questionModel.question),
-        children: questionChildren,
-      ),
+    return ExpansionTile(
+      title: Text(widget.questionModel.question),
+      children: questionChildren,
     );
   }
 }
@@ -90,16 +105,14 @@ class QuestionsCard extends StatelessWidget {
           collapsedIconColor: white,
           textColor: white,
           collapsedTextColor: white,
+          childrenPadding: EdgeInsetsDirectional.only(start: 20),
         ),
       ),
       child: ExpansionTile(
         title: const Text('Questions'),
         children: List<Widget>.from(
           questions.map<Widget>(
-            (Question question) => Padding(
-              padding: const EdgeInsetsDirectional.only(start: 20),
-              child: QuestionCard(questionModel: question),
-            ),
+            (Question question) => QuestionCard(questionModel: question),
           ),
         ),
       ),

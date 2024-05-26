@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+// back-end
 import 'package:hoothub/firebase/models/question.dart';
+// front-end
+import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
 
 class Answer extends StatelessWidget {
