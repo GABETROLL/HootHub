@@ -59,5 +59,5 @@ final ThemeData outerTheme = ThemeData(
 );
 
 Color answerColor(int index) {
-  return themeColors[index];
+  return themeColors[index % themeColors.length];
 }
