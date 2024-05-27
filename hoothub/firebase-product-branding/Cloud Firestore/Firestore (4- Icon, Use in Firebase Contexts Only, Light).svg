@@ -1,0 +1,9 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="192" height="192" viewBox="0 0 192 192">
+  <g fill="none" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-dasharray="" stroke-dashoffset="0">
+    <rect x="0" y="0" width="192" height="192" fill="none" fill-rule="nonzero"/>
+    <circle cx="96" cy="96" r="96" fill="#ffca28" fill-rule="nonzero"/>
+    <g fill="#3c4043" fill-rule="evenodd">
+      <path d="M96,100.66667l-42,18.66667v-18.66667l42,-18.66667l42,18.66667v16.33333v-3.5v5.83333zM96,49.33333l42,18.66667v18.66667l-42,-18.66667l-42,18.66667v-18.66667zM111.75,117l21,9.33333l-36.75,16.33333v-18.66667z"/>
+    </g>
+  </g>
+</svg>

@@ -5,16 +5,16 @@ const double questionImageHeight = 200;
 const TextStyle answerTextStyle = TextStyle(fontSize: 50, color: Color(0xFFFFFFFF));
 const double mediumScreenWidth = 768;
 
-const double themeColorsSaturation = 5 / 6;
-const double themeColorsValue =  5 / 6;
+const double themeColorsSaturation = 1;
+const double themeColorsValue = 1;
 
 final List<Color> themeColors = <Color>[
   const HSVColor.fromAHSV(1, 0, themeColorsSaturation, themeColorsSaturation).toColor(),
   const HSVColor.fromAHSV(1, 360 * 2 / 3, themeColorsSaturation, themeColorsSaturation).toColor(),
   const HSVColor.fromAHSV(1, 360 / 6, themeColorsSaturation, themeColorsSaturation).toColor(),
   const HSVColor.fromAHSV(1, 360 / 3, themeColorsSaturation, themeColorsSaturation).toColor(),
-  const HSVColor.fromAHSV(1, 360 / 2, themeColorsSaturation, themeColorsSaturation).toColor(),
-  const HSVColor.fromAHSV(1, 360 * 5 / 6, themeColorsSaturation, themeColorsSaturation).toColor(),
+  const HSVColor.fromAHSV(1, 360 * 11 / 24, themeColorsSaturation, themeColorsSaturation).toColor(),
+  const HSVColor.fromAHSV(1, 360 * 19 / 24, themeColorsSaturation, themeColorsSaturation).toColor(),
 ];
 
 const Color primaryColor = Colors.purple;
@@ -35,13 +35,13 @@ final ThemeData outerTheme = ThemeData(
     surface: primaryColor,
     onSurface: white,
   ), */
-  colorScheme: ColorScheme.light(
+  colorScheme: const ColorScheme.light(
     primary: primaryColor,
     onPrimary: white,
     secondary: white,
-    onSecondary: Colors.purple,
-    background: Colors.purple.shade100,
-    onBackground: secondaryColor,
+    onSecondary: primaryColor,
+    background: white,
+    onBackground: primaryColor,
     surface: primaryColor,
     onSurface: white,
   ),

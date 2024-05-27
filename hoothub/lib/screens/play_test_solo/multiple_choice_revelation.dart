@@ -3,6 +3,7 @@ import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/play_test_solo/answers.dart';
+import 'package:hoothub/screens/styles.dart';
 
 /// Displays all of the answers in `questionModel.questions` in a vertical list,
 /// with a green checkmark beside the correct answer and an 'x' icon beside the
@@ -42,9 +43,9 @@ class MultipleChoiceRevelation extends StatelessWidget {
 
         if (index == questionModel.correctAnswer) {
           icon = const Icon(Icons.check, color: Colors.white);
-          color = const HSVColor.fromAHSV(1, 120, 5 / 6, 5 / 6).toColor();
+          color = const HSVColor.fromAHSV(1, 120, themeColorsSaturation, themeColorsValue).toColor();
         } else {
-          color = const HSVColor.fromAHSV(1, 0, 5 / 6, 5 / 6).toColor();
+          color = const HSVColor.fromAHSV(1, 0, themeColorsSaturation, themeColorsValue).toColor();
 
           if (chosenAnswer == null || chosenAnswer == index) {
             icon = const Icon(Icons.close, color: Colors.white);
