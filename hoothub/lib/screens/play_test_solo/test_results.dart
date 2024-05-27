@@ -13,27 +13,19 @@ class TestSoloResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
+        // TODO: IMPLEMENT TEST SCORES
         const Text(
-          'Final Score',
+          'Questions answered correct:',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 100),
         ),
         Text(
-          testResult.score.toString(),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 150),
-        ),
-        const Text(
-          'Questions answered correct:',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 75),
-        ),
-        Text(
           '${testResult.correctAnswers}/$questionsAmount',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 65),
+          style: const TextStyle(fontSize: 150),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,

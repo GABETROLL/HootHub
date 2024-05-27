@@ -65,6 +65,12 @@ final ThemeData outerTheme = ThemeData(
     textStyle: const TextStyle(color: primaryColor),
     inputDecorationTheme: dropDownInputTheme,
   ),
+  checkboxTheme: const CheckboxThemeData(
+    side: BorderSide(color: primaryColor),
+  ),
+  textTheme: const TextTheme(
+    bodyMedium: TextStyle(color: primaryColor),
+  ),
   elevatedButtonTheme: const ElevatedButtonThemeData(
     style: ButtonStyle(
       foregroundColor: MaterialStatePropertyAll(primaryColor),
