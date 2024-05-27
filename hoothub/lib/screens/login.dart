@@ -100,14 +100,17 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Align(
-        alignment: Alignment.center,
+      appBar: AppBar(
+        title: const Text('HootHub'),
+      ),
+      body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: mediumScreenWidth),
           child: Column(
             children: <Widget>[
               TextField(
                 controller: widget.emailController,
+                style: const TextStyle(color: primaryColor),
                 decoration: const InputDecoration(
                   labelText: 'Email',
                 ),
@@ -115,6 +118,7 @@ class _LoginState extends State<Login> {
               TextField(
                 controller: widget.passwordController,
                 obscureText: _passwordHidden,
+                style: const TextStyle(color: primaryColor),
                 decoration: InputDecoration(
                   labelText: 'Password',
                   suffixIcon: IconButton(
@@ -126,15 +130,17 @@ class _LoginState extends State<Login> {
               Builder(
                 builder: (BuildContext context) => ElevatedButton(
                   onPressed: () => _onLogIn(context),
+                  style: submitCredentialsButtonStyle,
                   child: const Text('Log in'),
                 ),
               ),
               const Divider(),
               Row(
                 children: <Widget>[
-                  const Text("Don't have an account?"),
+                  const Text("Don't have an account?", style: TextStyle(color: primaryColor)),
                   TextButton(
                     onPressed: () => _onSignUpInstead(context),
+                    style: submitCredentialsButtonStyle,
                     child: const Text('Sign up'),
                   ),
                 ],

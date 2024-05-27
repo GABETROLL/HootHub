@@ -22,31 +22,7 @@ final Color secondaryColor = Colors.purple.shade800;
 final Color tertiaryColor = Colors.purple.shade200;
 const Color white = Colors.white;
 
-final ThemeData outerTheme = ThemeData(
-  /* colorScheme: ColorScheme(
-    brightness: Brightness.dark,
-    primary: white,
-    onPrimary: primaryColor,
-    secondary: white,
-    onSecondary: secondaryColor,
-    error: Colors.red,
-    onError: white,
-    background: Colors.purple.shade100,
-    onBackground: secondaryColor,
-    surface: primaryColor,
-    onSurface: white,
-  ), */
-  colorScheme: const ColorScheme.light(
-    primary: primaryColor,
-    onPrimary: white,
-    background: white,
-    onBackground: primaryColor,
-    surface: primaryColor,
-    onSurface: white,
-  ),
-  dropdownMenuTheme: DropdownMenuThemeData(
-    textStyle: const TextStyle(color: primaryColor),
-    inputDecorationTheme: InputDecorationTheme(
+final dropDownInputTheme = InputDecorationTheme(
       labelStyle: TextStyle(color: tertiaryColor),
       iconColor: primaryColor,
       prefixIconColor: primaryColor,
@@ -59,7 +35,35 @@ final ThemeData outerTheme = ThemeData(
       disabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
       enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: primaryColor)),
       border: const OutlineInputBorder(borderSide: BorderSide(color: primaryColor)),
-    ),
+    );
+
+final credentialsInputTheme = InputDecorationTheme(
+  labelStyle: TextStyle(color: tertiaryColor),
+  iconColor: primaryColor,
+  prefixIconColor: primaryColor,
+  suffixIconColor: primaryColor,
+  focusColor: secondaryColor,
+  hoverColor: primaryColor,
+);
+const submitCredentialsButtonStyle = ButtonStyle(
+  backgroundColor: MaterialStatePropertyAll(primaryColor),
+  foregroundColor: MaterialStatePropertyAll(white),
+);
+
+final ThemeData outerTheme = ThemeData(
+  colorScheme: const ColorScheme.light(
+    primary: primaryColor,
+    onPrimary: white,
+    background: white,
+    onBackground: primaryColor,
+    surface: primaryColor,
+    onSurface: white,
+  ),
+  indicatorColor: primaryColor,
+  inputDecorationTheme: credentialsInputTheme,
+  dropdownMenuTheme: DropdownMenuThemeData(
+    textStyle: const TextStyle(color: primaryColor),
+    inputDecorationTheme: dropDownInputTheme,
   ),
   elevatedButtonTheme: const ElevatedButtonThemeData(
     style: ButtonStyle(

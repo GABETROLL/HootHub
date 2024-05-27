@@ -102,8 +102,10 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Align(
-        alignment: Alignment.center,
+      appBar: AppBar(
+        title: const Text('HootHub'),
+      ),
+      body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: mediumScreenWidth),
           child: Column(
@@ -111,6 +113,7 @@ class _SignUpState extends State<SignUp> {
               TextField(
                 controller: widget.emailController,
                 keyboardType: TextInputType.emailAddress,
+                style: const TextStyle(color: primaryColor),
                 decoration: const InputDecoration(
                   labelText: 'Email',
                 ),
@@ -118,6 +121,7 @@ class _SignUpState extends State<SignUp> {
               TextField(
                 controller: widget.usernameController,
                 keyboardType: TextInputType.name,
+                style: const TextStyle(color: primaryColor),
                 decoration: const InputDecoration(
                   labelText: 'Username',
                 ),
@@ -125,6 +129,7 @@ class _SignUpState extends State<SignUp> {
               TextField(
                 controller: widget.passwordController,
                 obscureText: _passwordHidden,
+                style: const TextStyle(color: primaryColor),
                 decoration: InputDecoration(
                   labelText: 'Password',
                   suffixIcon: IconButton(
@@ -136,6 +141,7 @@ class _SignUpState extends State<SignUp> {
               TextField(
                 controller: widget.passwordConfirmationController,
                 obscureText: _passwordHidden,
+                style: const TextStyle(color: primaryColor),
                 decoration: InputDecoration(
                   labelText: 'Confirm you password',
                   suffixIcon: IconButton(
@@ -147,15 +153,17 @@ class _SignUpState extends State<SignUp> {
               Builder(
                 builder: (BuildContext context) => ElevatedButton(
                   onPressed: () => _onSignUp(context),
+                  style: submitCredentialsButtonStyle,
                   child: const Text('Sign up'),
                 ),
               ),
               const Divider(),
               Row(
                 children: <Widget>[
-                  const Text("Already have an account?"),
+                  const Text("Already have an account?", style: TextStyle(color: primaryColor)),
                   TextButton(
                     onPressed: () =>_onLoginInstead(context),
+                    style: submitCredentialsButtonStyle,
                     child: const Text('Log in'),
                   ),
                 ],
