@@ -6,6 +6,7 @@ import 'package:hoothub/firebase/api/images.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/firebase/models/test_result.dart';
+import 'package:hoothub/screens/styles.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'play_question_solo.dart';
 import 'test_results.dart';
@@ -56,6 +57,9 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
     } else {
       final Question currentQuestion = widget.testModel.questions[_currentQuestionIndex];
 
+      // WARNING: KEEP THE KEY!
+      // (Downloads the question's image, before any playing
+      // or answer revealing can begin)
       body = InfoDownloader<Uint8List>(
         key: UniqueKey(),
         downloadInfo: () => downloadQuestionImage(testId, _currentQuestionIndex),
@@ -90,10 +94,17 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
       appBar: AppBar(
         title: Text(widget.testModel.name),
       ),
-      // WARNING: KEEP THE KEY!
-      // (Downloads the question's image, before any playing
-      // or answer revealing can begin)
-      body: body,
+      body: Theme(
+        data: ThemeData(
+          elevatedButtonTheme: const ElevatedButtonThemeData(
+            style: ButtonStyle(
+              foregroundColor: MaterialStatePropertyAll(white),
+              backgroundColor: MaterialStatePropertyAll(primaryColor),
+            ),
+          ),
+        ),
+        child: body,
+      ),
     );
   }
 }
