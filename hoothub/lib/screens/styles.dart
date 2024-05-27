@@ -19,6 +19,7 @@ final List<Color> themeColors = <Color>[
 
 const Color primaryColor = Colors.purple;
 final Color secondaryColor = Colors.purple.shade800;
+final Color tertiaryColor = Colors.purple.shade200;
 const Color white = Colors.white;
 
 final ThemeData outerTheme = ThemeData(
@@ -38,12 +39,27 @@ final ThemeData outerTheme = ThemeData(
   colorScheme: const ColorScheme.light(
     primary: primaryColor,
     onPrimary: white,
-    secondary: white,
-    onSecondary: primaryColor,
     background: white,
     onBackground: primaryColor,
     surface: primaryColor,
     onSurface: white,
+  ),
+  dropdownMenuTheme: DropdownMenuThemeData(
+    textStyle: const TextStyle(color: primaryColor),
+    inputDecorationTheme: InputDecorationTheme(
+      labelStyle: TextStyle(color: tertiaryColor),
+      iconColor: primaryColor,
+      prefixIconColor: primaryColor,
+      suffixIconColor: primaryColor,
+      focusColor: secondaryColor,
+      hoverColor: primaryColor,
+      errorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: secondaryColor)),
+      focusedErrorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+      disabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+      enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+      border: const OutlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+    ),
   ),
   elevatedButtonTheme: const ElevatedButtonThemeData(
     style: ButtonStyle(
