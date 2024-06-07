@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:hoothub/screens/make_test/image_editor.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
 import 'package:hoothub/screens/make_test/slide_preview.dart';
+import 'package:hoothub/screens/styles.dart';
 
 class AddSlideButton extends StatelessWidget {
   const AddSlideButton({super.key, required this.onPressed});
@@ -223,6 +224,7 @@ class _MakeTestState extends State<MakeTest> {
           onEditingComplete: () => setState(() {
             _testModel.name = testNameTextEditingController.text;
           }),
+          cursorColor: white,
           decoration: const InputDecoration(
             hintText: 'Title',
           ),

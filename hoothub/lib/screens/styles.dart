@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-const TextStyle questionTextStyle = TextStyle(fontSize: 60);
 const double questionImageHeight = 200;
-const TextStyle answerTextStyle = TextStyle(fontSize: 50, color: Color(0xFFFFFFFF));
 const double mediumScreenWidth = 768;
 
 const double themeColorsSaturation = 1;
@@ -21,6 +19,9 @@ const Color primaryColor = Colors.purple;
 final Color secondaryColor = Colors.purple.shade800;
 final Color tertiaryColor = Colors.purple.shade200;
 const Color white = Colors.white;
+
+const TextStyle questionTextStyle = TextStyle(fontSize: 60, color: primaryColor);
+const TextStyle answerTextStyle = TextStyle(fontSize: 50, color: primaryColor);
 
 final dropDownInputTheme = InputDecorationTheme(
       labelStyle: TextStyle(color: tertiaryColor),

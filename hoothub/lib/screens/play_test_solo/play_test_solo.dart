@@ -96,12 +96,9 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
       ),
       body: Theme(
         data: ThemeData(
-          elevatedButtonTheme: const ElevatedButtonThemeData(
-            style: ButtonStyle(
-              foregroundColor: MaterialStatePropertyAll(white),
-              backgroundColor: MaterialStatePropertyAll(primaryColor),
-            ),
-          ),
+          textTheme: TextTheme(
+            bodyMedium: TextStyle(color: primaryColor),
+          )
         ),
         child: body,
       ),
