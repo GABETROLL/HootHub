@@ -12,23 +12,21 @@ class MultipleChoiceEditor extends StatelessWidget {
   const MultipleChoiceEditor({
     super.key,
     required this.questionModel,
+    required this.answerEditingControllers,
     required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
-    required this.setAnswer,
   });
 
   final Question questionModel;
+  final List<TextEditingController> answerEditingControllers;
   final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
-  final void Function(int, String) setAnswer;
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> choices = <Widget>[];
 
-    for (final (int index, String answer) in questionModel.answers.indexed) {
-      final answerTextEditingController = TextEditingController(text: answer);
-
+    for (int index = 0; index < questionModel.answers.length; index++) {
       final choice = Row(
         children: <Widget>[
           Checkbox(
@@ -41,9 +39,7 @@ class MultipleChoiceEditor extends StatelessWidget {
           ),
           Expanded(
             child: TextField(
-              controller: answerTextEditingController,
-              // TODO: Make text save even when the user doesn't press ENTER or submits the text...
-              onEditingComplete: () => setAnswer(index, answerTextEditingController.text),
+              controller: answerEditingControllers[index],
               style: answerTextStyle,
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
@@ -75,35 +71,28 @@ class SlideEditor extends StatelessWidget {
   const SlideEditor({
     super.key,
     required this.questionModel,
-    required this.setQuestion,
+    required this.questionEditingController,
+    required this.answerEditingControllers,
     required this.questionImageEditor,
     required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
-    required this.setAnswer,
     required this.setSecondsDuration,
   });
 
   final Question questionModel;
-  final void Function(String) setQuestion;
+  final TextEditingController questionEditingController;
+  final List<TextEditingController> answerEditingControllers;
   final ImageEditor questionImageEditor;
   final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
-  final void Function(int, String) setAnswer;
   final void Function(int) setSecondsDuration;
 
   @override
   Widget build(BuildContext context) {
-    final questionTextEditingController = TextEditingController(text: questionModel.question);
-
     return ListView(
       children: <Widget>[
         TextField(
-          controller: questionTextEditingController,
-          // TODO: Make text save even when the user doesn't press ENTER or submits the text...
-          onEditingComplete: () {
-            print('STOPPED EDITING QUESTION');
-            setQuestion(questionTextEditingController.text);
-          },
+          controller: questionEditingController,
           style: questionTextStyle,
           decoration: const InputDecoration(hintText: 'Question'),
         ),
@@ -134,9 +123,9 @@ class SlideEditor extends StatelessWidget {
         Text('${questionModel.secondsDuration} second${questionModel.secondsDuration > 1 ? 's' : ''}'),
         MultipleChoiceEditor(
           questionModel: questionModel,
+          answerEditingControllers: answerEditingControllers,
           addNewEmptyAnswer: () => addNewEmptyAnswer(),
           setCorrectAnswer: (int index) => setCorrectAnswer(index),
-          setAnswer: (int index, String answer) => setAnswer(index, answer),
         ),
       ],
     );

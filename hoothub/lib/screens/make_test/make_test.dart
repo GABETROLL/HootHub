@@ -46,6 +46,16 @@ class MakeTest extends StatefulWidget {
   State<MakeTest> createState() => _MakeTestState();
 }
 
+class QuestionEditingControllers {
+  QuestionEditingControllers({
+    required this.questionEditingController,
+    required this.answerEditingControllers,
+  });
+
+  TextEditingController questionEditingController;
+  List<TextEditingController> answerEditingControllers;
+}
+
 class _MakeTestState extends State<MakeTest> {
   // default index. May not be in the bounds of `testModel!.questions`,
   // since that could be empty!
@@ -55,6 +65,9 @@ class _MakeTestState extends State<MakeTest> {
   // [null for Question question in widget.testModel.questions]
   late List<Uint8List?> _questionImages;
   late bool _downloadedImages;
+  // Text fields
+  late TextEditingController testNameEditingController;
+  late List<QuestionEditingControllers> questionEditingControllers;
 
   @override
   void initState() {
@@ -66,6 +79,29 @@ class _MakeTestState extends State<MakeTest> {
       widget.testModel.questions.map<Uint8List?>((Question question) => null),
     );
     _downloadedImages = false;
+    // Something 
+    testNameEditingController = TextEditingController(text: widget.testModel.name);
+    questionEditingControllers = [];
+
+    for (Question question in widget.testModel.questions) {
+      final TextEditingController questionEditingController = TextEditingController(
+        text: question.question,
+      );
+      final List<TextEditingController> answerEditingControllers = [];
+
+      for (String answer in question.answers) {
+        answerEditingControllers.add(
+          TextEditingController(text: answer),
+        );
+      }
+
+      questionEditingControllers.add(
+        QuestionEditingControllers(
+          questionEditingController: questionEditingController,
+          answerEditingControllers: answerEditingControllers,
+        ),
+      );
+    }
   }
 
   Future<void> _downloadImages() async {
@@ -103,8 +139,22 @@ class _MakeTestState extends State<MakeTest> {
         const SnackBar(content: Text('Invalid Test!')),
       );
     } else {
+      // PUT THE TEXT FROM EACH OF THE `TextEditingController`s BACK IN THE TEST MODEL
+      // BEFORE UPLOADING IT:
+      for (final (int questionIndex, QuestionEditingControllers questionEditingControllers) in questionEditingControllers.indexed) {
+        final Question question = _testModel.questions[questionIndex];
+
+        question.question = questionEditingControllers.questionEditingController.text;
+
+        for (final (int answerIndex, TextEditingController answerEditingController) in questionEditingControllers.answerEditingControllers.indexed) {
+          question.answers[answerIndex] = answerEditingController.text;
+        }
+      }
+
+      // SAVE TEST
       String saveTestResult = await saveTest(_testModel);
 
+      // DISPLAY TEST SAVING RESULTS
       if (saveTestResult != 'Ok') {
         if (!(context.mounted)) return;
 
@@ -116,7 +166,7 @@ class _MakeTestState extends State<MakeTest> {
 
       String saveResultMessage = 'Test saved successfully!';
 
-      // Save test's images.
+      // SAVE TEST'S IMAGES
 
       if (_testImage != null) {
         // Can't promote non-final fields
@@ -143,6 +193,7 @@ class _MakeTestState extends State<MakeTest> {
         }
       }
 
+      // DISPLAY TEST IMAGES UPLOADING RESULTS
       if (!(context.mounted)) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -215,15 +266,10 @@ class _MakeTestState extends State<MakeTest> {
       ),
     );
 
-    final testNameTextEditingController = TextEditingController(text: _testModel.name);
-
     return Scaffold(
       appBar: AppBar(
         title: TextField(
-          controller: testNameTextEditingController,
-          onEditingComplete: () => setState(() {
-            _testModel.name = testNameTextEditingController.text;
-          }),
+          controller: testNameEditingController,
           cursorColor: white,
           decoration: const InputDecoration(
             hintText: 'Title',
@@ -259,9 +305,8 @@ class _MakeTestState extends State<MakeTest> {
             : Expanded(
               child: SlideEditor(
                 questionModel: _testModel.questions[_currentSlideIndex],
-                setQuestion: (String question) => setState(() {
-                  _testModel.setQuestion(_currentSlideIndex, question);
-                }),
+                questionEditingController: questionEditingControllers[_currentSlideIndex].questionEditingController,
+                answerEditingControllers: questionEditingControllers[_currentSlideIndex].answerEditingControllers,
                 questionImageEditor: ImageEditor(
                   imageData: _questionImages[_currentSlideIndex],
                   asyncOnChange: (Uint8List newImage) {
@@ -284,9 +329,6 @@ class _MakeTestState extends State<MakeTest> {
                 }),
                 setCorrectAnswer: (int index) => setState(() {
                   _testModel.setCorrectAnswer(_currentSlideIndex, index);
-                }),
-                setAnswer: (int index, String answer) => setState(() {
-                  _testModel.setAnswer(_currentSlideIndex, index, answer);
                 }),
                 setSecondsDuration: (int secondsDuration) => setState(() {
                   _testModel.setSecondsDuration(_currentSlideIndex, secondsDuration);
