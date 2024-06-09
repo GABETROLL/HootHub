@@ -1,6 +1,4 @@
 // back-end
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';

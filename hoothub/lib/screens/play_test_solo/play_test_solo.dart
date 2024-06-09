@@ -96,9 +96,9 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
       ),
       body: Theme(
         data: ThemeData(
-          textTheme: TextTheme(
+          textTheme: const TextTheme(
             bodyMedium: TextStyle(color: primaryColor),
-          )
+          ),
         ),
         child: body,
       ),
