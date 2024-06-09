@@ -149,8 +149,8 @@ class TestCard extends StatelessWidget {
                                 Icons.arrow_upward,
                                 color: (
                                   currentUserId != null && testModel.userUpvotedTest(currentUserId)
-                                  ? Colors.orange
-                                  : Colors.grey
+                                  ? Colors.purple
+                                  : Colors.black
                                 ),
                               ),
                             ),
@@ -165,8 +165,8 @@ class TestCard extends StatelessWidget {
                                 Icons.arrow_downward,
                                 color: (
                                   currentUserId != null && testModel.userDownvotedTest(currentUserId)
-                                  ? Colors.blue
-                                  : Colors.grey
+                                  ? Colors.purple
+                                  : Colors.black
                                 ),
                               ),
                             ),
