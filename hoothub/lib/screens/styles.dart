@@ -21,7 +21,7 @@ final Color tertiaryColor = Colors.purple.shade200;
 const Color white = Colors.white;
 
 const TextStyle questionTextStyle = TextStyle(fontSize: 60, color: primaryColor);
-const TextStyle answerTextStyle = TextStyle(fontSize: 50, color: white);
+const TextStyle answerTextStyle = TextStyle(fontSize: 50, color: Colors.black);
 
 final dropDownInputTheme = InputDecorationTheme(
       labelStyle: TextStyle(color: tertiaryColor),
