@@ -1,7 +1,9 @@
+// back-end
 import 'package:hoothub/firebase/models/question.dart';
-
+// front-end
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/styles.dart';
 
 class SlidePreview extends StatelessWidget {
   const SlidePreview({
@@ -26,9 +28,10 @@ class SlidePreview extends StatelessWidget {
     }
 
     final List<Widget> children = <Widget>[
-      Align(
+      Container(
         alignment: Alignment.centerLeft,
-        child: Text(questionIndex.toString(), style: const TextStyle(fontSize: 40)),
+        color: primaryColor,
+        child: Text(questionIndex.toString(), style: const TextStyle(color: white, fontSize: 40)),
       ),
       Text(question.question, style: const TextStyle(fontSize: 50)),
       questionImageWidget,
