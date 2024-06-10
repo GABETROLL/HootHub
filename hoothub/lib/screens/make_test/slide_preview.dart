@@ -31,6 +31,7 @@ class SlidePreview extends StatelessWidget {
       Container(
         alignment: Alignment.centerLeft,
         color: primaryColor,
+        // TODO: Or use `Card` for the theme colors!!!
         child: Text(questionIndex.toString(), style: const TextStyle(color: white, fontSize: 40)),
       ),
       Text(question.question, style: const TextStyle(fontSize: 50)),
