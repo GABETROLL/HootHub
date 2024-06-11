@@ -52,12 +52,14 @@ class MultipleChoiceEditor extends StatelessWidget {
       choices.add(choice);
     }
 
-    choices.add(
-      ElevatedButton(
-        onPressed: () => addNewEmptyAnswer(),
-        child: const Text('Add answer')
-      ),
-    );
+    if (questionModel.answers.length < 6) {
+      choices.add(
+        ElevatedButton(
+          onPressed: () => addNewEmptyAnswer(),
+          child: const Text('Add answer')
+        ),
+      );
+    }
 
     return Column(children: choices);
   }
