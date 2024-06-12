@@ -24,13 +24,14 @@ class PlayTestSolo extends StatefulWidget {
 }
 
 class _PlayTestSoloState extends State<PlayTestSolo> {
-  final TestResult _testResult = TestResult(
+  TestResult _testResult = TestResult(
     correctAnswers: 0,
     score: 0,
   );
   int _currentQuestionIndex = 0;
 
-  void _next() => setState(() {
+  void _next(TestResult newTestResult) => setState(() {
+    _testResult = newTestResult.copy();
     _currentQuestionIndex++;
   });
 
@@ -77,6 +78,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             currentQuestionIndex: _currentQuestionIndex,
             currentQuestion: currentQuestion,
             questionImage: questionImage,
+            currentTestResult: _testResult.copy(),
             onNext: _next,
           );
         },

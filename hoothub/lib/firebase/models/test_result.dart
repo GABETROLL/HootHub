@@ -24,6 +24,8 @@ class TestResult implements Model {
     );
   }
 
+  TestResult copy() => TestResult(correctAnswers: correctAnswers, score: score);
+
   @override
   Map<String, dynamic> toJson() => {
     'userId': userId,
