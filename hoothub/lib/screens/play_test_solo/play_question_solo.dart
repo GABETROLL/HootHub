@@ -59,6 +59,7 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
     _countdownController.pause();
   }
 
+  // TODO: MAKE PLAYING QUESTION CONSIDER ANSWERING TIME FOR TEST RESULT.
   void _onQuestionFinished({ required int? answerSelectedIndex }) {
     setState(() {
       _countdownController.pause();
