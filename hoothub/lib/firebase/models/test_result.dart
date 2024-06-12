@@ -37,7 +37,8 @@ class TestResult implements Model {
     int questionScore = 0;
 
     if (answeredCorrectly) {
-      questionScore = (answeringTime / questionDuration * 1000).toInt();
+      // WRONG.
+      questionScore = (1000 * (answeringTime / questionDuration)).toInt();
     }
 
     return TestResult(
