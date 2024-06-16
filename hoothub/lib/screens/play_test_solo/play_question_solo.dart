@@ -5,8 +5,7 @@ import 'package:hoothub/firebase/models/test_result.dart';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/play_test_solo/multiple_choice_player.dart';
 import 'package:hoothub/screens/play_test_solo/multiple_choice_revelation.dart';
-import 'package:timer_count_down/timer_controller.dart';
-import 'package:timer_count_down/timer_count_down.dart';
+import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:hoothub/screens/styles.dart';
 
 /// WARNING: ASSUMES `currentTestResult` IS ONLY REFERENCED
@@ -41,35 +40,58 @@ class PlayQuestionSolo extends StatefulWidget {
 }
 
 class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
-  final _countdownController = CountdownController(autoStart: true);
+  late TestResult _testResult;
+
+  late final StopWatchTimer _stopWatchTimer;
+
+  // answer
   int? _answerSelectedIndex;
   bool _answerRevealed = false;
-
-  late TestResult _testResult;
 
   @override
   void initState() {
     super.initState();
     _testResult = widget.currentTestResult;
+
+    // timer
+    _stopWatchTimer = StopWatchTimer(
+      mode: StopWatchMode.countDown,
+      presetMillisecond: StopWatchTimer.getMilliSecFromSecond(widget.currentQuestion.secondsDuration),
+      // Player ran out of time:
+      onEnded: () => _onQuestionFinished(answerSelectedIndex: null),
+    );
+    _stopWatchTimer.onStartTimer();
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     super.dispose();
-    _countdownController.pause();
+    await _stopWatchTimer.dispose();
   }
+
+  /// Returns the current question's time left, IN INT SECONDS from the stream: `_stopWatchTimer.secondTime`.
+  /// If that stream has no value, this getter returns the current question's time duration instead.
+  /// TODO: MAKE THIS DOUBLE, AND MORE PRECISE THAN SECONDS.
+  int get timeLeft => _stopWatchTimer.secondTime.hasValue ? _stopWatchTimer.secondTime.value : widget.currentQuestion.secondsDuration;
 
   // TODO: MAKE PLAYING QUESTION CONSIDER ANSWERING TIME FOR TEST RESULT.
   void _onQuestionFinished({ required int? answerSelectedIndex }) {
+    final bool answeredCorrectly = answerSelectedIndex == widget.currentQuestion.correctAnswer;
+    // TODO: TURN INTO DOUBLE!
+    final double answeringTime = (widget.currentQuestion.secondsDuration - timeLeft).toDouble();
+
+    final TestResult newTestResult = _testResult.updateScore(
+      answeredCorrectly,
+      answeringTime,
+      widget.currentQuestion.secondsDuration.toDouble(),
+    );
+
+    // TODO: WOULD THIS `setState` CALL ALWAYS CHANGE THE STATE, WITHOUT CONSIDERING
+    //  THE ` _testResult = newTestResult;` LINE (THE LAST LINE)?
     setState(() {
-      _countdownController.pause();
       _answerSelectedIndex = answerSelectedIndex;
       _answerRevealed = true;
-
-      // If `answerSelectedIndex` is null, it won't equal to `correctAnswer`.
-      if (answerSelectedIndex == widget.currentQuestion.correctAnswer) {
-        _testResult.correctAnswers++;
-      }
+      _testResult = newTestResult;
     });
   }
 
@@ -86,18 +108,23 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
           height: questionImageHeight,
           child: widget.questionImage,
         ),
-        Countdown(
-          controller: _countdownController,
-          seconds: widget.currentQuestion.secondsDuration,
-          build: (BuildContext context, double time) {
-            return Text(
-              time.toString(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 40),
-            );
-          },
-          onFinished: () {
-            _onQuestionFinished(answerSelectedIndex: null);
+        StreamBuilder(
+          stream: _stopWatchTimer.secondTime,
+          initialData: _stopWatchTimer.secondTime.hasValue ? _stopWatchTimer.secondTime.value : widget.currentQuestion.secondsDuration,
+          builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+            if (snapshot.error != null) {
+              print(snapshot.error);
+            }
+
+            if (snapshot.data != null) {
+              return Text(
+                snapshot.data.toString(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 40),
+              );
+            } else {
+              return const Text('??');
+            }            
           },
         ),
         Center(
@@ -113,7 +140,10 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
               )
               : MultipleChoicePlayer(
                 questionModel: widget.currentQuestion,
-                onAnswerSelected: _onQuestionFinished,
+                onAnswerSelected: ({required int answerSelectedIndex}) {
+                  _stopWatchTimer.onStopTimer();
+                  _onQuestionFinished(answerSelectedIndex: answerSelectedIndex);
+                },
               )
             ),
           ),
