@@ -125,7 +125,7 @@ class TestCard extends StatelessWidget {
                   width: testImageWidth,
                   child: InfoDownloader<Uint8List>(
                     downloadInfo: () => downloadTestImage(testModel.id!),
-                    builder: (BuildContext context, Uint8List? imageData) {
+                    builder: (BuildContext context, Uint8List? imageData, bool downloaded) {
                       if (imageData != null) {
                         return Image.memory(imageData);
                       }
@@ -179,7 +179,7 @@ class TestCard extends StatelessWidget {
                       width: userImageWidth,
                       child: InfoDownloader<Uint8List>(
                         downloadInfo: () => downloadUserImage(testModel.userId!),
-                        builder: (BuildContext context, Uint8List? imageData) {
+                        builder: (BuildContext context, Uint8List? imageData, bool downloaded) {
                           if (imageData != null) {
                             return Image.memory(imageData);
                           }
@@ -192,7 +192,7 @@ class TestCard extends StatelessWidget {
                     ),
                     InfoDownloader<UserModel>(
                       downloadInfo: () => userWithId(testModel.userId!),
-                      builder: (BuildContext context, UserModel? testAuthor) {
+                      builder: (BuildContext context, UserModel? testAuthor, bool downloaded) {
                         if (testAuthor != null) {
                           return Text(testAuthor.username);
                         }

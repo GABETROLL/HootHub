@@ -133,9 +133,9 @@ class _HomeState extends State<Home> {
             children: [
               InfoDownloader<Uint8List>(
                 downloadInfo: () => downloadUserImage(_userModel!.id),
-                builder: (BuildContext context, Uint8List? imageUrl) {
-                  if (imageUrl != null) {
-                    return Image.memory(imageUrl);
+                builder: (BuildContext context, Uint8List? userImageData, bool downloaded) {
+                  if (userImageData != null) {
+                    return Image.memory(userImageData);
                   }
                   return Image.asset('default_user_image.png');
                 },

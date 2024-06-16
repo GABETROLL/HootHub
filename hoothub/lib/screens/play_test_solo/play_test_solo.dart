@@ -64,20 +64,31 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
       body = InfoDownloader<Uint8List>(
         key: UniqueKey(),
         downloadInfo: () => downloadQuestionImage(testId, _currentQuestionIndex),
-        builder: (BuildContext context, Uint8List? imageData) {
-          final Image questionImage;
+        builder: (BuildContext context, Uint8List? imageData, bool downloaded) {
+          final Widget questionImage;
 
-          if (imageData != null) {
-            questionImage = Image.memory(imageData);
+          if (downloaded) {
+            if (imageData != null) {
+              questionImage = Image.memory(imageData);
+            } else {
+              // no image displayed, if it was fetched,
+              // and the question has no corresponding image.
+              //
+              // This `SizedBox` should be a 0x0 `Widget`,
+              // and basically be nothing.
+              questionImage = const SizedBox();
+            }
           } else {
             questionImage = Image.asset('default_image.png');
           }
 
+          // WARNING: KEEP THE KEY!
           return PlayQuestionSolo(
             key: UniqueKey(),
             currentQuestionIndex: _currentQuestionIndex,
             currentQuestion: currentQuestion,
             questionImage: questionImage,
+            questionImageLoaded: downloaded,
             currentTestResult: _testResult.copy(),
             onNext: _next,
           );

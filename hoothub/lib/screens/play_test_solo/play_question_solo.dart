@@ -25,6 +25,7 @@ class PlayQuestionSolo extends StatefulWidget {
     required this.currentQuestionIndex,
     required this.currentQuestion,
     required this.questionImage,
+    required this.questionImageLoaded,
     required this.currentTestResult,
     required this.onNext,
   });
@@ -32,6 +33,7 @@ class PlayQuestionSolo extends StatefulWidget {
   final int currentQuestionIndex;
   final Question currentQuestion;
   final Widget questionImage;
+  final bool questionImageLoaded;
   final TestResult currentTestResult;
   final void Function(TestResult nextTestResult) onNext;
 
@@ -60,7 +62,6 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
       // Player ran out of time:
       onEnded: () => _onQuestionFinished(answerSelectedIndex: null),
     );
-    _stopWatchTimer.onStartTimer();
   }
 
   @override
@@ -74,7 +75,9 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
   /// TODO: MAKE THIS DOUBLE, AND MORE PRECISE THAN SECONDS.
   int get timeLeft => _stopWatchTimer.secondTime.hasValue ? _stopWatchTimer.secondTime.value : widget.currentQuestion.secondsDuration;
 
-  // TODO: MAKE PLAYING QUESTION CONSIDER ANSWERING TIME FOR TEST RESULT.
+  /// WARNING: DOESN'T STOP TIMER.
+  ///
+  /// TODO: MAKE PLAYING QUESTION CONSIDER ANSWERING TIME FOR TEST RESULT.
   void _onQuestionFinished({ required int? answerSelectedIndex }) {
     final bool answeredCorrectly = answerSelectedIndex == widget.currentQuestion.correctAnswer;
     // TODO: TURN INTO DOUBLE!
@@ -97,6 +100,12 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
 
   @override
   Widget build(BuildContext context) {
+    // DO NOT START THE TIMER UNTIL `PlayTestSolo -> InfoDownloader<Uint8List>`
+    // HAS FINISHED DOWNLOADING THIS QUESTION'S IMAGE.
+    if (widget.questionImageLoaded && !_answerRevealed) {
+      _stopWatchTimer.onStartTimer();
+    }
+
     return ListView(
       children: <Widget>[
         Text(

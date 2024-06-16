@@ -148,7 +148,7 @@ class _ViewTestsState extends State<ViewTests> {
     return InfoDownloader<List<Test?>>(
       key: UniqueKey(),
       downloadInfo: testQuery,
-      builder: (BuildContext context, List<Test?>? tests) {
+      builder: (BuildContext context, List<Test?>? tests, bool downloaded) {
         if (tests == null) {
           return const Center(child: Text('Loading tests...'));
         }

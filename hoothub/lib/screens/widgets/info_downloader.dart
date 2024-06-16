@@ -9,8 +9,8 @@ class InfoDownloader<T> extends StatefulWidget {
   });
 
   final Future<T?> Function() downloadInfo;
-  final Widget Function(BuildContext, T?) builder;
-  final Widget Function(BuildContext, Object) buildError;
+  final Widget Function(BuildContext context, T? result, bool downloaded) builder;
+  final Widget Function(BuildContext context, Object error) buildError;
 
   @override
   State<InfoDownloader<T>> createState() => _InfoDownloaderState<T>();
@@ -21,7 +21,7 @@ class _InfoDownloaderState<T> extends State<InfoDownloader<T>> {
   Object? _error;
   bool _triedDownloadingResult = false;
 
-  // THROWS.
+  // PROBABLY DOESN'T THROW.
   Future<void> _fetchResult() async {
     T? result;
     Object? error;
@@ -51,7 +51,7 @@ class _InfoDownloaderState<T> extends State<InfoDownloader<T>> {
       if (_error != null) {
         return widget.buildError(context, _error!);
       } else {
-        return widget.builder(context, _result);
+        return widget.builder(context, _result, _triedDownloadingResult);
       }
     } catch (error) {
       return widget.buildError(context, error);
