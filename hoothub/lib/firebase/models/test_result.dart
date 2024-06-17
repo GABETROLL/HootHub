@@ -31,7 +31,7 @@ class TestResult implements Model {
   ///
   /// If the player answered the current question correctly,
   /// in the result, `correctAnswers` will be incremented by 1,
-  /// and `score` will have `answeringTime / questionDuration * 1000`
+  /// and `score` will have `1000 * (answeringTime / questionDuration)`
   /// more points.
   TestResult updateScore(bool answeredCorrectly, double answeringTime, double questionDuration) {
     int questionScore = 0;

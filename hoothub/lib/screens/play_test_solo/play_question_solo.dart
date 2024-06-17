@@ -76,9 +76,13 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
   int get timeLeft => _stopWatchTimer.secondTime.hasValue ? _stopWatchTimer.secondTime.value : widget.currentQuestion.secondsDuration;
 
   /// WARNING: DOESN'T STOP TIMER.
-  ///
-  /// TODO: MAKE PLAYING QUESTION CONSIDER ANSWERING TIME FOR TEST RESULT.
   void _onQuestionFinished({ required int? answerSelectedIndex }) {
+    // THE ONLY WAY A QUESTION COULD FINISH,
+    // IS IF THE ANSWER WASN'T ALREADY REVEALED,
+    // BECAUSE THE PLAYER SHOULDN'T BE ABLE TO ACCESS ANSWERING A QUESTION
+    // IF THE ANSWERS WERE ALREADY REVEALED.
+    assert (!_answerRevealed);
+
     final bool answeredCorrectly = answerSelectedIndex == widget.currentQuestion.correctAnswer;
     // TODO: TURN INTO DOUBLE!
     final double answeringTime = (widget.currentQuestion.secondsDuration - timeLeft).toDouble();
@@ -89,12 +93,10 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
       widget.currentQuestion.secondsDuration.toDouble(),
     );
 
-    // TODO: WOULD THIS `setState` CALL ALWAYS CHANGE THE STATE, WITHOUT CONSIDERING
-    //  THE ` _testResult = newTestResult;` LINE (THE LAST LINE)?
     setState(() {
-      _answerSelectedIndex = answerSelectedIndex;
-      _answerRevealed = true;
-      _testResult = newTestResult;
+      _answerSelectedIndex = answerSelectedIndex; // may not always change!
+      _answerRevealed = true; // Always changes state (DUE TO ASSERTION IN THE START OF THIS METHOD (`_onQuestionFinished`!)
+      _testResult = newTestResult; // may not always change!
     });
   }
 
