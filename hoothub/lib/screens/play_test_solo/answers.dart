@@ -46,22 +46,43 @@ class Answers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> choices = <Widget>[];
-
-    for (final (int index, String answer) in questionModel.answers.indexed) {
-      choices.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: answerMaker(context, index, answer),
+    Widget styledAnswerMaker(Widget answer) {
+      return Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: answer,
         ),
       );
+    }
+
+    final List<Widget> choices = <Widget>[];
+
+    for (int index = 0; index < questionModel.answers.length; index += 2) {
+      final int a = index;
+      final int b = index + 1;
+
+      List<Widget> answers = [
+        styledAnswerMaker(
+          answerMaker(context, a, questionModel.answers[a])
+        ),
+      ];
+
+      if (b < questionModel.answers.length) {
+        answers.add(
+          styledAnswerMaker(
+            answerMaker(context, b, questionModel.answers[b]),
+          ),
+        );
+      }
+
+      choices.add(Row(children: answers));
     }
 
     if (nextButton != null) {
       try {
         choices.add(nextButton!);
       } catch (error) {
-        // Null value accessed
+        // Null value accessed, probably.
       }
     }
 
