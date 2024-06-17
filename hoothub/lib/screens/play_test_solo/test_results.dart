@@ -16,16 +16,25 @@ class TestSoloResults extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        // TODO: IMPLEMENT TEST SCORES
+        const Text(
+          'Final Score',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 80),
+        ),
+        Text(
+          testResult.score.toString(),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 120),
+        ),
         const Text(
           'Questions answered correct:',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 100),
+          style: TextStyle(fontSize: 60),
         ),
         Text(
           '${testResult.correctAnswers}/$questionsAmount',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 150),
+          style: const TextStyle(fontSize: 90),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
