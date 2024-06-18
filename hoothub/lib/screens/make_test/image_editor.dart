@@ -27,18 +27,18 @@ class ImageEditor extends StatelessWidget {
     return InkWell(
       onTap: () async {
         final ImagePicker imagePicker = ImagePicker();
-        final XFile? testImage = await imagePicker.pickImage(source: ImageSource.gallery);
+        final XFile? newImageFile = await imagePicker.pickImage(source: ImageSource.gallery);
 
-        if (testImage == null) {
+        if (newImageFile == null) {
           if (!(context.mounted)) return;
 
           asyncOnImageNotRecieved();
           return;
         }
 
-        final Uint8List testImageBytes = await testImage.readAsBytes();
+        final Uint8List newImageData = await newImageFile.readAsBytes();
 
-        asyncOnChange(testImageBytes);
+        asyncOnChange(newImageData);
       },
       child: image,
     );

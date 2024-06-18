@@ -5,16 +5,17 @@ library;
 // backend
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hoothub/firebase/models/test.dart';
-import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 import 'package:hoothub/firebase/api/images.dart';
 // frontend
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/make_test/editors.dart';
 import 'package:hoothub/screens/make_test/image_editor.dart';
 import 'package:hoothub/screens/make_test/slide_editor.dart';
 import 'package:hoothub/screens/make_test/slide_preview.dart';
 import 'package:hoothub/screens/styles.dart';
+import 'package:hoothub/screens/widgets/info_downloader.dart';
 
 class AddSlideButton extends StatelessWidget {
   const AddSlideButton({super.key, required this.onPressed});
@@ -46,115 +47,39 @@ class MakeTest extends StatefulWidget {
   State<MakeTest> createState() => _MakeTestState();
 }
 
-class QuestionEditingControllers {
-  QuestionEditingControllers({
-    required this.questionEditingController,
-    required this.answerEditingControllers,
-  });
-
-  TextEditingController questionEditingController;
-  List<TextEditingController> answerEditingControllers;
-}
-
 class _MakeTestState extends State<MakeTest> {
   // default index. May not be in the bounds of `testModel!.questions`,
   // since that could be empty!
   late int _currentSlideIndex;
-  late Test _testModel;
-  Uint8List? _testImage;
-  // [null for Question question in widget.testModel.questions]
-  late List<Uint8List?> _questionImages;
-  late bool _downloadedImages;
-  // Text fields
-  late TextEditingController testNameEditingController;
-  late List<QuestionEditingControllers> questionEditingControllers;
+  late TestModelEditor _testModel;
 
   @override
   void initState() {
     super.initState();
     _currentSlideIndex = 0;
-    _testModel = widget.testModel;
-    _testImage = null;
-    _questionImages = List<Uint8List?>.from(
-      widget.testModel.questions.map<Uint8List?>((Question question) => null),
-    );
-    _downloadedImages = false;
-    // Something 
-    testNameEditingController = TextEditingController(text: widget.testModel.name);
-    questionEditingControllers = [];
-
-    for (Question question in widget.testModel.questions) {
-      final TextEditingController questionEditingController = TextEditingController(
-        text: question.question,
-      );
-      final List<TextEditingController> answerEditingControllers = [];
-
-      for (String answer in question.answers) {
-        answerEditingControllers.add(
-          TextEditingController(text: answer),
-        );
-      }
-
-      questionEditingControllers.add(
-        QuestionEditingControllers(
-          questionEditingController: questionEditingController,
-          answerEditingControllers: answerEditingControllers,
-        ),
-      );
-    }
-  }
-
-  Future<void> _downloadImages() async {
-    Uint8List? testImage;
-    List<Uint8List?> questionImages = List<Uint8List?>.from(_questionImages);
-
-    try {
-      testImage = await downloadTestImage(_testModel.id!);
-    } catch (error) {
-      print("`_MakeTestState`: Error downloading test ${_testModel.id}'s image: $error");
-    }
-
-    for (final (int questionIndex, Question _) in _testModel.questions.indexed) {
-      try {
-        questionImages[questionIndex] = await downloadQuestionImage(_testModel.id!, questionIndex);
-      } catch (error) {
-        print("`_MakeTestState`: Error downloading question #$questionIndex's image of test ${_testModel.id}: $error");
-      }
-    }
-
-    setState(() {
-      _testImage = testImage;
-      _questionImages = questionImages;
-      _downloadedImages = true;
-    });
+    _testModel = TestModelEditor.fromTest(widget.testModel);
   }
 
   /// Tries to save the test and the image.
   ///
   /// If something seems to go wrong, tries to spawn a `SnackBar`
   /// with the error.
+  ///
+  /// TODO: UPLOAD THE IMAGES TO THEIR CORRECT SLOTS IN CLOUD STORAGE AS WELL!
   Future<void> _onTestSaved(BuildContext context) async {
-    if (!(_testModel.isValid()) && context.mounted) {
+    Test testModel = _testModel.toTest();
+
+    if (!(testModel.isValid()) && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid Test!')),
       );
     } else {
-      // PUT THE TEXT FROM EACH OF THE `TextEditingController`s BACK IN THE TEST MODEL
-      // BEFORE UPLOADING IT:
-      for (final (int questionIndex, QuestionEditingControllers questionEditingControllers) in questionEditingControllers.indexed) {
-        final Question question = _testModel.questions[questionIndex];
-
-        question.question = questionEditingControllers.questionEditingController.text;
-
-        for (final (int answerIndex, TextEditingController answerEditingController) in questionEditingControllers.answerEditingControllers.indexed) {
-          question.answers[answerIndex] = answerEditingController.text;
-        }
-      }
-
       // SAVE TEST
-      String saveTestResult = await saveTest(_testModel);
 
-      // DISPLAY TEST SAVING RESULTS
+      // THIS SHOULD GIVE `testModel` A NON-NULL `id` FIELD!
+      String saveTestResult = await saveTest(testModel);
+
+      // DISPLAY ERRORS SAVING TEST, IF ANY:
       if (saveTestResult != 'Ok') {
         if (!(context.mounted)) return;
 
@@ -168,11 +93,18 @@ class _MakeTestState extends State<MakeTest> {
 
       // SAVE TEST'S IMAGES
 
-      if (_testImage != null) {
+      Uint8List? testImage = await _testModel.image;
+
+      // Need `_testModel` for the test's image
+      if (testImage != null) {
         // Can't promote non-final fields
         try {
-          await uploadTestImage(_testModel.id!, _testImage!);
-          print("UPLOADED TEST ${_testModel.id}'s IMAGE SUCCESSFULLLY!");
+          // Need `testModel`, NOT `_testModel` FOR THE TEST'S ID.
+          //
+          // `testModel` SHOULD NOW HAVE AN `id` FIELD.
+          // IF IT DOESN'T, THE ERROR MESSAGE WILL CATCH THE ERROR:
+          await uploadTestImage(testModel.id!, testImage);
+          debugPrint("UPLOADED TEST ${testModel.id}'s IMAGE SUCCESSFULLLY!");
         } on FirebaseException catch (error) {
           saveResultMessage = 'Error saving test image: ${error.message ?? error.code}';
         } catch (error) {
@@ -180,12 +112,19 @@ class _MakeTestState extends State<MakeTest> {
         }
       }
 
-      for (final (int index, Uint8List? questionImage) in _questionImages.indexed) {
+      // Need `_testModel.questionModelEditors` for the questions' images
+      for (final (int index, QuestionModelEditor questionModelEditor) in _testModel.questionModelEditors.indexed) {
+        final Uint8List? questionImage = await questionModelEditor.image;
+
         if (questionImage == null) continue;
 
         try {
-          await uploadQuestionImage(_testModel.id!, index, questionImage);
-          print("UPLOADED TEST ${_testModel.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
+          // Need `testModel`, NOT `_testModel` FOR THE TEST'S ID.
+          //
+          // `testModel` SHOULD NOW HAVE AN `id` FIELD.
+          // IF IT DOESN'T, THE ERROR MESSAGE WILL CATCH THE ERROR:
+          await uploadQuestionImage(testModel.id!, index, questionImage);
+          debugPrint("UPLOADED TEST ${testModel.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
         } on FirebaseException catch (error) {
           saveResultMessage = "Error saving question $index's image: ${error.message ?? error.code}";
         } catch (error) {
@@ -193,7 +132,7 @@ class _MakeTestState extends State<MakeTest> {
         }
       }
 
-      // DISPLAY TEST IMAGES UPLOADING RESULTS
+      // DISPLAY TEST UPLOADING RESULTS
       if (!(context.mounted)) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -204,42 +143,48 @@ class _MakeTestState extends State<MakeTest> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_downloadedImages) {
-      _downloadImages();
-    }
-
     final List<Widget> sidePanelWithSlidePreviews = [
-      ImageEditor(
-        imageData: _testImage,
-        asyncOnChange: (Uint8List newImage) {
-          if (!mounted) return;
+      InfoDownloader(
+        downloadInfo: () => _testModel.image,
+        builder: (BuildContext context, Uint8List? result, bool downloaded) {
+          return ImageEditor(
+            imageData: result,
+            asyncOnChange: (Uint8List newImage) {
+              if (!mounted) return;
 
-          setState(() {
-            _testImage = newImage;
-          });
-        },
-        asyncOnImageNotRecieved: () {
-          if (!(context.mounted)) return;
+              setState(() {
+                _testModel.image = Future<Uint8List?>.value(newImage);
+              });
+            },
+            asyncOnImageNotRecieved: () {
+              if (!(context.mounted)) return;
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image not recieved!')),
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Image not recieved!')),
+              );
+            },
           );
+        },
+        buildError: (BuildContext context, Object error) {
+          return Text("Error building test ${_testModel.id}'s image: $error");
         },
       ),
     ];
 
-    for (final (int index, Question question) in _testModel.questions.indexed) {
+    for (final (int index, QuestionModelEditor question) in _testModel.questionModelEditors.indexed) {
       sidePanelWithSlidePreviews.add(
         InkWell(
           onTap: () => setState(() {
             // `index` should be within the index bounds of `testModel.questions`,
             // so `_currentSlideIndex` should also be, after this `setState` call.
+            // So, this assignment is valid.
             _currentSlideIndex = index;
           }),
           child: SlidePreview(
             questionIndex: index,
-            question: question,
-            questionImage: _questionImages[index],
+            // TODO: HOW TO REFRESH DISPLAYED QUESTION WHEN THE USER EDITS IT?
+            question: question.questionEditingController.text, 
+            questionImage: question.image,
           ),
         ),
       );
@@ -259,17 +204,66 @@ class _MakeTestState extends State<MakeTest> {
         onPressed: () {
           setState(() {
             _testModel.addNewEmptyQuestion();
-            _questionImages.add(null);
-            _currentSlideIndex = _testModel.questions.length - 1;
+            _currentSlideIndex = _testModel.questionModelEditors.length - 1;
           });
         },
       ),
     );
 
+    final Widget currentSlideEditor = (
+      // `_currentSlideIndex` may be out of the range of the list.
+      // In the case that it is,
+      // the `AddSlideButton` "slide" will be displayed instead.
+      _currentSlideIndex < 0 || _currentSlideIndex >= _testModel.questionModelEditors.length
+      ? const Center(child: Text('No questions yet!'))
+      : Expanded(
+        child: SlideEditor(
+          questionModelEditor: _testModel.questionModelEditors[_currentSlideIndex],
+          questionImageEditor: InfoDownloader<Uint8List>(
+            downloadInfo: () => _testModel.questionModelEditors[_currentSlideIndex].image,
+            builder: (BuildContext context, Uint8List? result, bool downloaded) {
+              return ImageEditor(
+                imageData: result,
+                asyncOnChange: (Uint8List newImage) {
+                  if (!mounted) return;
+
+                  setState(() {
+                    _testModel.questionModelEditors[_currentSlideIndex].image = Future<Uint8List?>.value(newImage);
+                  });
+                },
+                asyncOnImageNotRecieved: () {
+                  // TODO: I MEANT THE OUTER CONTEXT, THE CONTEXT FROM `_MakeTestState#build`!
+                  // PLEASE CHECK IF USING THIS BUILDER'S CONTEXT AFFECTS ANYTHING,
+                  // AND IF I MUST USE THE OUTER ONE INSTEAD!
+                  if (!(context.mounted)) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Question's image not recieved!")),
+                  );
+                },
+              );
+            },
+            buildError: (BuildContext context, Object error) {
+              return Text("Error loading and displaying question #$_currentSlideIndex's image editor: $error");
+            },
+          ),
+          addNewEmptyAnswer: () => setState(() {
+            _testModel.addNewEmptyAnswer(_currentSlideIndex);
+          }),
+          setCorrectAnswer: (int index) => setState(() {
+            _testModel.setCorrectAnswer(_currentSlideIndex, index);
+          }),
+          setSecondsDuration: (int secondsDuration) => setState(() {
+            _testModel.setSecondsDuration(_currentSlideIndex, secondsDuration);
+          }),
+        ),
+      )
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: TextField(
-          controller: testNameEditingController,
+          controller: _testModel.nameEditingController,
           cursorColor: white,
           decoration: const InputDecoration(
             hintText: 'Title',
@@ -296,46 +290,7 @@ class _MakeTestState extends State<MakeTest> {
               children: sidePanelWithSlidePreviews,
             ),
           ),
-          // `_currentSlideIndex` may be out of the range of the list.
-          // In the case that it is,
-          // the `AddSlideButton` "slide" will be displayed instead.
-          (
-            _currentSlideIndex < 0 || _currentSlideIndex >= _testModel.questions.length
-            ? const Center(child: Text('No questions yet!'))
-            : Expanded(
-              child: SlideEditor(
-                questionModel: _testModel.questions[_currentSlideIndex],
-                questionEditingController: questionEditingControllers[_currentSlideIndex].questionEditingController,
-                answerEditingControllers: questionEditingControllers[_currentSlideIndex].answerEditingControllers,
-                questionImageEditor: ImageEditor(
-                  imageData: _questionImages[_currentSlideIndex],
-                  asyncOnChange: (Uint8List newImage) {
-                    if (!(context.mounted)) return;
-
-                    setState(() {
-                      _questionImages[_currentSlideIndex] = newImage;
-                    });
-                  },
-                  asyncOnImageNotRecieved: () {
-                    if (!(context.mounted)) return;
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Question's image not recieved!")),
-                    );
-                  },
-                ),
-                addNewEmptyAnswer: () => setState(() {
-                  _testModel.addNewEmptyAnswer(_currentSlideIndex);
-                }),
-                setCorrectAnswer: (int index) => setState(() {
-                  _testModel.setCorrectAnswer(_currentSlideIndex, index);
-                }),
-                setSecondsDuration: (int secondsDuration) => setState(() {
-                  _testModel.setSecondsDuration(_currentSlideIndex, secondsDuration);
-                }),
-              ),
-            )
-          ),
+          currentSlideEditor,
         ],
       ),
     );

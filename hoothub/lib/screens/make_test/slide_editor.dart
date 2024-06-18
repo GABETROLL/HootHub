@@ -1,7 +1,6 @@
-import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'image_editor.dart';
+import 'package:hoothub/screens/make_test/editors.dart';
 import 'package:hoothub/screens/styles.dart';
 
 /// WARNING: Tries to expand to fill its parent,
@@ -11,26 +10,28 @@ import 'package:hoothub/screens/styles.dart';
 class MultipleChoiceEditor extends StatelessWidget {
   const MultipleChoiceEditor({
     super.key,
-    required this.questionModel,
-    required this.answerEditingControllers,
+    required this.questionModelEditor,
     required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
   });
 
-  final Question questionModel;
-  final List<TextEditingController> answerEditingControllers;
+  final QuestionModelEditor questionModelEditor;
   final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
 
   @override
   Widget build(BuildContext context) {
+    // WARNING: DO NOT USE `questionModelEditor`'S METHODS FOR SETTING ITS STATE,
+    // USE `addNewEmptyAnswer` and `setCorrectAnswer` INSTEAD,
+    // SINCE THOSE WILL BE THE ONES THAT CALL THIS WIDGET'S PARENT'S `setState`!
+
     final List<Widget> choices = <Widget>[];
 
-    for (int index = 0; index < questionModel.answers.length; index++) {
+    for (int index = 0; index < questionModelEditor.answerEditingControllers.length; index++) {
       final choice = Row(
         children: <Widget>[
           Checkbox(
-            value: index == questionModel.correctAnswer,
+            value: index == questionModelEditor.correctAnswer,
             onChanged: (bool? checked) {
               if (checked != null && checked) {
                 setCorrectAnswer(index);
@@ -39,7 +40,7 @@ class MultipleChoiceEditor extends StatelessWidget {
           ),
           Expanded(
             child: TextField(
-              controller: answerEditingControllers[index],
+              controller: questionModelEditor.answerEditingControllers[index],
               style: answerTextStyle,
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
@@ -52,7 +53,9 @@ class MultipleChoiceEditor extends StatelessWidget {
       choices.add(choice);
     }
 
-    if (questionModel.answers.length < 6) {
+    // Only allow the player the option to add a new answer,
+    // if the amount of answers in `questionModelEditor` is below 6:
+    if (questionModelEditor.answerEditingControllers.length < 6) {
       choices.add(
         ElevatedButton(
           onPressed: () => addNewEmptyAnswer(),
@@ -72,29 +75,29 @@ class MultipleChoiceEditor extends StatelessWidget {
 class SlideEditor extends StatelessWidget {
   const SlideEditor({
     super.key,
-    required this.questionModel,
-    required this.questionEditingController,
-    required this.answerEditingControllers,
+    required this.questionModelEditor,
     required this.questionImageEditor,
     required this.addNewEmptyAnswer,
     required this.setCorrectAnswer,
     required this.setSecondsDuration,
   });
 
-  final Question questionModel;
-  final TextEditingController questionEditingController;
-  final List<TextEditingController> answerEditingControllers;
-  final ImageEditor questionImageEditor;
+  final QuestionModelEditor questionModelEditor;
+  final Widget questionImageEditor;
   final void Function() addNewEmptyAnswer;
   final void Function(int) setCorrectAnswer;
   final void Function(int) setSecondsDuration;
 
   @override
   Widget build(BuildContext context) {
+    // WARNING: DO NOT USE `questionModelEditor`'S METHODS FOR SETTING ITS STATE,
+    // USE `addNewEmptyAnswer`, `setCorrectAnswer` and `setSecondsDuration` INSTEAD,
+    // SINCE THOSE WILL BE THE ONES THAT CALL THIS WIDGET'S PARENT'S `setState`!
+
     return ListView(
       children: <Widget>[
         TextField(
-          controller: questionEditingController,
+          controller: questionModelEditor.questionEditingController,
           style: questionTextStyle,
           decoration: const InputDecoration(hintText: 'Question'),
         ),
@@ -110,22 +113,21 @@ class SlideEditor extends StatelessWidget {
             const Text('Time:'),
             Expanded(
               child: Slider(
-                value: questionModel.secondsDuration.toDouble(),
+                value: questionModelEditor.secondsDuration.toDouble(),
                 onChanged: (double selectedSecondsDuration) {
                   setSecondsDuration(selectedSecondsDuration.toInt());
                 },
                 min: 1,
                 max: 60,
                 divisions: 60,
-                label: questionModel.secondsDuration.toString(),
+                label: questionModelEditor.secondsDuration.toString(),
               ),
             ),
           ],
         ),
-        Text('${questionModel.secondsDuration} second${questionModel.secondsDuration > 1 ? 's' : ''}'),
+        Text('${questionModelEditor.secondsDuration} second${questionModelEditor.secondsDuration.abs() != 1 ? 's' : ''}'),
         MultipleChoiceEditor(
-          questionModel: questionModel,
-          answerEditingControllers: answerEditingControllers,
+          questionModelEditor: questionModelEditor,
           addNewEmptyAnswer: () => addNewEmptyAnswer(),
           setCorrectAnswer: (int index) => setCorrectAnswer(index),
         ),

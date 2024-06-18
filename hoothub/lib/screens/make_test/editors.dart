@@ -21,26 +21,35 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/test_result.dart';
+import 'package:hoothub/firebase/api/images.dart';
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 class QuestionModelEditor {
   QuestionModelEditor({
     required this.questionEditingController,
+    required this.image,
     required this.answerEditingControllers,
     required this.correctAnswer,
     this.secondsDuration = 20,
   });
 
   TextEditingController questionEditingController;
+  Future<Uint8List?> image;
   List<TextEditingController> answerEditingControllers;
   int correctAnswer;
   int secondsDuration;
 
   /// Converts `question` into its `QuestionModelEditor` equivalent.
-  static QuestionModelEditor fromQuestion(Question question) {
+  ///
+  /// WARNING: IF `testId` IS NOT NULL,
+  /// THIS METHOD ASSIGNS `image` TO A `Future<Uint8List?>` THAT DOWNLOADS
+  /// THIS QUESTION'S IMAGE FROM CLOUD STORAGE, USING `downloadQuestionImage`.
+  static QuestionModelEditor fromQuestion(String? testId, int questionIndex, Question question) {
     return QuestionModelEditor(
       questionEditingController: TextEditingController(text: question.question),
+      image: testId != null ? downloadQuestionImage(testId, questionIndex) : Future<Uint8List?>.value(null),
       answerEditingControllers: List<TextEditingController>.from(
         question.answers.map<TextEditingController>(
           (String answer) => TextEditingController(text: answer),
@@ -52,6 +61,8 @@ class QuestionModelEditor {
   }
 
   /// Converts `this` into its `Question` equivalent.
+  ///
+  /// WARNING: DOES NOT UPLOAD QUESTION'S IMAGE TO CLOUD STORAGE!!!
   Question toQuestion() {
     return Question(
       question: questionEditingController.text,
@@ -72,15 +83,6 @@ class QuestionModelEditor {
     );
   }
 
-  /// Deletes the `index`-th answer editing controller in `answerEditingControllers`.
-  ///
-  /// Throws if `index` is out of range of `answerEditingControllers`.
-  void deleteAnswer(int index) {
-    answerEditingControllers.removeAt(index);
-  }
-
-  // Question
-
   /// Throws error if `index` is out of the range of `answerEditingControllers`.
   void _checkAnswerIndex(int index) {
     if (index < 0 || index >= answerEditingControllers.length) {
@@ -88,11 +90,19 @@ class QuestionModelEditor {
     }
   }
 
+  /// Deletes the `index`-th answer editing controller in `answerEditingControllers`.
+  ///
+  /// Throws if `index` is out of range of `answerEditingControllers`.
+  void deleteAnswer(int index) {
+    _checkAnswerIndex(index);
+    answerEditingControllers.removeAt(index);
+  }
+
   /// Sets `correctAnswer: index`.
   ///
   /// Throws an error if the index is outside the range of `answerEditingControllers`.
   void setCorrectAnswer(int index) {
-    _checkAnswerIndex(index);
+    _checkAnswerIndex(index); // THIS LINE IS NEEDED TO VALIDATE `index`.
     correctAnswer = index;
   }
 
@@ -107,6 +117,7 @@ class TestModelEditor {
     required this.id,
     required this.userId,
     required this.nameEditingController,
+    required this.image,
     required this.dateCreated,
     required this.questionModelEditors,
     required this.userResults,
@@ -118,6 +129,7 @@ class TestModelEditor {
   String? id;
   String? userId;
   TextEditingController nameEditingController;
+  Future<Uint8List?> image;
   Timestamp? dateCreated;
   List<QuestionModelEditor> questionModelEditors;
   Map<String, TestResult> userResults = <String, TestResult>{};
@@ -125,18 +137,36 @@ class TestModelEditor {
   List<String> usersThatDownvoted = <String>[];
   List<String> comments = <String>[];
 
-  // Converts `test` to its `TestModelEditor` equivalent.
+  /// Converts `test` to its `TestModelEditor` equivalent.
+  ///
+  /// WARNING: IF `testId` IS NOT NULL,
+  /// THIS METHOD ASSIGNS `image` TO A `Future<Uint8List?>` THAT DOWNLOADS
+  /// THIS TESTS'S IMAGE FROM CLOUD STORAGE, USING `downloadTestImage`.
+  ///
+  /// THIS METHOD ALSO CONVERTS EACH QUESTION IN `test.questions` TO A
+  /// `QuestionModelEditor`, USING `QuestionModelEditor.fromQuestion(<current question>)`,
+  /// WHICH ALSO DOWNLOADS THE QUESTION'S IMAGE IN A FUTURE, USING `downloadQuestionImage`,
+  /// AND ASSIGNS IT TO THE QUESTION'S `image` FIELD.
   static TestModelEditor fromTest(Test test) {
+    String? testId = test.id;
+
+    List<QuestionModelEditor> questionModelEditors = <QuestionModelEditor>[];
+
+    for (final (int index, Question question) in test.questions.indexed) {
+      final QuestionModelEditor questionModelEditor = QuestionModelEditor.fromQuestion(
+        testId, index, question,
+      );
+
+      questionModelEditors.add(questionModelEditor);
+    }
+
     return TestModelEditor(
-      id: test.id,
+      id: testId,
       userId: test.userId,
       nameEditingController: TextEditingController(text: test.name),
+      image: testId != null ? downloadTestImage(testId) : Future<Uint8List?>.value(null),
       dateCreated: test.dateCreated,
-      questionModelEditors: List<QuestionModelEditor>.from(
-        test.questions.map<QuestionModelEditor>(
-          (Question question) => QuestionModelEditor.fromQuestion(question),
-        ),
-      ),
+      questionModelEditors: questionModelEditors,
       userResults: test.userResults,
       usersThatUpvoted: test.usersThatUpvoted,
       usersThatDownvoted: test.usersThatDownvoted,
@@ -144,7 +174,9 @@ class TestModelEditor {
     );
   }
 
-  // Converts this to its `Test` equivalent.
+  /// Converts this to its `Test` equivalent.
+  ///
+  /// WARNING: DOES NOT UPLOAD TESTS'S IMAGE TO CLOUD STORAGE!!!
   Test toTest() {
     return Test(
       id: id,
@@ -176,10 +208,15 @@ class TestModelEditor {
   ///
   /// The new, `QuestionModelEditor` should be the equivalent of:
   /// `Question(question: '', answers: ['', ''], correctAnswer: 0)`.
+  /// (THIS METHOD DOESN'T CONSTRUCT THE ABOVE OBJECT, THEN CONVERT FROM IT,
+  /// BUT DIRECTLY CONSTRUCTS ITS `QuestionModelEditor` EQUIVALENT)
   void addNewEmptyQuestion() {
     questionModelEditors.add(
-      QuestionModelEditor.fromQuestion(
-        Question(question: '', answers: ['', ''], correctAnswer: 0),
+      QuestionModelEditor(
+        questionEditingController: TextEditingController(),
+        image: Future<Uint8List?>.value(null),
+        answerEditingControllers: <TextEditingController>[TextEditingController(), TextEditingController()],
+        correctAnswer: 0,
       ),
     );
   }
@@ -189,6 +226,14 @@ class TestModelEditor {
     if (index < 0 || index >= questionModelEditors.length) {
       throw "Question index out of range: $index";
     }
+  }
+
+  /// Deletes the `questionIndex`-th `QuestionModelEditor` in `questionModelEditors`.
+  ///
+  /// Throws if `questionIndex` is out of range of `questionModelEditors`.
+  void deleteQuestion(int questionIndex) {
+    _checkQuestionIndex(questionIndex);
+    questionModelEditors.removeAt(questionIndex);
   }
 
   /// Assigns `correctAnswer: answerIndex` to the `questionIndex`-th `QuestionModelEditor`.
