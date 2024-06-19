@@ -173,7 +173,15 @@ class _MakeTestState extends State<MakeTest> {
                 ),
               ],
             ),
-            body: const Center(child: Text("Oops! The test's model editor didn't load!")),
+            body: Center(
+              child: Text(
+                (
+                  downloaded
+                  ? "Oops! The test's model editor didn't load!"
+                  : "Loading..."
+                ),
+              ),
+            ),
           );
         }
 
