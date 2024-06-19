@@ -2,7 +2,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
-import 'package:hoothub/screens/widgets/info_downloader.dart';
 
 class SlidePreview extends StatelessWidget {
   const SlidePreview({
@@ -15,11 +14,13 @@ class SlidePreview extends StatelessWidget {
 
   final int questionIndex;
   final String question;
-  final Future<Uint8List?> questionImage;
+  final Uint8List? questionImage;
   final void Function() deleteQuestion;
 
   @override
   Widget build(BuildContext context) {
+    Uint8List? questionImageData = questionImage;
+
     final List<Widget> children = <Widget>[
       Container(
         alignment: Alignment.centerLeft,
@@ -42,21 +43,10 @@ class SlidePreview extends StatelessWidget {
         ),
       ),
       Text(question, style: const TextStyle(fontSize: 50)),
-      InfoDownloader<Uint8List>(
-        key: UniqueKey(),
-        downloadInfo: () => questionImage,
-        builder: (BuildContext context, Uint8List? result, bool downloaded) {
-          Image questionImageWidget = Image.asset('default_image.png');
-
-          if (result != null) {
-            questionImageWidget = Image.memory(result);
-          }
-
-          return questionImageWidget;
-        },
-        buildError: (BuildContext context, Object error) {
-          return Text("Error loading and displaying question #$questionIndex's image: $error");
-        },
+      (
+        questionImageData != null 
+        ? Image.memory(questionImageData)
+        : Image.asset('default_image.png')
       ),
     ];
 
