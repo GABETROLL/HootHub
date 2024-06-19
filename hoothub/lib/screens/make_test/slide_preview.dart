@@ -43,6 +43,7 @@ class SlidePreview extends StatelessWidget {
       ),
       Text(question, style: const TextStyle(fontSize: 50)),
       InfoDownloader<Uint8List>(
+        key: UniqueKey(),
         downloadInfo: () => questionImage,
         builder: (BuildContext context, Uint8List? result, bool downloaded) {
           Image questionImageWidget = Image.asset('default_image.png');
