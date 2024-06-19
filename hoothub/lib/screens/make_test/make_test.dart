@@ -93,9 +93,9 @@ class _MakeTestState extends State<MakeTest> {
 
       // SAVE TEST'S IMAGES
 
+      // Need `_testModel` for the test's image
       Uint8List? testImage = await _testModel.image;
 
-      // Need `_testModel` for the test's image
       if (testImage != null) {
         // Can't promote non-final fields
         try {
@@ -143,7 +143,7 @@ class _MakeTestState extends State<MakeTest> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> sidePanelWithSlidePreviews = [
+    final List<Widget> sidePanelWithSlidePreviews = <Widget>[
       InfoDownloader(
         downloadInfo: () => _testModel.image,
         builder: (BuildContext context, Uint8List? result, bool downloaded) {
@@ -185,6 +185,9 @@ class _MakeTestState extends State<MakeTest> {
             // TODO: HOW TO REFRESH DISPLAYED QUESTION WHEN THE USER EDITS IT?
             question: question.questionEditingController.text, 
             questionImage: question.image,
+            deleteQuestion: () => setState(() {
+              _testModel.deleteQuestion(_currentSlideIndex);
+            }),
           ),
         ),
       );
@@ -247,11 +250,17 @@ class _MakeTestState extends State<MakeTest> {
               return Text("Error loading and displaying question #$_currentSlideIndex's image editor: $error");
             },
           ),
+          deleteQuestion: () => setState(() {
+            _testModel.deleteQuestion(_currentSlideIndex);
+          }),
           addNewEmptyAnswer: () => setState(() {
             _testModel.addNewEmptyAnswer(_currentSlideIndex);
           }),
-          setCorrectAnswer: (int index) => setState(() {
-            _testModel.setCorrectAnswer(_currentSlideIndex, index);
+          deleteAnswer: (int answerIndex) => setState(() {
+            _testModel.deleteAnswer(_currentSlideIndex, answerIndex);
+          }),
+          setCorrectAnswer: (int answerIndex) => setState(() {
+            _testModel.setCorrectAnswer(_currentSlideIndex, answerIndex);
           }),
           setSecondsDuration: (int secondsDuration) => setState(() {
             _testModel.setSecondsDuration(_currentSlideIndex, secondsDuration);

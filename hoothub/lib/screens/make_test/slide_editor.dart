@@ -12,17 +12,19 @@ class MultipleChoiceEditor extends StatelessWidget {
     super.key,
     required this.questionModelEditor,
     required this.addNewEmptyAnswer,
+    required this.deleteAnswer,
     required this.setCorrectAnswer,
   });
 
   final QuestionModelEditor questionModelEditor;
   final void Function() addNewEmptyAnswer;
-  final void Function(int) setCorrectAnswer;
+  final void Function(int index) deleteAnswer;
+  final void Function(int index) setCorrectAnswer;
 
   @override
   Widget build(BuildContext context) {
     // WARNING: DO NOT USE `questionModelEditor`'S METHODS FOR SETTING ITS STATE,
-    // USE `addNewEmptyAnswer` and `setCorrectAnswer` INSTEAD,
+    // USE THE METHODS PASSED THROUGH THE CONSTRUCTOR INSTEAD,
     // SINCE THOSE WILL BE THE ONES THAT CALL THIS WIDGET'S PARENT'S `setState`!
 
     final List<Widget> choices = <Widget>[];
@@ -30,6 +32,11 @@ class MultipleChoiceEditor extends StatelessWidget {
     for (int index = 0; index < questionModelEditor.answerEditingControllers.length; index++) {
       final choice = Row(
         children: <Widget>[
+          IconButton(
+            color: primaryColor,
+            onPressed: () => deleteAnswer(index),
+            icon: const Icon(Icons.delete),
+          ),
           Checkbox(
             value: index == questionModelEditor.correctAnswer,
             onChanged: (bool? checked) {
@@ -77,29 +84,44 @@ class SlideEditor extends StatelessWidget {
     super.key,
     required this.questionModelEditor,
     required this.questionImageEditor,
+    required this.deleteQuestion,
     required this.addNewEmptyAnswer,
+    required this.deleteAnswer,
     required this.setCorrectAnswer,
     required this.setSecondsDuration,
   });
 
   final QuestionModelEditor questionModelEditor;
   final Widget questionImageEditor;
+  final void Function() deleteQuestion;
   final void Function() addNewEmptyAnswer;
-  final void Function(int) setCorrectAnswer;
-  final void Function(int) setSecondsDuration;
+  final void Function(int answerIndex) deleteAnswer; 
+  final void Function(int answerIndex) setCorrectAnswer;
+  final void Function(int duration) setSecondsDuration;
 
   @override
   Widget build(BuildContext context) {
     // WARNING: DO NOT USE `questionModelEditor`'S METHODS FOR SETTING ITS STATE,
-    // USE `addNewEmptyAnswer`, `setCorrectAnswer` and `setSecondsDuration` INSTEAD,
+    // USE THE METHODS PASSED THROUGH THE CONSTRUCTOR INSTEAD,
     // SINCE THOSE WILL BE THE ONES THAT CALL THIS WIDGET'S PARENT'S `setState`!
 
     return ListView(
       children: <Widget>[
-        TextField(
-          controller: questionModelEditor.questionEditingController,
-          style: questionTextStyle,
-          decoration: const InputDecoration(hintText: 'Question'),
+        Row(
+          children: [
+            IconButton(
+              color: primaryColor,
+              onPressed: deleteQuestion,
+              icon: const Icon(Icons.delete),
+            ),
+            Expanded(
+              child: TextField(
+                controller: questionModelEditor.questionEditingController,
+                style: questionTextStyle,
+                decoration: const InputDecoration(hintText: 'Question'),
+              ),
+            ),
+          ],
         ),
         Center(
           child: Container(
@@ -129,6 +151,7 @@ class SlideEditor extends StatelessWidget {
         MultipleChoiceEditor(
           questionModelEditor: questionModelEditor,
           addNewEmptyAnswer: () => addNewEmptyAnswer(),
+          deleteAnswer: deleteAnswer,
           setCorrectAnswer: (int index) => setCorrectAnswer(index),
         ),
       ],

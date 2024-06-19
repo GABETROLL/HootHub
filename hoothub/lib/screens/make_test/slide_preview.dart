@@ -1,5 +1,3 @@
-// back-end
-import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -12,11 +10,13 @@ class SlidePreview extends StatelessWidget {
     required this.questionIndex,
     required this.question,
     required this.questionImage,
+    required this.deleteQuestion,
   });
 
   final int questionIndex;
   final String question;
   final Future<Uint8List?> questionImage;
+  final void Function() deleteQuestion;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,21 @@ class SlidePreview extends StatelessWidget {
         alignment: Alignment.centerLeft,
         color: primaryColor,
         // TODO: Or use `Card` for the theme colors!!!
-        child: Text(questionIndex.toString(), style: const TextStyle(color: white, fontSize: 40)),
+        child: Row(
+          children: <Widget>[
+            IconButton(
+              color: white,
+              onPressed: deleteQuestion,
+              icon: const Icon(Icons.delete),
+            ),
+            Expanded(
+              child: Text(
+                questionIndex.toString(),
+                style: const TextStyle(color: white, fontSize: 40),
+              ),
+            ),
+          ],
+        ),
       ),
       Text(question, style: const TextStyle(fontSize: 50)),
       InfoDownloader<Uint8List>(

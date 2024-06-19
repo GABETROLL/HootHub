@@ -236,6 +236,15 @@ class TestModelEditor {
     questionModelEditors.removeAt(questionIndex);
   }
 
+  /// Adds a new, empty `TextEditingController` to the end of the `answerEditingControllers`
+  /// of the `questionIndex`-th `QuestionModelEditor`.
+  ///
+  /// Throws if the `questionIndex` is out of range of `questionModelEditors`.
+  void addNewEmptyAnswer(int questionIndex) {
+    _checkQuestionIndex(questionIndex);
+    questionModelEditors[questionIndex].addNewEmptyAnswer();
+  }
+
   /// Assigns `correctAnswer: answerIndex` to the `questionIndex`-th `QuestionModelEditor`.
   ///
   /// Throws if either the `questionIndex` is out of range of `questionModelEditors`,
@@ -245,13 +254,14 @@ class TestModelEditor {
     questionModelEditors[questionIndex].setCorrectAnswer(answerIndex);
   }
 
-  /// Adds a new, empty `TextEditingController` to the end of the `answerEditingControllers`
-  /// of the `questionIndex`-th `QuestionModelEditor`.
+  /// Deletes the `answerIndex`-th answer editing controller in the `answerEditingControllers` field
+  /// of the `questionIndex`-th question in `questionModelEditors`.
   ///
-  /// Throws if the `questionIndex` is out of range of `questionModelEditors`.
-  void addNewEmptyAnswer(int questionIndex) {
+  /// Throws if `questionIndex` is out of range of `questionModelEditors`,
+  /// or if `answerIndex` is out of range of THAT question's `answerEditingControllers` field.
+  void deleteAnswer(int questionIndex, int answerIndex) {
     _checkQuestionIndex(questionIndex);
-    questionModelEditors[questionIndex].addNewEmptyAnswer();
+    questionModelEditors[questionIndex].deleteAnswer(answerIndex);
   }
 
   /// Sets `secondsDuration: secondsDuration` in the `questionIndex`-th
