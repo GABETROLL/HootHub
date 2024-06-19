@@ -132,12 +132,28 @@ class _MakeTestState extends State<MakeTest> {
         }
       }
 
-      // DISPLAY TEST UPLOADING RESULTS
+      // DISPLAY TEST UPLOADING RESULTS:
+
       if (!(context.mounted)) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(saveResultMessage)),
       );
+
+      // `testModel` SHOULD NOW HAVE ITS `id` AND OTHER FIELDS,
+      // BECAUSE IT WAS UPLOADED BY `saveTest`.
+      // NOW, WE HAVE TO UPDATE `_testModel` WITH IT:
+      //
+      // IF WE DON'T, AND THE PLAYER SAVES THIS TEST AGAIN,
+      // AND THIS TEST IS A NEW TEST,
+      // SINCE THE `_testModel` DOESN'T YET HAVE AN `id`,
+      // IT WILL BE SAVED TWICE TO CLOUD FIRESTORE.
+
+      if (!mounted) return;
+
+      setState(() {
+        _testModel = TestModelEditor.fromTest(testModel);
+      });
     }
   }
 
