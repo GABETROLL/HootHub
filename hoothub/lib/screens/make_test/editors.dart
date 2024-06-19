@@ -36,7 +36,7 @@ class QuestionModelEditor {
   });
 
   TextEditingController questionEditingController;
-  Future<Uint8List?> image;
+  Uint8List? image;
   List<TextEditingController> answerEditingControllers;
   int correctAnswer;
   int secondsDuration;
@@ -44,12 +44,13 @@ class QuestionModelEditor {
   /// Converts `question` into its `QuestionModelEditor` equivalent.
   ///
   /// WARNING: IF `testId` IS NOT NULL,
-  /// THIS METHOD ASSIGNS `image` TO A `Future<Uint8List?>` THAT DOWNLOADS
-  /// THIS QUESTION'S IMAGE FROM CLOUD STORAGE, USING `downloadQuestionImage`.
-  static QuestionModelEditor fromQuestion(String? testId, int questionIndex, Question question) {
+  /// THIS METHOD DOWNLOADS
+  /// THIS QUESTION'S IMAGE FROM CLOUD STORAGE, USING `downloadQuestionImage`,
+  /// AND ASSIGNS IT TO `image`.
+  static Future<QuestionModelEditor> fromQuestion(String? testId, int questionIndex, Question question) async {
     return QuestionModelEditor(
       questionEditingController: TextEditingController(text: question.question),
-      image: testId != null ? downloadQuestionImage(testId, questionIndex) : Future<Uint8List?>.value(null),
+      image: testId != null ? (await downloadQuestionImage(testId, questionIndex)) : null,
       answerEditingControllers: List<TextEditingController>.from(
         question.answers.map<TextEditingController>(
           (String answer) => TextEditingController(text: answer),
@@ -129,7 +130,7 @@ class TestModelEditor {
   String? id;
   String? userId;
   TextEditingController nameEditingController;
-  Future<Uint8List?> image;
+  Uint8List? image;
   Timestamp? dateCreated;
   List<QuestionModelEditor> questionModelEditors;
   Map<String, TestResult> userResults = <String, TestResult>{};
@@ -140,20 +141,21 @@ class TestModelEditor {
   /// Converts `test` to its `TestModelEditor` equivalent.
   ///
   /// WARNING: IF `testId` IS NOT NULL,
-  /// THIS METHOD ASSIGNS `image` TO A `Future<Uint8List?>` THAT DOWNLOADS
-  /// THIS TESTS'S IMAGE FROM CLOUD STORAGE, USING `downloadTestImage`.
+  /// THIS METHOD DOWNLOADS
+  /// THIS TESTS'S IMAGE FROM CLOUD STORAGE, USING `downloadTestImage`,
+  /// AND ASSIGNS IT TO `image`.
   ///
   /// THIS METHOD ALSO CONVERTS EACH QUESTION IN `test.questions` TO A
   /// `QuestionModelEditor`, USING `QuestionModelEditor.fromQuestion(<current question>)`,
-  /// WHICH ALSO DOWNLOADS THE QUESTION'S IMAGE IN A FUTURE, USING `downloadQuestionImage`,
+  /// WHICH ALSO DOWNLOADS THE QUESTION'S IMAGE, USING `downloadQuestionImage`,
   /// AND ASSIGNS IT TO THE QUESTION'S `image` FIELD.
-  static TestModelEditor fromTest(Test test) {
+  static Future<TestModelEditor> fromTest(Test test) async {
     String? testId = test.id;
 
     List<QuestionModelEditor> questionModelEditors = <QuestionModelEditor>[];
 
     for (final (int index, Question question) in test.questions.indexed) {
-      final QuestionModelEditor questionModelEditor = QuestionModelEditor.fromQuestion(
+      final QuestionModelEditor questionModelEditor = await QuestionModelEditor.fromQuestion(
         testId, index, question,
       );
 
@@ -164,7 +166,7 @@ class TestModelEditor {
       id: testId,
       userId: test.userId,
       nameEditingController: TextEditingController(text: test.name),
-      image: testId != null ? downloadTestImage(testId) : Future<Uint8List?>.value(null),
+      image: testId != null ? (await downloadTestImage(testId)) : null,
       dateCreated: test.dateCreated,
       questionModelEditors: questionModelEditors,
       userResults: test.userResults,
@@ -214,7 +216,7 @@ class TestModelEditor {
     questionModelEditors.add(
       QuestionModelEditor(
         questionEditingController: TextEditingController(),
-        image: Future<Uint8List?>.value(null),
+        image: null,
         answerEditingControllers: <TextEditingController>[TextEditingController(), TextEditingController()],
         correctAnswer: 0,
       ),
