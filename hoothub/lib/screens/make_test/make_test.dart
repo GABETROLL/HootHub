@@ -239,6 +239,7 @@ class _MakeTestState extends State<MakeTest> {
         child: SlideEditor(
           questionModelEditor: _testModel.questionModelEditors[_currentSlideIndex],
           questionImageEditor: InfoDownloader<Uint8List>(
+            key: UniqueKey(), // TO RE-BUILD THE CURRENT QUESTION'S IMAGE EDITOR WHEN THE CURRENT SLIDE EDITOR CHANGES
             downloadInfo: () => _testModel.questionModelEditors[_currentSlideIndex].image,
             builder: (BuildContext context, Uint8List? result, bool downloaded) {
               return ImageEditor(
