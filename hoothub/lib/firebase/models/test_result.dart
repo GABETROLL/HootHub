@@ -24,7 +24,10 @@ class TestResult implements Model {
     );
   }
 
-  TestResult copy() => TestResult(correctAnswers: correctAnswers, score: score);
+  /// Returns a DEEP copy of `this`.
+  ///
+  /// Immutable fields are not copied.
+  TestResult copy() => TestResult(userId: userId, correctAnswers: correctAnswers, score: score);
 
   /// Returns a new `TestResult` instance, with the new score for the player,
   /// based on how they answered the current question.

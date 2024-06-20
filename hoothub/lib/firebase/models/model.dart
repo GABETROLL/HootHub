@@ -3,4 +3,5 @@ abstract class Model {
   /// PLEASE CALL BEFORE UPLOADING THE MODEL TO FIREBASE.
   bool isValid();
   Map<String, dynamic> toJson();
+  // Model copy();
 }

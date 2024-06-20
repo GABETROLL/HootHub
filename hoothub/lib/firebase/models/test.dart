@@ -38,33 +38,50 @@ class Test implements Model {
   }) {
     if (name != null) {
       this.name = name;
+    } else {
+      this.name = '';
     }
+
     if (questions != null) {
       this.questions = questions;
+    } else {
+      this.questions = <Question>[];
     }
+
     if (userResults != null) {
       this.userResults = userResults;
+    } else {
+      this.userResults = <String, TestResult>{};
     }
+
     if (usersThatUpvoted != null) {
       this.usersThatUpvoted = usersThatUpvoted;
+    } else {
+      this.usersThatUpvoted = <String>[];
     }
+
     if (usersThatDownvoted != null) {
       this.usersThatDownvoted = usersThatDownvoted;
+    } else {
+      this.usersThatDownvoted = <String>[];
     }
+
     if (comments != null) {
       this.comments = comments;
+    } else {
+      this.comments = <String>[];
     }
   }
 
-  String? id;
-  String? userId;
-  String name = '';
-  Timestamp? dateCreated;
-  List<Question> questions = <Question>[];
-  Map<String, TestResult> userResults = <String, TestResult>{};
-  List<String> usersThatUpvoted = <String>[];
-  List<String> usersThatDownvoted = <String>[];
-  List<String> comments = <String>[];
+  final String? id;
+  final String? userId;
+  late final String name;
+  final Timestamp? dateCreated;
+  late final List<Question> questions;
+  late final Map<String, TestResult> userResults;
+  late final List<String> usersThatUpvoted;
+  late final List<String> usersThatDownvoted;
+  late final List<String> comments;
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
   ///
@@ -98,76 +115,18 @@ class Test implements Model {
     return usersThatDownvoted.contains(userId);
   }
 
-  /// Sets `this.name: name`.
-  void setName(String name) {
-    this.name = name;
-  }
-
-  /// Adds a new, empty question at the end of `answers`
+  /// Returns DEEP COPY of `this`.
   ///
-  /// The new, empty question should have an empty title, answers,
-  /// should have answer 0 as the correct answer,
-  /// and should last its constructor's default time, of 20 seconds.
-  void addNewEmptyQuestion() {
-    questions.add(Question(question: '', answers: <String>['', ''], correctAnswer: 0));
-  }
-
-  /// Throws error if `index` is out of the range of `questions`.
-  void _checkQuestionIndex(int index) {
-    if (index < 0 || index >= questions.length) {
-      throw "Question index out of range: $index";
-    }
-  }
-
-  /// Sets `question: question` to the `questionIndex`-th question.
-  void setQuestion(int questionIndex, String question) {
-    _checkQuestionIndex(questionIndex);
-    questions[questionIndex].setQuestion(question);
-  }
-
-  /// Assigns `answer` to the `answerIndex`-th answer of the `questionIndex`-th question.
-  /// 
-  /// Throws if either the `questionIndex` is out of range of `questions`,
-  /// or if `answerIndex` is out of range of `questions[questionIndex].answers`. 
-  void setAnswer(int questionIndex, int answerIndex, String answer) {
-    _checkQuestionIndex(questionIndex);
-    questions[questionIndex].setAnswer(answerIndex, answer);
-  }
-
-  /// Assigns `correctAnswer: answerIndex` to the `questionIndex`-th question.
-  ///
-  /// Throws if either the `questionIndex` is out of range of `questions`,
-  /// or if `answerIndex` is out of range of `questions[questionIndex].answers`.
-  void setCorrectAnswer(int questionIndex, int answerIndex) {
-    _checkQuestionIndex(questionIndex);
-    questions[questionIndex].setCorrectAnswer(answerIndex);
-  }
-
-  /// Adds a new, empty answer to the end of the `answers` of the `questionIndex`-th question.
-  ///
-  /// Throws if the `questionIndex` is out of range of `questions`.
-  void addNewEmptyAnswer(int questionIndex) {
-    _checkQuestionIndex(questionIndex);
-    questions[questionIndex].addNewEmptyAnswer();
-  }
-
-  /// Sets the time duration, in seconds, of the `questionIndex`-th question.
-  ///
-  /// Throws if the `questionIndex` is out of range of `questions`.
-  void setSecondsDuration(int questionIndex, int secondsDuration) {
-    _checkQuestionIndex(questionIndex);
-    questions[questionIndex].setSecondsDuration(secondsDuration);
-  }
-
+  /// Immutable and deep fields are not copied.
   Test copy() => Test(
     id: id,
     userId: userId,
     name: name,
     dateCreated: dateCreated,
-    questions: questions,
-    userResults: userResults,
-    usersThatUpvoted: usersThatUpvoted,
-    usersThatDownvoted: usersThatDownvoted,
+    questions: List.of(questions),
+    userResults: Map<String, TestResult>.of(userResults),
+    usersThatUpvoted: List<String>.of(usersThatUpvoted),
+    usersThatDownvoted: List<String>.of(usersThatDownvoted),
   );
 
   /// Returns the `Test` representation of `snapshot.data()`.
