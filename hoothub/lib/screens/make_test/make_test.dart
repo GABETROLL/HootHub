@@ -162,6 +162,15 @@ class _MakeTestState extends State<MakeTest> {
     return InfoDownloader<TestModelEditor>(
       downloadInfo: () => _testModel,
       builder: (BuildContext context, TestModelEditor? testModel, bool downloaded) {
+        // IN THIS FUNCTION, WE CHANGE FIELDS INSIDE `_testModel`,
+        // BY CHANGING `testModel`. THEY SHOULD BOTH BE THE SAME INSTANCE IN MEMORY.
+        //
+        // IF `downloaded: true`, THEN `_testModel` SHOULD HAVE COMPLETED,
+        // AND WE COULD ACCESS AND MODIFY THE FIELDS IN `_testModel`,
+        // BUT TYPE-CASTING `_testModel` to `TestModelEditor` EVERYWHERE
+        // OR DEFINING ANOTHER VARIABLE IN THIS CALLBACK TO POINT
+        // TO `_testModel as TestModelEditor` WOULD BE REDUNDANT.
+
         if (testModel == null) {
           return Scaffold(
             appBar: AppBar(
@@ -220,7 +229,7 @@ class _MakeTestState extends State<MakeTest> {
                 question: question.questionEditingController.text, 
                 questionImage: question.image,
                 deleteQuestion: () => setState(() {
-                  testModel.deleteQuestion(_currentSlideIndex);
+                  testModel.deleteQuestion(index);
                 }),
               ),
             ),

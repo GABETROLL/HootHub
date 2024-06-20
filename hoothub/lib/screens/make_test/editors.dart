@@ -91,12 +91,36 @@ class QuestionModelEditor {
     }
   }
 
-  /// Deletes the `index`-th answer editing controller in `answerEditingControllers`.
+  /// Deletes the `index`-th answer editing controller in `answerEditingControllers`,
+  /// and updates `correctAnswer` accordingly.
   ///
   /// Throws if `index` is out of range of `answerEditingControllers`.
   void deleteAnswer(int index) {
     _checkAnswerIndex(index);
+
+    // 0 <= index && index < answerEditingControllers.length
+
+    if (correctAnswer >= answerEditingControllers.length - 1) {
+      correctAnswer = answerEditingControllers.length - 1;
+    }
+
+    // correctAnswer < answerEditingControllers.length
+
+    if (correctAnswer == answerEditingControllers.length - 1 || correctAnswer > index) {
+      correctAnswer--;
+    }
+
+    // correctAnswer < answerEditingControllers.length - 1
+
+    if (correctAnswer < 0) {
+      correctAnswer = 0;
+    }
+
+    // 0 <= correctAnswer < answerEditingControllers.length - 1
+
     answerEditingControllers.removeAt(index);
+
+    // 0 <= correctAnswer < answerEditingControllers.length
   }
 
   /// Sets `correctAnswer: index`.
