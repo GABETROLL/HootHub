@@ -128,6 +128,7 @@ class _ViewTestsState extends State<ViewTests> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: ADD DELETE BUTTON TO DELETE TESTS BELONGING TO THE CURRENT USER
     TestQuery testQuery;
 
     switch (_querySettings.queryType) {
