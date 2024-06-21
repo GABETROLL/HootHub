@@ -6,10 +6,12 @@ class TestSoloResults extends StatelessWidget {
     super.key,
     required this.testResult,
     required this.questionsAmount,
+    required this.exit,
   });
 
   final TestResult testResult;
   final int questionsAmount;
+  final void Function() exit;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +42,7 @@ class TestSoloResults extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: exit,
               child: const Text('Back to Test Card'),
             ),
           ],

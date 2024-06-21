@@ -31,7 +31,10 @@ class AddSlideButton extends StatelessWidget {
   );
 }
 
-/// Eventually pops with void. Edits the test, then saves it.
+/// Edits `testModel`, saves it to Cloud Firestore,
+/// THEN POPS ITS ROUTE with type `Test?`:
+/// either the `testModel`, with the changes the user made to it,
+/// or null, meaning the user didn't make any changes to `testModel`.
 ///
 /// It has its own `Scaffold` wrapping all of its content,
 /// and IT'S MEANT TO BE USED DIRECTLY IN A ROUTE.
@@ -48,16 +51,24 @@ class MakeTest extends StatefulWidget {
 }
 
 class _MakeTestState extends State<MakeTest> {
-  // default index. May not be in the bounds of `testModel!.questions`,
-  // since that could be empty!
   late int _currentSlideIndex;
-  late Future<TestModelEditor> _testModel;
+
+  late Test _latestVersion;
+  late Future<TestModelEditor> _testModelEditor;
+  bool _hasUnsavedChanges = false;
 
   @override
   void initState() {
     super.initState();
     _currentSlideIndex = 0;
-    _testModel = TestModelEditor.fromTest(widget.testModel);
+    _latestVersion = widget.testModel;
+    _testModelEditor = TestModelEditor.fromTest(_latestVersion);
+  }
+
+  void _onExit() {
+    print('EXITING!!!!');
+    // TODO: ASK USER IF THEY WANT TO SAVE CHANGES
+    Navigator.pop<Test>(context, null);
   }
 
   /// Tries to save the test and the image.
@@ -68,6 +79,9 @@ class _MakeTestState extends State<MakeTest> {
   /// TODO: UPLOAD THE IMAGES TO THEIR CORRECT SLOTS IN CLOUD STORAGE AS WELL!
   Future<void> _onTestSaved(BuildContext context, TestModelEditor testModelEditor) async {
     Test testModel = testModelEditor.toTest();
+    SaveTestResult? saveTestResult;
+
+    // TODO: SAVE `testModel` EVEN IF IT'S INVALID
 
     if (!(testModel.isValid()) && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,15 +90,16 @@ class _MakeTestState extends State<MakeTest> {
     } else {
       // SAVE TEST
 
-      // THIS SHOULD GIVE `testModel` A NON-NULL `id` FIELD!
-      String saveTestResult = await saveTest(testModel);
+      saveTestResult = await saveTest(testModel);
+
+      // saveTestResult.updatedTest.id != null
 
       // DISPLAY ERRORS SAVING TEST, IF ANY:
-      if (saveTestResult != 'Ok') {
+      if (saveTestResult.status != 'Ok') {
         if (!(context.mounted)) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving test: $saveTestResult')),
+          SnackBar(content: Text('Error saving test: ${saveTestResult.status}')),
         );
         return;
       }
@@ -94,17 +109,14 @@ class _MakeTestState extends State<MakeTest> {
       // SAVE TEST'S IMAGES
 
       // Need `testModelEditor` for the test's image
-      Uint8List? testImage = await testModelEditor.image;
+      Uint8List? testImage = testModelEditor.image;
 
       if (testImage != null) {
         // Can't promote non-final fields
         try {
-          // Need `testModel`, NOT `testModelEditor` FOR THE TEST'S ID.
-          //
-          // `testModel` SHOULD NOW HAVE AN `id` FIELD.
-          // IF IT DOESN'T, THE ERROR MESSAGE WILL CATCH THE ERROR:
-          await uploadTestImage(testModel.id!, testImage);
-          debugPrint("UPLOADED TEST ${testModel.id}'s IMAGE SUCCESSFULLLY!");
+          // If `saveTestResult.updatedTest.id` is null, the error will handle it:
+          await uploadTestImage(saveTestResult.updatedTest.id!, testImage);
+          debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s IMAGE SUCCESSFULLLY!");
         } on FirebaseException catch (error) {
           saveResultMessage = 'Error saving test image: ${error.message ?? error.code}';
         } catch (error) {
@@ -114,17 +126,14 @@ class _MakeTestState extends State<MakeTest> {
 
       // Need `testModelEditor.questionModelEditors` for the questions' images
       for (final (int index, QuestionModelEditor questionModelEditor) in testModelEditor.questionModelEditors.indexed) {
-        final Uint8List? questionImage = await questionModelEditor.image;
+        final Uint8List? questionImage = questionModelEditor.image;
 
         if (questionImage == null) continue;
 
         try {
-          // Need `testModel`, NOT `testModelEditor` FOR THE TEST'S ID.
-          //
-          // `testModel` SHOULD NOW HAVE AN `id` FIELD.
-          // IF IT DOESN'T, THE ERROR MESSAGE WILL CATCH THE ERROR:
-          await uploadQuestionImage(testModel.id!, index, questionImage);
-          debugPrint("UPLOADED TEST ${testModel.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
+          // If `saveTestResult.updatedTest.id` is null, the error will handle it:
+          await uploadQuestionImage(saveTestResult.updatedTest.id!, index, questionImage);
+          debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
         } on FirebaseException catch (error) {
           saveResultMessage = "Error saving question $index's image: ${error.message ?? error.code}";
         } catch (error) {
@@ -139,29 +148,32 @@ class _MakeTestState extends State<MakeTest> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(saveResultMessage)),
       );
-
-      // `testModel` SHOULD NOW HAVE ITS `id` AND OTHER FIELDS,
-      // BECAUSE IT WAS UPLOADED BY `saveTest`.
-      // NOW, WE HAVE TO UPDATE `testModelEditor` WITH IT:
-      //
-      // IF WE DON'T, AND THE PLAYER SAVES THIS TEST AGAIN,
-      // AND THIS TEST IS A NEW TEST,
-      // SINCE THE `testModelEditor` DOESN'T YET HAVE AN `id`,
-      // IT WILL BE SAVED TWICE TO CLOUD FIRESTORE.
-
-      if (!mounted) return;
-
-      setState(() {
-        _testModel = TestModelEditor.fromTest(testModel);
-      });
     }
+
+    // `saveTestResult.updatedTest`, IF IT WAS DEFINED, MAY NOW HAVE ITS OPTIONAL FIELDS,
+    // INCLUDING `id`.
+    //
+    // WE MUST SAVE `saveTestResult.updatedTest` TO `_latestVersion` AND `_testModelEditor`,
+    // SO THAT IF THE USER SAVES THE TEST AGAIN, THE TEST WON'T BE DUPLICATED IN CLOUD FIRESTORE,
+    // OR OTHER ERRORS.
+    //
+    // If `saveTestResult` is null, we'll re-assign `_latestVersion` and `_testModelEditor`
+    // to it instead, for a just-in-case reset.
+
+    if (!mounted) return;
+
+    setState(() {
+      _latestVersion = saveTestResult != null ? saveTestResult.updatedTest : testModel;
+      _testModelEditor = TestModelEditor.fromTest(saveTestResult != null ? saveTestResult.updatedTest : testModel);
+      _hasUnsavedChanges = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return InfoDownloader<TestModelEditor>(
-      downloadInfo: () => _testModel,
-      builder: (BuildContext context, TestModelEditor? testModel, bool downloaded) {
+      downloadInfo: () => _testModelEditor,
+      builder: (BuildContext context, TestModelEditor? testModelEditor, bool downloaded) {
         // IN THIS FUNCTION, WE CHANGE FIELDS INSIDE `_testModel`,
         // BY CHANGING `testModel`. THEY SHOULD BOTH BE THE SAME INSTANCE IN MEMORY.
         //
@@ -171,13 +183,13 @@ class _MakeTestState extends State<MakeTest> {
         // OR DEFINING ANOTHER VARIABLE IN THIS CALLBACK TO POINT
         // TO `_testModel as TestModelEditor` WOULD BE REDUNDANT.
 
-        if (testModel == null) {
+        if (testModelEditor == null) {
           return Scaffold(
             appBar: AppBar(
               title: const Text('HootHub'),
               actions: <Widget>[
                 ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _onExit,
                   child: const Text('Exit'),
                 ),
               ],
@@ -196,12 +208,12 @@ class _MakeTestState extends State<MakeTest> {
 
         final List<Widget> sidePanelWithSlidePreviews = <Widget>[
           ImageEditor(
-            imageData: testModel.image,
+            imageData: testModelEditor.image,
             asyncOnChange: (Uint8List newImage) {
               if (!mounted) return;
 
               setState(() {
-                testModel.image = newImage;
+                testModelEditor.image = newImage;
               });
             },
             asyncOnImageNotRecieved: () {
@@ -214,7 +226,7 @@ class _MakeTestState extends State<MakeTest> {
           ),
         ];
 
-        for (final (int index, QuestionModelEditor question) in testModel.questionModelEditors.indexed) {
+        for (final (int index, QuestionModelEditor question) in testModelEditor.questionModelEditors.indexed) {
           sidePanelWithSlidePreviews.add(
             InkWell(
               onTap: () => setState(() {
@@ -229,7 +241,7 @@ class _MakeTestState extends State<MakeTest> {
                 question: question.questionEditingController.text, 
                 questionImage: question.image,
                 deleteQuestion: () => setState(() {
-                  testModel.deleteQuestion(index);
+                  testModelEditor.deleteQuestion(index);
                 }),
               ),
             ),
@@ -249,8 +261,8 @@ class _MakeTestState extends State<MakeTest> {
           AddSlideButton(
             onPressed: () {
               setState(() {
-                testModel.addNewEmptyQuestion();
-                _currentSlideIndex = testModel.questionModelEditors.length - 1;
+                testModelEditor.addNewEmptyQuestion();
+                _currentSlideIndex = testModelEditor.questionModelEditors.length - 1;
               });
             },
           ),
@@ -260,18 +272,18 @@ class _MakeTestState extends State<MakeTest> {
           // `_currentSlideIndex` may be out of the range of the list.
           // In the case that it is,
           // the `AddSlideButton` "slide" will be displayed instead.
-          _currentSlideIndex < 0 || _currentSlideIndex >= testModel.questionModelEditors.length
+          _currentSlideIndex < 0 || _currentSlideIndex >= testModelEditor.questionModelEditors.length
           ? const Center(child: Text('No questions yet!'))
           : Expanded(
             child: SlideEditor(
-              questionModelEditor: testModel.questionModelEditors[_currentSlideIndex],
+              questionModelEditor: testModelEditor.questionModelEditors[_currentSlideIndex],
               questionImageEditor: ImageEditor(
-                imageData: testModel.questionModelEditors[_currentSlideIndex].image,
+                imageData: testModelEditor.questionModelEditors[_currentSlideIndex].image,
                 asyncOnChange: (Uint8List newImage) {
                   if (!mounted) return;
 
                   setState(() {
-                    testModel.questionModelEditors[_currentSlideIndex].image = newImage;
+                    testModelEditor.questionModelEditors[_currentSlideIndex].image = newImage;
                   });
                 },
                 asyncOnImageNotRecieved: () {
@@ -286,19 +298,19 @@ class _MakeTestState extends State<MakeTest> {
                 },
               ),
               deleteQuestion: () => setState(() {
-                testModel.deleteQuestion(_currentSlideIndex);
+                testModelEditor.deleteQuestion(_currentSlideIndex);
               }),
               addNewEmptyAnswer: () => setState(() {
-                testModel.addNewEmptyAnswer(_currentSlideIndex);
+                testModelEditor.addNewEmptyAnswer(_currentSlideIndex);
               }),
               deleteAnswer: (int answerIndex) => setState(() {
-                testModel.deleteAnswer(_currentSlideIndex, answerIndex);
+                testModelEditor.deleteAnswer(_currentSlideIndex, answerIndex);
               }),
               setCorrectAnswer: (int answerIndex) => setState(() {
-                testModel.setCorrectAnswer(_currentSlideIndex, answerIndex);
+                testModelEditor.setCorrectAnswer(_currentSlideIndex, answerIndex);
               }),
               setSecondsDuration: (int secondsDuration) => setState(() {
-                testModel.setSecondsDuration(_currentSlideIndex, secondsDuration);
+                testModelEditor.setSecondsDuration(_currentSlideIndex, secondsDuration);
               }),
             ),
           )
@@ -307,7 +319,7 @@ class _MakeTestState extends State<MakeTest> {
         return Scaffold(
           appBar: AppBar(
             title: TextField(
-              controller: testModel.nameEditingController,
+              controller: testModelEditor.nameEditingController,
               cursorColor: white,
               decoration: const InputDecoration(
                 hintText: 'Title',
@@ -315,12 +327,12 @@ class _MakeTestState extends State<MakeTest> {
             ),
             actions: <Widget>[
               ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: _onExit,
                 child: const Text('Exit'),
               ),
               Builder(
                 builder: (BuildContext context) =>  ElevatedButton(
-                  onPressed: () => _onTestSaved(context, testModel),
+                  onPressed: () => _onTestSaved(context, testModelEditor),
                   child: const Text('Save'),
                 ),
               ),
@@ -345,7 +357,7 @@ class _MakeTestState extends State<MakeTest> {
             title: const Text('HootHub'),
             actions: <Widget>[
               ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: _onExit,
                 child: const Text('Exit'),
               ),
             ],
