@@ -115,15 +115,48 @@ class Test implements Model {
     return usersThatDownvoted.contains(userId);
   }
 
+  Test setId(String? newId) => Test(
+    id: newId,
+    userId: userId,
+    name: name,
+    dateCreated: dateCreated,
+    questions: List.of(questions),
+    userResults: Map<String, TestResult>.of(userResults),
+    usersThatUpvoted: List<String>.of(usersThatUpvoted),
+    usersThatDownvoted: List<String>.of(usersThatDownvoted),
+  );
+
+  Test setUserId(String? newUserId) => Test(
+    id: id,
+    userId: newUserId,
+    name: name,
+    dateCreated: dateCreated,
+    questions: List.of(questions),
+    userResults: Map<String, TestResult>.of(userResults),
+    usersThatUpvoted: List<String>.of(usersThatUpvoted),
+    usersThatDownvoted: List<String>.of(usersThatDownvoted),
+  );
+
+  Test setDateCreated(Timestamp? newDateCreated) => Test(
+    id: id,
+    userId: userId,
+    name: name,
+    dateCreated: newDateCreated,
+    questions: List.of(questions),
+    userResults: Map<String, TestResult>.of(userResults),
+    usersThatUpvoted: List<String>.of(usersThatUpvoted),
+    usersThatDownvoted: List<String>.of(usersThatDownvoted),
+  );
+
   /// Returns DEEP COPY of `this`.
   ///
-  /// Immutable and deep fields are not copied.
+  /// Immutable fields are not copied.
   Test copy() => Test(
     id: id,
     userId: userId,
     name: name,
     dateCreated: dateCreated,
-    questions: List.of(questions),
+    questions: List<Question>.of(questions),
     userResults: Map<String, TestResult>.of(userResults),
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
