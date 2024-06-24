@@ -1,3 +1,4 @@
+import 'iterable_equals.dart';
 import 'model.dart';
 import 'question.dart';
 import 'test_result.dart';
@@ -115,6 +116,24 @@ class Test implements Model {
     return usersThatDownvoted.contains(userId);
   }
 
+  bool equals(Test other) {
+    return (
+      id == other.id
+      && userId == other.userId
+      && name == other.name
+      && dateCreated == other.dateCreated
+      && iterableEquals(questions, other.questions, (Question a, Question b) => a.equals(b))
+      && iterableEquals(
+        userResults.entries,
+        other.userResults.entries,
+        (MapEntry<String, TestResult> a, MapEntry<String, TestResult> b) => a.key == b.key && a.value.equals(b.value)
+      )
+      && iterableEquals(usersThatUpvoted, other.usersThatUpvoted, (String a, String b) => a == b)
+      && iterableEquals(usersThatDownvoted, other.usersThatDownvoted, (String a, String b) => a == b)
+      && iterableEquals(comments, other.comments, (String a, String b) => a == b)
+    );
+  }
+
   Test setId(String? newId) => Test(
     id: newId,
     userId: userId,
@@ -124,6 +143,7 @@ class Test implements Model {
     userResults: Map<String, TestResult>.of(userResults),
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
+    comments: List<String>.of(comments),
   );
 
   Test setUserId(String? newUserId) => Test(
@@ -135,6 +155,7 @@ class Test implements Model {
     userResults: Map<String, TestResult>.of(userResults),
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
+    comments: List<String>.of(comments),
   );
 
   Test setDateCreated(Timestamp? newDateCreated) => Test(
@@ -146,6 +167,7 @@ class Test implements Model {
     userResults: Map<String, TestResult>.of(userResults),
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
+    comments: List<String>.of(comments),
   );
 
   /// Returns DEEP COPY of `this`.
@@ -160,6 +182,7 @@ class Test implements Model {
     userResults: Map<String, TestResult>.of(userResults),
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
+    comments: List<String>.of(comments),
   );
 
   /// Returns the `Test` representation of `snapshot.data()`.

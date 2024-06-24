@@ -16,6 +16,12 @@ class TestResult implements Model {
   @override
   bool isValid() => true;
 
+  bool equals(TestResult other) => (
+    userId == other.userId
+    && correctAnswers == other.correctAnswers
+    && score == other.score
+  );
+
   static TestResult fromJson(Map<String, dynamic> data) {
     return TestResult(
       userId: data['userId'],

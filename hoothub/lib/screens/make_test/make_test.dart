@@ -55,7 +55,6 @@ class _MakeTestState extends State<MakeTest> {
 
   late Test _latestVersion;
   late Future<TestModelEditor> _testModelEditor;
-  bool _hasUnsavedChanges = false;
 
   @override
   void initState() {
@@ -65,28 +64,95 @@ class _MakeTestState extends State<MakeTest> {
     _testModelEditor = TestModelEditor.fromTest(_latestVersion);
   }
 
-  void _onExit() {
-    print('EXITING!!!!');
-    // TODO: ASK USER IF THEY WANT TO SAVE CHANGES
-    Navigator.pop<Test>(context, null);
+  /// First, awaits `_testModelEditor`.
+  ///
+  /// If `_testModelEditor` is equal to `_latestVersion`,
+  /// this function just pops this route with `_latestVersion`
+  /// as the result.
+  ///
+  /// If `_testModelEditor` has changes that are not saved in `_latestVersion`,
+  /// this method spanws a pop-up that asks the user
+  /// to 'Save and exit', 'Exit' or 'Cancel'.
+  ///
+  /// 'Save and exit' uploads `_testModelEditor` using `_uploadTest`,
+  ///   then pops this route with the `Test` returned by `_uploadTest`, as the result.
+  /// 'Exit' pops this route with `_latestVersion`,
+  ///   WHICH DOESN'T HAVE THE CHANGES IN `_testModelEditor`.
+  /// 'Cancel' just returns from this function without doing anything else,
+  ///   sending the user back to editing.
+  void _onExit(BuildContext context) async {
+    TestModelEditor testModelEditor = await _testModelEditor;
+
+    bool allChangesSaved = testModelEditor.toTest().equals(_latestVersion);
+
+    if (allChangesSaved) {
+      if (!(context.mounted)) return;
+
+      Navigator.pop<Test>(context, _latestVersion);
+      return;
+    }
+
+    bool? willSave = false;
+
+    if (!(context.mounted)) return;
+
+    willSave = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('You have unsaved changes!'),
+          content: const Text('Save changes?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop<bool>(context, true),
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop<bool>(context, false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop<bool>(context, null),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // null means 'Cancel', or something else must have happened...
+    //
+    // unmounted context means the player must have somehow destroyed
+    // `MakeTest` before this line happened.
+    if (willSave == null || !(context.mounted)) return;
+
+    if (willSave) {
+      final (String _, Test savedTestModel) = await _uploadTest(testModelEditor);
+
+      if (!(context.mounted)) return;
+
+      Navigator.pop<Test>(context, savedTestModel);
+    } else {
+      Navigator.pop<Test>(context, _latestVersion);
+    }
   }
 
-  /// Tries to save the test and the image.
+  /// Tries to upload `testModelEditor`, in its `Test` form,
+  /// to Cloud Firestore.
+  /// tries to upload `testModelEditor`'s images to Cloud Storage.
   ///
-  /// If something seems to go wrong, tries to spawn a `SnackBar`
-  /// with the error.
-  ///
-  /// TODO: UPLOAD THE IMAGES TO THEIR CORRECT SLOTS IN CLOUD STORAGE AS WELL!
-  Future<void> _onTestSaved(BuildContext context, TestModelEditor testModelEditor) async {
+  /// Returns the status string for the upload,
+  /// and a new, updated version of `TestModelEditor` with all of its optinal fields,
+  /// generated (the ones generated from `saveTest`).
+  Future<(String, Test)> _uploadTest(TestModelEditor testModelEditor) async {
     Test testModel = testModelEditor.toTest();
+
     SaveTestResult? saveTestResult;
 
-    // TODO: SAVE `testModel` EVEN IF IT'S INVALID
+    String status = 'Test saved successfully!';
 
-    if (!(testModel.isValid()) && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid Test!')),
-      );
+    if (!(testModel.isValid())) {
+      status = 'Invalid Test!';
     } else {
       // SAVE TEST
 
@@ -94,61 +160,68 @@ class _MakeTestState extends State<MakeTest> {
 
       // saveTestResult.updatedTest.id != null
 
-      // DISPLAY ERRORS SAVING TEST, IF ANY:
       if (saveTestResult.status != 'Ok') {
-        if (!(context.mounted)) return;
+        status = 'Error saving test: ${saveTestResult.status}';
+      } else {
+        // SAVE TEST'S IMAGES
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving test: ${saveTestResult.status}')),
-        );
-        return;
-      }
+        // Need `testModelEditor` for the test's image
+        Uint8List? testImage = testModelEditor.image;
 
-      String saveResultMessage = 'Test saved successfully!';
+        if (testImage != null) {
+          // Can't promote non-final fields
+          try {
+            // If `saveTestResult.updatedTest.id` is null, the error will handle it:
+            await uploadTestImage(saveTestResult.updatedTest.id!, testImage);
+            debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s IMAGE SUCCESSFULLLY!");
+          } on FirebaseException catch (error) {
+            status = 'Error saving test image: ${error.message ?? error.code}';
+          } catch (error) {
+            status = 'Error saving test image: $error';
+          }
+        }
 
-      // SAVE TEST'S IMAGES
+        // Need `testModelEditor.questionModelEditors` for the questions' images
+        for (final (int index, QuestionModelEditor questionModelEditor) in testModelEditor.questionModelEditors.indexed) {
+          final Uint8List? questionImage = questionModelEditor.image;
 
-      // Need `testModelEditor` for the test's image
-      Uint8List? testImage = testModelEditor.image;
+          if (questionImage == null) continue;
 
-      if (testImage != null) {
-        // Can't promote non-final fields
-        try {
-          // If `saveTestResult.updatedTest.id` is null, the error will handle it:
-          await uploadTestImage(saveTestResult.updatedTest.id!, testImage);
-          debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s IMAGE SUCCESSFULLLY!");
-        } on FirebaseException catch (error) {
-          saveResultMessage = 'Error saving test image: ${error.message ?? error.code}';
-        } catch (error) {
-          saveResultMessage = 'Error saving test image: $error';
+          try {
+            // If `saveTestResult.updatedTest.id` is null, the error will handle it:
+            await uploadQuestionImage(saveTestResult.updatedTest.id!, index, questionImage);
+            debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
+          } on FirebaseException catch (error) {
+            status = "Error saving question $index's image: ${error.message ?? error.code}";
+          } catch (error) {
+            status = "Error saving question $index's image: $error";
+          }
         }
       }
-
-      // Need `testModelEditor.questionModelEditors` for the questions' images
-      for (final (int index, QuestionModelEditor questionModelEditor) in testModelEditor.questionModelEditors.indexed) {
-        final Uint8List? questionImage = questionModelEditor.image;
-
-        if (questionImage == null) continue;
-
-        try {
-          // If `saveTestResult.updatedTest.id` is null, the error will handle it:
-          await uploadQuestionImage(saveTestResult.updatedTest.id!, index, questionImage);
-          debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
-        } on FirebaseException catch (error) {
-          saveResultMessage = "Error saving question $index's image: ${error.message ?? error.code}";
-        } catch (error) {
-          saveResultMessage = "Error saving question $index's image: $error";
-        }
-      }
-
-      // DISPLAY TEST UPLOADING RESULTS:
-
-      if (!(context.mounted)) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(saveResultMessage)),
-      );
     }
+
+    return (status, saveTestResult?.updatedTest ?? testModel);
+  }
+
+  /// Tries to upload `testModelEditor` through `_uploadTest`.
+  ///
+  /// If `context` is still mounted, tries to spawn a `SnackBar`
+  /// with the upload's status.
+  ///
+  /// If this widget is still mounted, this method also
+  /// updates `_latestVersion` and `_testModelEditor` to be
+  /// the `Test` returned from `_uploadTest`,
+  /// and set `_allChangesSaved: true`.
+  Future<void> _onTestSaved(BuildContext context, TestModelEditor testModelEditor) async {
+    // UPLOAD TEST INFORMATION:
+    final (String status, Test updatedTest) = await _uploadTest(testModelEditor);
+
+    // DISPLAY TEST UPLOADING RESULTS:
+    if (!(context.mounted)) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(status)),
+    );
 
     // `saveTestResult.updatedTest`, IF IT WAS DEFINED, MAY NOW HAVE ITS OPTIONAL FIELDS,
     // INCLUDING `id`.
@@ -163,14 +236,13 @@ class _MakeTestState extends State<MakeTest> {
     if (!mounted) return;
 
     setState(() {
-      _latestVersion = saveTestResult != null ? saveTestResult.updatedTest : testModel;
-      _testModelEditor = TestModelEditor.fromTest(saveTestResult != null ? saveTestResult.updatedTest : testModel);
-      _hasUnsavedChanges = false;
+      _latestVersion = updatedTest;
+      _testModelEditor = TestModelEditor.fromTest(updatedTest);
     });
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext outerContext) {
     return InfoDownloader<TestModelEditor>(
       downloadInfo: () => _testModelEditor,
       builder: (BuildContext context, TestModelEditor? testModelEditor, bool downloaded) {
@@ -189,7 +261,7 @@ class _MakeTestState extends State<MakeTest> {
               title: const Text('HootHub'),
               actions: <Widget>[
                 ElevatedButton(
-                  onPressed: _onExit,
+                  onPressed: () => _onExit(outerContext),
                   child: const Text('Exit'),
                 ),
               ],
@@ -327,7 +399,7 @@ class _MakeTestState extends State<MakeTest> {
             ),
             actions: <Widget>[
               ElevatedButton(
-                onPressed: _onExit,
+                onPressed: () => _onExit(outerContext),
                 child: const Text('Exit'),
               ),
               Builder(
@@ -357,7 +429,7 @@ class _MakeTestState extends State<MakeTest> {
             title: const Text('HootHub'),
             actions: <Widget>[
               ElevatedButton(
-                onPressed: _onExit,
+                onPressed: () => _onExit(outerContext),
                 child: const Text('Exit'),
               ),
             ],

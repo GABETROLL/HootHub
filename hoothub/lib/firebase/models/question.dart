@@ -1,3 +1,4 @@
+import 'iterable_equals.dart';
 import 'model.dart';
 
 /// Dependent `Model` for `Test` to use.
@@ -26,6 +27,13 @@ class Question implements Model {
     && answers.length > 1
     && 0 <= correctAnswer && correctAnswer < answers.length
     && 1 <= secondsDuration && secondsDuration <= 60
+  );
+
+  bool equals(Question other) => (
+    question == other.question
+    && iterableEquals(answers, other.answers, (String a, String b) => a == b)
+    && correctAnswer == other.correctAnswer
+    && secondsDuration == other.secondsDuration
   );
 
   /// Returns a DEEP copy of `this`.
