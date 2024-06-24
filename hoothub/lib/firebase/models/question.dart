@@ -1,3 +1,4 @@
+import 'iterable_equals.dart';
 import 'model.dart';
 
 /// Dependent `Model` for `Test` to use.
@@ -10,10 +11,10 @@ class Question implements Model {
     this.secondsDuration = 20,
   });
 
-  String question;
-  List<String> answers;
-  int correctAnswer;
-  int secondsDuration;
+  final String question;
+  final List<String> answers;
+  final int correctAnswer;
+  final int secondsDuration;
 
   /// A `Question` is valid if:
   /// - Its `question` is not empty
@@ -28,43 +29,21 @@ class Question implements Model {
     && 1 <= secondsDuration && secondsDuration <= 60
   );
 
-  /// Sets `this.question: question`.
-  void setQuestion(String question) {
-    this.question = question;
-  }
+  bool equals(Question other) => (
+    question == other.question
+    && iterableEquals(answers, other.answers, (String a, String b) => a == b)
+    && correctAnswer == other.correctAnswer
+    && secondsDuration == other.secondsDuration
+  );
 
-  /// Throws error if `index` is out of the range of `answers`.
-  void _checkAnswerIndex(int index) {
-    if (index < 0 || index >= answers.length) {
-      throw "Answer index out of range: $index";
-    }
-  }
-
-  /// Sets `answers`'s `index`-th answer equal to `answer`.
+  /// Returns a DEEP copy of `this`.
   ///
-  /// Throws an error if the index is outside the range of `answers`.
-  void setAnswer(int index, String answer) {
-    _checkAnswerIndex(index);
-    answers[index] = answer;
-  }
-
-  /// Sets `correctAnswer: index`.
-  ///
-  /// Throws an error if the index is outside the range of `answers`.
-  void setCorrectAnswer(int index) {
-    _checkAnswerIndex(index);
-    correctAnswer = index;
-  }
-
-  /// Adds a new, empty answer to the end of `answers`.
-  void addNewEmptyAnswer() {
-    answers.add('');
-  }
-
-  /// Sets `this.secondsDuration: secondsDuration`.
-  void setSecondsDuration(int secondsDuration) {
-    this.secondsDuration = secondsDuration;
-  }
+  /// Immutable fields are not copied.
+  Question copy() => Question(
+    question: question,
+    answers: List<String>.of(answers),
+    correctAnswer: correctAnswer,
+  );
 
   static Question fromJson(Map<String, dynamic> data) {
     return Question(

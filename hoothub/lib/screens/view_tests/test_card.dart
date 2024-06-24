@@ -8,8 +8,6 @@ import 'package:hoothub/firebase/api/images.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
-import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
-import 'package:hoothub/screens/make_test/make_test.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'questions_card.dart';
 
@@ -17,18 +15,26 @@ class TestCard extends StatelessWidget {
   const TestCard({
     super.key,
     required this.testModel,
+    required this.asyncSetTestModel,
+    required this.playSolo,
+    required this.edit,
     required this.color,
   });
 
   final Test testModel;
+  final void Function(Test newTestModel) asyncSetTestModel;
+  final void Function() playSolo;
+  final void Function() edit;
   final Color color;
 
   Future<void> onVote({ required BuildContext context, required bool up }) async {
-    String voteResult = await voteOnTest(test: testModel, up: up);
+    SaveTestResult voteResult = await voteOnTest(test: testModel, up: up);
 
-    if (voteResult != 'Ok' && context.mounted) {
+    asyncSetTestModel(voteResult.updatedTest);
+
+    if (voteResult.status != 'Ok' && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("You're not logged in! Log in to ${up ? 'up' : 'down'}vote.")),
+        SnackBar(content: Text(voteResult.status)),
       );
     }
   }
@@ -57,16 +63,7 @@ class TestCard extends StatelessWidget {
 
     List<Widget> options = [
       ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (BuildContext context) => PlayTestSolo(
-                testModel: testModel,
-              ),
-            ),
-          );
-        },
+        onPressed: playSolo,
         child: const Text('Play solo'),
       ),
     ];
@@ -89,16 +86,7 @@ class TestCard extends StatelessWidget {
     if (userOwnsTest) {
       options.add(
         ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (BuildContext context) => MakeTest(
-                  testModel: testModel,
-                ),
-              ),
-            );
-          },
+          onPressed: edit,
           child: const Text('Edit'),
         ),
       );

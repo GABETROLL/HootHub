@@ -14,14 +14,14 @@ class CommentTree implements Model {
     required this.replyIds,
   });
 
-  String? id;
-  String? userId;
-  String? testId;
-  String? parentCommentId;
-  String comment;
-  List<String> usersThatUpvoted;
-  List<String> usersThatDownvoted;
-  List<String> replyIds;
+  final String? id;
+  final String? userId;
+  final String? testId;
+  final String? parentCommentId;
+  final String comment;
+  final List<String> usersThatUpvoted;
+  final List<String> usersThatDownvoted;
+  final List<String> replyIds;
 
   /// A `CommentTree` is a valid Firestore document
   /// if it has a non-empty comment.
@@ -38,6 +38,20 @@ class CommentTree implements Model {
   bool isValid() {
     return comment.isNotEmpty;
   }
+
+  /// Returns a DEEP copy of `this`.
+  ///
+  /// Immutable fields are not copied.
+  CommentTree copy() => CommentTree(
+    id: id,
+    userId: userId,
+    testId: testId,
+    parentCommentId: parentCommentId,
+    comment: comment,
+    usersThatUpvoted: List.of(usersThatUpvoted),
+    usersThatDownvoted: List.of(usersThatDownvoted),
+    replyIds: List.of(replyIds),
+  );
 
   static CommentTree? fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final Map<String, dynamic>? data = snapshot.data();

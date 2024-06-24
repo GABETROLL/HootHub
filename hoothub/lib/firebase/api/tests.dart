@@ -4,12 +4,22 @@ import 'clients.dart';
 // models
 import 'package:hoothub/firebase/models/test.dart';
 
+class SaveTestResult {
+  const SaveTestResult({
+    required this.status,
+    required this.updatedTest,
+  });
+
+  final String status;
+  final Test updatedTest;
+}
+
 /// Saves `test` as a document in the `testsCollection`.
 ///
-/// IF THESE FIELDS IN `test` ARE MISSING, THIS FUNCTION CREATES THEM IN-PLACE, IN `test`:
+/// IF THESE FIELDS IN `test` ARE MISSING, THIS FUNCTION GENERATES THEM:
 /// - `id` will be a unique test ID for the test document's key in the `tests` collection.
 /// - `userId` will be the CURRENTLY LOGGED IN USER'S `uid` (auth.currentUser!.uid)
-///   (IF THE CURRENT USER IS NOT LOGGED IN, THIS FUNCTION JUST RETURNS 'No user logged in!').///   
+///   (IF THE CURRENT USER IS NOT LOGGED IN, THIS FUNCTION JUST RETURNS 'No user logged in!').
 /// - `dateCreated` will be `Timestamp.now()`.
 /// 
 /// IF THE `test` DOES NOT HAVE A `userId`, THIS FUNCTION ASSUMES THIS IS A BRAND NEW TEST,
@@ -25,6 +35,9 @@ import 'package:hoothub/firebase/models/test.dart';
 /// THE DOCUMENT SHOULD BE VERIFIED IN THE FIRESTORE SECURITY RULES.
 ///
 /// RETURN VALUES
+///
+/// For `status`:
+///
 /// If everything seems to go correctly, this function returns 'Ok'.
 /// If no user is currently logged in, this function returns 'No user logged in!'.
 /// If a `FirebaseException` occurs, this function returns its `message ?? code`.
@@ -32,39 +45,52 @@ import 'package:hoothub/firebase/models/test.dart';
 ///
 /// ERRORS
 /// This function shouldn't throw.
-Future<String> saveTest(Test test) async {
-  if (auth.currentUser == null) return 'No user logged in!';
+Future<SaveTestResult> saveTest(Test test) async {
+  if (auth.currentUser == null) return SaveTestResult(status: 'No user logged in!', updatedTest: test);
 
   try {
     // The test's reference will either have `test.id` if that's not null,
     // or a generated unique ID.
     DocumentReference<Map<String, dynamic>> testReference = testsCollection.doc(test.id);
 
+    // IF THE TEST DOESN'T HAVE A `userId`,
+    // ASSUME THAT IT'S BRAND NEW, AND
+    // ADD THE TEST'S ID TO THE CURRENT USER'S ACCOUNT.
     String userId = auth.currentUser!.uid;
+
+    if (test.userId == null) {
+      addTestIdToLoggedInUser(testReference.id);
+    }
 
     // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
     // (to show the user the changes after the test has been uploaded)
     // (THE MODEL WILL BE VALIDATED BY FIRESTORE SECURITY RULES)
-    test.id ??= testReference.id;
-    test.userId ??= userId;
-    test.dateCreated ??= Timestamp.now();
+    //
+    // WARNING: IF THIS `try` CODE BLOCK FAILS MID-WAY THROUGH GENERATING `test`'s
+    // VALUES, AND WHEN THE USER TRIES TO SAVE `test` AGAIN, THE CORRECT GENERATED VALUES
+    // WOULD TURN OUT TO BE DIFFERENT, THE NEW VALUES WON'T GENERATE, SINCE THE OLD ONES
+    // ARE ALREADY OCCUPYING THEIR PLACE IN `test`.
+    // TODO; MAKE SURE THIS DOESN'T HAPPEN!
 
-    // IF THE TEST DOESN'T HAVE A `userId`,
-    // ASSUME THAT IT'S BRAND NEW, AND
-    // ADD THE TEST'S ID TO ITS CORRESPONDING USER.
+    if (test.id == null) {
+      test = test.setId(testReference.id);
+    }
     if (test.userId == null) {
-      addTestIdToLoggedInUser(testReference.id);
+      test = test.setUserId(userId);
+    }
+    if (test.dateCreated == null) {
+      test = test.setDateCreated(Timestamp.now());
     }
 
     // SAVE TEST TO ITS CORRESPONDING REFERENCE.
     await testReference.set(test.toJson());
   } on FirebaseException catch (error) {
-    return error.message ?? error.code;
+    return SaveTestResult(status: error.message ?? error.code, updatedTest: test);
   } catch (error) {
-    return error.toString();
+    return SaveTestResult(status: error.toString(), updatedTest: test);
   }
 
-  return 'Ok';
+  return SaveTestResult(status: 'Ok', updatedTest: test);
 }
 
 /// Returns the test in the `testsCollection` with `testId` as its key.
@@ -76,7 +102,10 @@ Future<Test?> testWithId(String testId) async {
   return Test.fromSnapshot(await testsCollection.doc(testId).get());
 }
 
-/// Votes on test IN-PLACE, according to `up`.
+/// Votes on `test` according to `up`.
+///
+/// This function updates the model in Cloud Firestore
+/// AND returns the changes to `test`, for local updating.
 ///
 /// If the user has already voted in the opposite voting list,
 /// that vote is removed.
@@ -88,25 +117,29 @@ Future<Test?> testWithId(String testId) async {
 /// the vote is added.
 ///
 /// SHOULDN'T THROW.
-Future<String> voteOnTest({ required Test test, required bool up }) async {
+Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) async {
   try {
     String voteString = up ? 'up' : 'down';
 
     if (auth.currentUser == null) {
-      return "You're not logged in! Log in to ${voteString}vote!";
+      return SaveTestResult(status: "You're not logged in! Log in to ${voteString}vote!", updatedTest: test);
     }
 
-    if (test.id == null) return "Test has no id!";
+    if (test.id == null) return SaveTestResult(status: "Test has no id!", updatedTest: test);
+
+    // ALTER VOTING LISTS, BUT SAFELY, IN TEST'S COPY:
+    // (THE LISTS ARE ALSO SAFELY AND DEEPLY COPIED WITH `.copy()`)
+    final Test testCopy = test.copy();
 
     List<String> votingList = (
       up
-      ? test.usersThatUpvoted
-      : test.usersThatDownvoted
+      ? testCopy.usersThatUpvoted
+      : testCopy.usersThatDownvoted
     );
     List<String> oppositeVotingList = (
       up
-      ? test.usersThatDownvoted
-      : test.usersThatUpvoted
+      ? testCopy.usersThatDownvoted
+      : testCopy.usersThatUpvoted
     );
 
     if (oppositeVotingList.contains(auth.currentUser!.uid)) {
@@ -119,11 +152,11 @@ Future<String> voteOnTest({ required Test test, required bool up }) async {
       votingList.add(auth.currentUser!.uid);
     }
 
-    return saveTest(test);
+    return saveTest(testCopy);
   } on FirebaseException catch (error) {
-    return error.message ?? error.code;
+    return SaveTestResult(status: error.message ?? error.code, updatedTest: test);
   } catch (error) {
-    return error.toString();
+    return SaveTestResult(status: error.toString(), updatedTest: test);
   }
 }
 

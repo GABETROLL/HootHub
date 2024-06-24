@@ -1,5 +1,7 @@
 // back-end
 import 'dart:typed_data';
+import 'package:hoothub/firebase/api/auth.dart';
+import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/images.dart';
@@ -11,6 +13,15 @@ import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'play_question_solo.dart';
 import 'test_results.dart';
 
+/// `Widget` for `MaterialPageRoute<Test>`.
+///
+/// Plays `testModel` with the user,
+/// then pops its route with the new version of `testModel`.
+/// If there are no changes to be made to `testModel`, this route
+/// pops with null.
+///
+/// The changes to be made to `testModel` from THIS `Widget`'s route
+/// are the user's test results.
 class PlayTestSolo extends StatefulWidget {
   const PlayTestSolo({
     super.key,
@@ -24,7 +35,7 @@ class PlayTestSolo extends StatefulWidget {
 }
 
 class _PlayTestSoloState extends State<PlayTestSolo> {
-  TestResult _testResult = TestResult(
+  TestResult _testResult = const TestResult(
     correctAnswers: 0,
     score: 0,
   );
@@ -54,6 +65,33 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
       body = TestSoloResults(
         testResult: _testResult,
         questionsAmount: widget.testModel.questions.length,
+        exit: () async {
+          String? userId;
+
+          try {
+            UserModel? user = await loggedInUser();
+
+            if (user != null) {
+              userId = user.id;
+            }
+          } catch (error) {
+            print("Error getting current user's id: $error");
+          }
+
+          if (!(context.mounted)) return;
+
+          Test? testWithChanges;
+
+          if (userId != null) {
+            testWithChanges = widget.testModel.copy();
+            // THIS SHOULD BE THE FIRST TIME TH EPLAYER HAS COMPLETED THIS TEST,
+            // AND FIREBASE SECURITY RULES SHOULD VERIFY THAT.
+            testWithChanges.userResults.putIfAbsent(userId, () => _testResult);
+          }
+
+          // POP WITH RESULT
+          Navigator.pop<Test>(context, widget.testModel.copy());
+        },
       );
     } else {
       final Question currentQuestion = widget.testModel.questions[_currentQuestionIndex];

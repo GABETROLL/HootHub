@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'model.dart';
 
 /// Independent model representing a user.
-class UserModel {
+class UserModel implements Model {
   UserModel({
     required this.id,
     required this.username,
@@ -9,10 +10,24 @@ class UserModel {
     required this.tests,
   });
 
-  String id;
-  String username;
-  Timestamp dateCreated;
-  List<String> tests;
+  final String id;
+  final String username;
+  final Timestamp dateCreated;
+  final List<String> tests;
+
+  /// Always returns true, for now.
+  @override
+  bool isValid() => true;
+
+  /// Returns DEEP COPY of `this`.
+  ///
+  /// Immutable and deep fields are not copied.
+  UserModel copy() => UserModel(
+    id: id,
+    username: username,
+    dateCreated: dateCreated,
+    tests: List<String>.of(tests),
+  );
 
   /// Returns the `UserModel` representation of `snapshot.data()`.
   /// If the data is null, this method returns null.

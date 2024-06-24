@@ -5,7 +5,10 @@ import 'package:hoothub/firebase/api/tests.dart';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'package:hoothub/screens/styles.dart';
+import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
+import 'package:hoothub/screens/make_test/make_test.dart';
 import 'test_card.dart';
+
 
 enum QueryType {
   date(label: 'Newest', leadingIcon: Icon(Icons.calendar_month)),
@@ -125,30 +128,51 @@ class _ViewTestsState extends State<ViewTests> {
     queryType: QueryType.date,
     reverse: false,
   );
+  late Future<List<Test?>> _tests;
+
+  Future<List<Test?>> testsFutureForQuerySettings() {
+    switch (_querySettings.queryType) {
+      case QueryType.date: {
+        return testsByDateCreated(limit: _querySettings.limit, newest: !_querySettings.reverse);
+      }
+      case QueryType.netUpvotes: {
+        return testsByNetUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
+      }
+      case QueryType.upvotes: {
+        return testsByUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
+      }
+      case QueryType.downvotes: {
+        return testsByDownvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
+      }
+    }
+  }
+
+  /// refresh test in `_tests` after it has been played,
+  /// so that the player can see their scores refresh
+  /// immediately when returning
+  ///
+  /// `tests` SHOULD BE A REFERENCE TO `_tests`, AFTER IT'S COMPLETED.
+  /// `newTestModel` will be, for example, the `Test` popped from `PlayTestSolo` AND `MakeTest`.
+  void asyncRefreshTest(List<Test?> tests, int testIndex, Test newTestModel) {
+    if (!mounted) return;
+
+    setState(() {
+      tests[testIndex] = newTestModel;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tests = testsFutureForQuerySettings();
+  }
 
   @override
   Widget build(BuildContext context) {
     // TODO: ADD DELETE BUTTON TO DELETE TESTS BELONGING TO THE CURRENT USER
-    TestQuery testQuery;
-
-    switch (_querySettings.queryType) {
-      case QueryType.date: {
-        testQuery = () => testsByDateCreated(limit: _querySettings.limit, newest: !_querySettings.reverse);
-      }
-      case QueryType.netUpvotes: {
-        testQuery = () => testsByNetUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
-      }
-      case QueryType.upvotes: {
-        testQuery = () => testsByUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
-      }
-      case QueryType.downvotes: {
-        testQuery = () => testsByDownvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
-      }
-    }
-
     return InfoDownloader<List<Test?>>(
       key: UniqueKey(),
-      downloadInfo: testQuery,
+      downloadInfo: () => _tests,
       builder: (BuildContext context, List<Test?>? tests, bool downloaded) {
         if (tests == null) {
           return const Center(child: Text('Loading tests...'));
@@ -162,26 +186,67 @@ class _ViewTestsState extends State<ViewTests> {
                 querySettings: _querySettings,
                 setQueryType: (QueryType queryType) => setState(() {
                   _querySettings.queryType = queryType;
+                  _tests = testsFutureForQuerySettings();
                 }),
                 setReverse: (bool reverse) => setState(() {
                   _querySettings.reverse = reverse;
+                  _tests = testsFutureForQuerySettings();
                 }),
                 setLimit: (int limit) => setState(() {
                   _querySettings.limit = limit;
+                  _tests = testsFutureForQuerySettings();
                 }),
               );
             }
 
             int testIndex = index - 1;
 
-            Test? test = tests[testIndex];
-            if (test == null) {
+            Test? testModel = tests[testIndex];
+            if (testModel == null) {
               return const Text('Test not found!');
             }
 
             Color testCardColor = themeColors[testIndex % themeColors.length];
 
-            return TestCard(testModel: test, color: testCardColor);
+            return TestCard(
+              testModel: testModel,
+              asyncSetTestModel: (Test newTestModel) => asyncRefreshTest(tests, testIndex, newTestModel),
+              playSolo: () async {
+                final Test? refreshedTest = await Navigator.push<Test>(
+                  context,
+                  MaterialPageRoute<Test>(
+                    builder: (BuildContext context) => PlayTestSolo(
+                      testModel: testModel,
+                    ),
+                  ),
+                );
+
+                // `refreshedTest` IS NULL, WHEN THE POPPED PAGE
+                // HAS NO CHANGES TO MAKE.
+
+                if (refreshedTest != null) {
+                  asyncRefreshTest(tests, testIndex, refreshedTest);
+                }
+              },
+              edit: () async {
+                final Test? refreshedTest = await Navigator.push<Test>(
+                  context,
+                  MaterialPageRoute<Test>(
+                    builder: (BuildContext context) => MakeTest(
+                      testModel: testModel,
+                    ),
+                  ),
+                );
+
+                // `refreshedTest` IS NULL, WHEN THE POPPED PAGE
+                // HAS NO CHANGES TO MAKE.
+
+                if (refreshedTest != null) {
+                  asyncRefreshTest(tests, testIndex, refreshedTest);
+                }
+              },
+              color: testCardColor
+            );
           },
         );
       },
