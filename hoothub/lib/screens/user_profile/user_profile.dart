@@ -2,6 +2,7 @@ import 'package:hoothub/firebase/models/user.dart';
 
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/styles.dart';
 import 'view_user_tests.dart';
 
 class UserProfile extends StatelessWidget {
@@ -21,26 +22,36 @@ class UserProfile extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('HootHub - View Profile')),
-      body: Column(
-        children: [
-          Row(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: largeScreenWidth),
+          child: Column(
             children: [
-              userImagePromoted != null ? Image.memory(userImagePromoted) : Image.asset('assets/default_user_image.png'),
-              Column(
+              Row(
                 children: [
-                  Text(user.username, style: const TextStyle(fontSize: 100)),
-                  Text('Created: ${user.dateCreated}'),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 300, maxHeight: 300),
+                    child: userImagePromoted != null ? Image.memory(userImagePromoted) : Image.asset('assets/default_user_image.png'),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(user.username, style: const TextStyle(fontSize: 70)),
+                        Text('Created: ${user.dateCreated.toDate()}', style: const TextStyle(fontSize: 40)),
+                      ],
+                    ),
+                  ),
                 ],
+              ),
+              // USER STATS HERE
+              (
+                userIdPromoted != null
+                ? ViewUserTests(userId: userIdPromoted)
+                : const Center(child: Text("`user` doesn't have ID!"))
               ),
             ],
           ),
-          // USER STATS HERE
-          (
-            userIdPromoted != null
-            ? ViewUserTests(userId: userIdPromoted)
-            : const Center(child: Text("`user` doesn't have ID!"))
-          ),
-        ],
+        ),
       ),
     );
   }
