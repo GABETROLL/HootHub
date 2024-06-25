@@ -160,6 +160,8 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
   }
 }
 
+typedef TestQuery = Query<Map<String, dynamic>>;
+
 /// Tries to execute the `query` and return its `docs` result as an List<Test?>.
 ///
 /// Some tests in the result may be null, if their snapshots don't have
@@ -169,7 +171,7 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
 /// TO A `Test`, ITERATING OVER ANY `QueryDocumentSnapshot`,
 /// OR ANYWHERE ELSE, IT'S THROWN, AND THE WHOLE QUERY RESULT WILL
 /// NOT BE RETURNED.
-Future<List<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
+Future<List<Test?>> queryTests(TestQuery query) async {
   QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
 
   return List<Test?>.from(
@@ -181,77 +183,61 @@ Future<List<Test?>> queryTests(Query<Map<String, dynamic>> query) async {
   );
 }
 
-/// Tries to return
-/// the first `limit` newest/oldest tests in the Firestore `tests` collection,
-/// using `queryTests`.
-///
-/// The tests are ordered according to `newest`.
+/// Filters `query` to the first `limit` newest/oldest tests,
+/// ordered according to `newest`
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<List<Test?>> testsByDateCreated({ required int limit, required bool newest }) {
-  return queryTests(
-    testsCollection
-      .orderBy('dateCreated', descending: newest)
-      .limit(limit),
-  );
+TestQuery testsByDateCreated(TestQuery query, { required int limit, required bool newest }) {
+  return query
+    .orderBy('dateCreated', descending: newest)
+    .limit(limit);
 }
 
-/// Tries to return the first `limit` tests in the Firestore `tests` collection,
-/// that have the MOST/LEAST NET UPVOTES.
+/// Filters `query` to the first `limit` tests
+/// that have the MOST/LEAST NET UPVOTES, ordered by `most`.
 ///
 /// NET UPVOTES ===== (upvotes - downvotes)
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<List<Test?>> testsByNetUpvotes({ required int limit, required bool most }) {
-  return queryTests(
-    testsCollection
-      .orderBy('usersThatUpvoted', descending: most)
-      .orderBy('usersThatDownvoted', descending: !most)
-      .limit(limit),
-  );
+TestQuery testsByNetUpvotes(TestQuery query, { required int limit, required bool most }) {
+  return query
+    .orderBy('usersThatUpvoted', descending: most)
+    .orderBy('usersThatDownvoted', descending: !most)
+    .limit(limit);
 }
 
-/// Tries to return the first `limit` tests in the Firestore `tests` collection,
-/// that have the MOST/LEAST UPVOTES.
+/// Filters `query` to the first `limit` tests
+/// that have the MOST/LEAST UPVOTES, ordered by `most`.
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<List<Test?>> testsByUpvotes({ required int limit, required bool most }) {
-  return queryTests(
-    testsCollection
-      .orderBy('usersThatUpvoted', descending: most)
-      .limit(limit),
-  );
+TestQuery testsByUpvotes(TestQuery query, { required int limit, required bool most }) {
+  return query
+    .orderBy('usersThatUpvoted', descending: most)
+    .limit(limit);
 }
 
-/// Tries to return the first `limit` tests in the Firestore `tests` collection,
-/// that have the MOST/LEAST DOWNVOTES
-///
-/// NET UPVOTES ===== (upvotes - downvotes)
+/// Filters `query` to the first `limit` tests
+/// that have the MOST/LEAST DOWNVOTES, ordered by `most`.
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<List<Test?>> testsByDownvotes({required int limit, required bool most }) {
-  return  queryTests(
-    testsCollection
-      .orderBy('usersThatDownvoted', descending: most)
-      .limit(limit),
-  );
+TestQuery testsByDownvotes(TestQuery query, {required int limit, required bool most }) {
+  return query
+    .orderBy('usersThatDownvoted', descending: most)
+    .limit(limit);
 }
 
-/// Returns all tests made by the user with `userId` as their key
-/// (that have `userId: userId` in their documents),
-/// ordered by `orderByNewest`.
+/// Returns a `Query` of all the tests made by the `userId`
+/// in the `tests` Firestore collection,
+///
+/// (that have `userId: userId` in their documents).
 ///
 /// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
-Future<List<Test?>> testsByUser(String userId, { required bool orderByNewest }) async {
-  return await queryTests(
-    testsCollection
-      .where('userId', isEqualTo: userId)
-      .orderBy('dateCreated', descending: orderByNewest),
-  );
+TestQuery testsByUser({ required String userId }) {
+  return testsCollection
+    .where('userId', isEqualTo: userId);
 }
-/* 
+
+/*
 Future<dynamic> testsByName(String nameQuery) async {
-  return await 
+  return await
 } */
-
-typedef TestQuery = Future<List<Test?>> Function();

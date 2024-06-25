@@ -1,38 +1,39 @@
 // back-end
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'styles.dart';
-import 'signup.dart';
+import '../styles.dart';
+import 'login.dart';
 
 /// This Widget, INTENDED TO BE USED AS A ROUTE,
-/// attempts to login the user to FirebaseAuth,
-/// then POPS with the (now logged in)
+/// attempts to signup AND login the user to FirebaseAuth,
+/// then POPS with the (now signed up AND logged in)
 /// user's `UserModel?` as this Widget's ROUTE's result.
 ///
 /// The user's model may be null, because something may have gone wrong.
-class Login extends StatefulWidget {
-  Login({super.key});
+class SignUp extends StatefulWidget {
+  SignUp({super.key});
 
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  final passwordConfirmationController = TextEditingController();
 
   @override
-  State<Login> createState() => _LoginState();
+  State<SignUp> createState() => _SignUpState();
 }
 
-class _LoginState extends State<Login> {
+class _SignUpState extends State<SignUp> {
   bool _passwordHidden = true;
 
-  /// (Asynchronously) logs in the user using `logInUser`,
-  /// and the text from the email and password `TextField`s.
+  /// (Asynchronously) signs up AND logs in the user using `signUpUser`,
+  /// and the text from the email, password and username `TextField`s.
   ///
   /// If the `context` is still mounted after called `logInUser`,
   /// this function displays a `SnackBar` with either
-  /// the error logging in, or a welcome back message to the user.
+  /// the error signing up AND loggin in, or a welcome message to the user.
   ///
   /// Then, this function attempts to get the user's current `UserModel?`,
   /// and POPS this widget's route, using the model as its RESULT.
@@ -40,61 +41,62 @@ class _LoginState extends State<Login> {
   /// TODO: It may not be anymore:
   /// `context`'s SCAFFOLD MUST BE THE `Scaffold` RETURNED BY THIS WIDGET'S `build`.
   /// You can use `Builder` inside `build` to wrap the widget that triggers this event handler.
-  Future<void> _onLogIn(BuildContext context) async {
-    String logInResult = await logInUser(
+  Future<void> _onSignUp(BuildContext context) async {
+    String signupResult = await signUpUser(
       email: widget.emailController.text,
       password: widget.passwordController.text,
+      username: widget.usernameController.text,
     );
 
-    if (logInResult != 'Ok') {
+    if (signupResult != 'Ok') {
       if (!(context.mounted)) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error logging in: $logInResult')),
+        SnackBar(content: Text('Error signing up: $signupResult')),
       );
     } else {
       UserModel? userModel;
-      String loggedInMessage;
+      String signedUpMessage;
 
       try {
         userModel = await loggedInUser();
 
         if (userModel != null) {
-          loggedInMessage = 'Welcome back to HootHub, ${userModel.username}';
+          signedUpMessage = 'Welcome back to HootHub, ${userModel.username}';
         } else {
-          loggedInMessage = 'Unable to retrieve credentials!';
+          signedUpMessage = 'Unable to retrieve credentials!';
         }
       } on FirebaseException catch (error) {
-        loggedInMessage = error.message ?? error.code;
+        signedUpMessage = error.message ?? error.code;
       } catch (error) {
-        loggedInMessage = error.toString();
+        signedUpMessage = error.toString();
       }
 
       if (!(context.mounted)) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loggedInMessage)),
+        SnackBar(content: Text(signedUpMessage)),
       );
 
       Navigator.pop<UserModel?>(context, userModel);
     }
   }
 
-  /// (Asynchronously) PUSHES a `MaterialPageRoute<SignUp>` to the `Navigator`,
+  /// (Asynchronously) PUSHES a `MaterialPageRoute<LogIn>` to the `Navigator`,
   /// awaits for that route's `UserModel?` result,
   /// then POPS THIS ROUTE WITH THAT RESULT.
   ///
   /// That way, the user may choose the other auth method screen,
   /// and their credentials will pop back down to `Home`!
-  Future<void> _onSignUpInstead(BuildContext context) async {
-    UserModel? signUpScreenResult = await Navigator.push<UserModel?>(
+  Future<void> _onLoginInstead(BuildContext context) async {
+    UserModel? loginInScreenResult = await Navigator.push<UserModel?>(
       context,
-      MaterialPageRoute<UserModel?>(builder: (BuildContext context) => SignUp()),
+      MaterialPageRoute<UserModel?>(builder: (BuildContext context) => Login()),
     );
 
     if (!(context.mounted)) return;
 
-    Navigator.pop<UserModel?>(context, signUpScreenResult);
+    Navigator.pop<UserModel?>(context, loginInScreenResult);
   }
 
   @override
@@ -110,9 +112,18 @@ class _LoginState extends State<Login> {
             children: <Widget>[
               TextField(
                 controller: widget.emailController,
+                keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(color: primaryColor),
                 decoration: const InputDecoration(
                   labelText: 'Email',
+                ),
+              ),
+              TextField(
+                controller: widget.usernameController,
+                keyboardType: TextInputType.name,
+                style: const TextStyle(color: primaryColor),
+                decoration: const InputDecoration(
+                  labelText: 'Username',
                 ),
               ),
               TextField(
@@ -127,21 +138,33 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
+              TextField(
+                controller: widget.passwordConfirmationController,
+                obscureText: _passwordHidden,
+                style: const TextStyle(color: primaryColor),
+                decoration: InputDecoration(
+                  labelText: 'Confirm you password',
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() { _passwordHidden = !_passwordHidden; }),
+                    icon: Icon(_passwordHidden ? Icons.visibility_off : Icons.visibility),
+                  ),
+                ),
+              ),
               Builder(
                 builder: (BuildContext context) => ElevatedButton(
-                  onPressed: () => _onLogIn(context),
+                  onPressed: () => _onSignUp(context),
                   style: submitCredentialsButtonStyle,
-                  child: const Text('Log in'),
+                  child: const Text('Sign up'),
                 ),
               ),
               const Divider(),
               Row(
                 children: <Widget>[
-                  const Text("Don't have an account?", style: TextStyle(color: primaryColor)),
+                  const Text("Already have an account?", style: TextStyle(color: primaryColor)),
                   TextButton(
-                    onPressed: () => _onSignUpInstead(context),
+                    onPressed: () =>_onLoginInstead(context),
                     style: submitCredentialsButtonStyle,
-                    child: const Text('Sign up'),
+                    child: const Text('Log in'),
                   ),
                 ],
               ),
@@ -149,6 +172,6 @@ class _LoginState extends State<Login> {
           ),
         ),
       ),
-    ); 
+    );
   }
 }

@@ -1,6 +1,5 @@
 // back-end
 import 'package:hoothub/firebase/models/test.dart';
-import 'package:hoothub/firebase/api/tests.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
@@ -116,7 +115,12 @@ class QuerySettings {
 ///  MEANT TO BE WRAPPED BY `Home`.
 /// IT'S NOT MEANT TO BE USED DIRECTLY IN A ROUTE.
 class ViewTests extends StatefulWidget {
-  const ViewTests({super.key});
+  const ViewTests({
+    super.key,
+    required this.testsFutureForQuerySettings,
+  });
+
+  final Future<List<Test?>> Function(QuerySettings querySettings) testsFutureForQuerySettings;
 
   @override
   State<ViewTests> createState() => _ViewTestsState();
@@ -129,23 +133,6 @@ class _ViewTestsState extends State<ViewTests> {
     reverse: false,
   );
   late Future<List<Test?>> _tests;
-
-  Future<List<Test?>> testsFutureForQuerySettings() {
-    switch (_querySettings.queryType) {
-      case QueryType.date: {
-        return testsByDateCreated(limit: _querySettings.limit, newest: !_querySettings.reverse);
-      }
-      case QueryType.netUpvotes: {
-        return testsByNetUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
-      }
-      case QueryType.upvotes: {
-        return testsByUpvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
-      }
-      case QueryType.downvotes: {
-        return testsByDownvotes(limit: _querySettings.limit, most: !_querySettings.reverse);
-      }
-    }
-  }
 
   /// refresh test in `_tests` after it has been played,
   /// so that the player can see their scores refresh
@@ -164,7 +151,7 @@ class _ViewTestsState extends State<ViewTests> {
   @override
   void initState() {
     super.initState();
-    _tests = testsFutureForQuerySettings();
+    _tests = widget.testsFutureForQuerySettings(_querySettings);
   }
 
   @override
@@ -186,15 +173,15 @@ class _ViewTestsState extends State<ViewTests> {
                 querySettings: _querySettings,
                 setQueryType: (QueryType queryType) => setState(() {
                   _querySettings.queryType = queryType;
-                  _tests = testsFutureForQuerySettings();
+                  _tests = widget.testsFutureForQuerySettings(_querySettings);
                 }),
                 setReverse: (bool reverse) => setState(() {
                   _querySettings.reverse = reverse;
-                  _tests = testsFutureForQuerySettings();
+                  _tests = widget.testsFutureForQuerySettings(_querySettings);
                 }),
                 setLimit: (int limit) => setState(() {
                   _querySettings.limit = limit;
-                  _tests = testsFutureForQuerySettings();
+                  _tests = widget.testsFutureForQuerySettings(_querySettings);
                 }),
               );
             }

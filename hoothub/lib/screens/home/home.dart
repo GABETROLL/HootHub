@@ -8,10 +8,10 @@ import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
 // front-end
 import 'package:flutter/material.dart';
+import 'package:hoothub/screens/home/view_home_tests.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'login.dart';
-import 'view_tests/view_tests.dart';
 
 /// For now, this widget only shows the user a test test.
 ///
@@ -162,7 +162,7 @@ class _HomeState extends State<Home> {
         title: const Text('HootHub'),
         actions: actions,
       ),
-      body: ViewTests(key: UniqueKey()),
+      body: ViewHomeTests(key: UniqueKey()),
     );
   }
 }

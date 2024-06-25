@@ -8,6 +8,7 @@ import 'package:hoothub/firebase/api/images.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
+import 'package:hoothub/screens/user_profile/user_profile.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'questions_card.dart';
 
@@ -163,31 +164,65 @@ class TestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      width: userImageWidth,
-                      child: InfoDownloader<Uint8List>(
-                        downloadInfo: () => downloadUserImage(testModel.userId!),
-                        builder: (BuildContext context, Uint8List? imageData, bool downloaded) {
-                          if (imageData != null) {
-                            return Image.memory(imageData);
+                    InfoDownloader<(Uint8List?, UserModel?)>(
+                      downloadInfo: () async {
+                        Uint8List? userImage = await downloadUserImage(testModel.userId!);
+                        UserModel? userModel = await userWithId(testModel.userId!);
+
+                        return (userImage, userModel);
+                      },
+                      builder: (BuildContext context, (Uint8List?, UserModel?)? result, bool downloaded) {
+                        Uint8List? userImageData = result?.$1;
+                        UserModel? userModel = result?.$2;
+
+                        final String username;
+                        final Image userImage;
+
+                        void Function()? goToUserProfile;
+
+                        if (downloaded) {
+                          username = (
+                            userModel != null
+                            ? userModel.username
+                            : "[Not found]"
+                          );
+                          userImage = (
+                            userImageData != null
+                            ? Image.memory(userImageData)
+                            : Image.asset('assets/default_user_image.png')
+                          );
+
+                          if (userModel != null) {
+                            goToUserProfile = () async {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (BuildContext context) => UserProfile(user: userModel, userImage: userImageData),
+                                ),
+                              );
+                            };
                           }
-                          return Image.asset('default_user_image.png');
-                        },
-                        buildError: (BuildContext context, Object error) {
-                          return Center(child: Text("Error loading or displaying user ${testModel.userId}'s image: $error"));
-                        },
-                      ),
-                    ),
-                    InfoDownloader<UserModel>(
-                      downloadInfo: () => userWithId(testModel.userId!),
-                      builder: (BuildContext context, UserModel? testAuthor, bool downloaded) {
-                        if (testAuthor != null) {
-                          return Text(testAuthor.username);
+                        } else {
+                          username = 'Loading...';
+                          userImage = Image.asset('assets/default_user_image.png');
                         }
-                        return const Text('Loading...');
+
+                        return InkWell(
+                          onTap: goToUserProfile,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: userImageWidth,
+                                child: userImage,
+                              ),
+                              Text(username),
+                            ],
+                          ),
+                        );
                       },
                       buildError: (BuildContext context, Object error) {
-                        return Text("Error loading or displaying user ${testModel.userId}'s username: $error");
+                        print("Error displaying test ${testModel.id}'s author info, for `TestCard`: $error");
+                        return const Text('[Error]');
                       },
                     ),
                   ],

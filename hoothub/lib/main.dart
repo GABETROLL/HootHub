@@ -4,7 +4,7 @@ import 'firebase_options.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
-import 'package:hoothub/screens/home.dart';
+import 'package:hoothub/screens/home/home.dart';
 
 Future<void> main() async {
   await Firebase.initializeApp(
