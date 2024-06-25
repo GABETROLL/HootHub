@@ -165,11 +165,11 @@ class _ViewTestsState extends State<ViewTests> {
           return const Center(child: Text('Loading tests...'));
         }
 
-        return ListView.builder(
-          itemCount: tests.length + 1,
-          itemBuilder: (BuildContext context, int index) {
-            if (index == 0) {
-              return SearchMenu(
+        return Padding(
+          padding: const EdgeInsets.only(top: 15),
+          child: Column(
+            children: [
+              SearchMenu(
                 querySettings: _querySettings,
                 setQueryType: (QueryType queryType) => setState(() {
                   _querySettings.queryType = queryType;
@@ -183,62 +183,67 @@ class _ViewTestsState extends State<ViewTests> {
                   _querySettings.limit = limit;
                   _tests = widget.testsFutureForQuerySettings(_querySettings);
                 }),
-              );
-            }
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: tests.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    Test? testModel = tests[index];
+                    if (testModel == null) {
+                      return const Text('Test not found!');
+                    }
 
-            int testIndex = index - 1;
+                    Color testCardColor = themeColors[index % themeColors.length];
 
-            Test? testModel = tests[testIndex];
-            if (testModel == null) {
-              return const Text('Test not found!');
-            }
-
-            Color testCardColor = themeColors[testIndex % themeColors.length];
-
-            return TestCard(
-              testModel: testModel,
-              asyncSetTestModel: (Test newTestModel) => asyncRefreshTest(tests, testIndex, newTestModel),
-              playSolo: () async {
-                final Test? refreshedTest = await Navigator.push<Test>(
-                  context,
-                  MaterialPageRoute<Test>(
-                    builder: (BuildContext context) => PlayTestSolo(
+                    return TestCard(
                       testModel: testModel,
-                    ),
-                  ),
-                );
+                      asyncSetTestModel: (Test newTestModel) => asyncRefreshTest(tests, index, newTestModel),
+                      playSolo: () async {
+                        final Test? refreshedTest = await Navigator.push<Test>(
+                          context,
+                          MaterialPageRoute<Test>(
+                            builder: (BuildContext context) => PlayTestSolo(
+                              testModel: testModel,
+                            ),
+                          ),
+                        );
 
-                // `refreshedTest` IS NULL, WHEN THE POPPED PAGE
-                // HAS NO CHANGES TO MAKE.
+                        // `refreshedTest` IS NULL, WHEN THE POPPED PAGE
+                        // HAS NO CHANGES TO MAKE.
 
-                if (refreshedTest != null) {
-                  asyncRefreshTest(tests, testIndex, refreshedTest);
-                }
-              },
-              edit: () async {
-                final Test? refreshedTest = await Navigator.push<Test>(
-                  context,
-                  MaterialPageRoute<Test>(
-                    builder: (BuildContext context) => MakeTest(
-                      testModel: testModel,
-                    ),
-                  ),
-                );
+                        if (refreshedTest != null) {
+                          asyncRefreshTest(tests, index, refreshedTest);
+                        }
+                      },
+                      edit: () async {
+                        final Test? refreshedTest = await Navigator.push<Test>(
+                          context,
+                          MaterialPageRoute<Test>(
+                            builder: (BuildContext context) => MakeTest(
+                              testModel: testModel,
+                            ),
+                          ),
+                        );
 
-                // `refreshedTest` IS NULL, WHEN THE POPPED PAGE
-                // HAS NO CHANGES TO MAKE.
+                        // `refreshedTest` IS NULL, WHEN THE POPPED PAGE
+                        // HAS NO CHANGES TO MAKE.
 
-                if (refreshedTest != null) {
-                  asyncRefreshTest(tests, testIndex, refreshedTest);
-                }
-              },
-              color: testCardColor
-            );
-          },
+                        if (refreshedTest != null) {
+                          asyncRefreshTest(tests, index, refreshedTest);
+                        }
+                      },
+                      color: testCardColor
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
       buildError: (BuildContext context, Object error) {
-        return Center(child: Text('Error loading tests: $error'));
+        print('Error loading tests: $error');
+        return const Center(child: Text("There was an error querying the tests!"));
       },
     );
   }

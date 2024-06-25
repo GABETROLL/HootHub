@@ -44,10 +44,10 @@ class UserProfile extends StatelessWidget {
                 ],
               ),
               // USER STATS HERE
-              (
-                userIdPromoted != null
-                ? ViewUserTests(userId: userIdPromoted)
-                : const Center(child: Text("`user` doesn't have ID!"))
+              Expanded(
+                child: userIdPromoted != null
+                  ? ViewUserTests(userId: userIdPromoted)
+                  : const Center(child: Text("User doesn't have ID!")),
               ),
             ],
           ),
