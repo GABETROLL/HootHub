@@ -4,6 +4,11 @@ const double questionImageHeight = 200;
 const double mediumScreenWidth = 768;
 const double largeScreenWidth = 990;
 
+const BoxConstraints userImageButtonConstraints = BoxConstraints(
+  maxWidth: 60,
+  maxHeight: 60,
+);
+
 const double themeColorsSaturation = 1;
 const double themeColorsValue = 1;
 

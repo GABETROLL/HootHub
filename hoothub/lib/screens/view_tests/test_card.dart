@@ -1,14 +1,13 @@
 import 'package:hoothub/firebase/api/clients.dart';
-import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/api/tests.dart';
-import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/images.dart';
 // front-end
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
-import 'package:hoothub/screens/user_profile/user_profile.dart';
+import 'comments.dart';
+import 'user_author_button.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'questions_card.dart';
 
@@ -42,19 +41,21 @@ class TestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? testId = testModel.id;
+    String? testAuthorId = testModel.userId;
+
     const double width = mediumScreenWidth;
     const double testImageWidth = width / 2;
-    const double userImageWidth = 60;
 
     // We NEED the test to have a valid `id` and `userId`,
     // if we want to display its image, and author's image!
-    if (!(testModel.isValid()) || testModel.id == null || testModel.userId == null) {
+    if (!(testModel.isValid()) || testId == null || testAuthorId == null) {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: width),
           child: const Column(
             children: <Widget>[
-              Text("The test you're trying to view seems to be invalid. I'm verry sorry!"),
+              Text("Test is either invalid, has no ID or no user author ID... Very sorry!"),
               Text(":("),
             ],
           ),
@@ -73,16 +74,10 @@ class TestCard extends StatelessWidget {
 
     // If a user is logged in, and they own this widget's `Test`,
     // we can allow them to edit it.
-    bool userOwnsTest = false;
-    try {
-      userOwnsTest = (
-        auth.currentUser != null
-        && testModel.userId != null
-        && auth.currentUser!.uid == testModel.userId
-      );
-    } catch (error) {
-      // SOMEHOW ACCESSED NULL FIELDS. FOR NOW, JUST ASSUME THEY DON'T.
-    }
+    bool userOwnsTest = (
+      currentUserId != null
+      && currentUserId == testAuthorId
+    );
 
     if (userOwnsTest) {
       options.add(
@@ -110,10 +105,11 @@ class TestCard extends StatelessWidget {
           child: Card(
             child: Column(
               children: [
+                // TEST IMAGE
                 SizedBox(
                   width: testImageWidth,
                   child: InfoDownloader<Uint8List>(
-                    downloadInfo: () => downloadTestImage(testModel.id!),
+                    downloadInfo: () => downloadTestImage(testId),
                     builder: (BuildContext context, Uint8List? imageData, bool downloaded) {
                       if (imageData != null) {
                         return Image.memory(imageData);
@@ -121,11 +117,13 @@ class TestCard extends StatelessWidget {
                       return Image.asset('default_image.png');
                     },
                     buildError: (BuildContext context, Object error) {
-                      return Center(child: Text("Error loading or displaying test ${testModel.id}'s image: $error"));
+                      return Center(child: Text("Error loading or displaying test $testId's image: $error"));
                     },
                   ),
                 ),
+                // TEST TITLE
                 Text(testModel.name, style: const TextStyle(fontSize: 60)),
+                // TEST VOTING STUFF
                 Row(
                   children: [
                     Column(
@@ -164,73 +162,15 @@ class TestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    InfoDownloader<(Uint8List?, UserModel?)>(
-                      downloadInfo: () async {
-                        Uint8List? userImage = await downloadUserImage(testModel.userId!);
-                        UserModel? userModel = await userWithId(testModel.userId!);
-
-                        return (userImage, userModel);
-                      },
-                      builder: (BuildContext context, (Uint8List?, UserModel?)? result, bool downloaded) {
-                        Uint8List? userImageData = result?.$1;
-                        UserModel? userModel = result?.$2;
-
-                        final String username;
-                        final Image userImage;
-
-                        void Function()? goToUserProfile;
-
-                        if (downloaded) {
-                          username = (
-                            userModel != null
-                            ? userModel.username
-                            : "[Not found]"
-                          );
-                          userImage = (
-                            userImageData != null
-                            ? Image.memory(userImageData)
-                            : Image.asset('assets/default_user_image.png')
-                          );
-
-                          if (userModel != null) {
-                            goToUserProfile = () async {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (BuildContext context) => UserProfile(user: userModel, userImage: userImageData),
-                                ),
-                              );
-                            };
-                          }
-                        } else {
-                          username = 'Loading...';
-                          userImage = Image.asset('assets/default_user_image.png');
-                        }
-
-                        return InkWell(
-                          onTap: goToUserProfile,
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: userImageWidth,
-                                child: userImage,
-                              ),
-                              Text(username),
-                            ],
-                          ),
-                        );
-                      },
-                      buildError: (BuildContext context, Object error) {
-                        print("Error displaying test ${testModel.id}'s author info, for `TestCard`: $error");
-                        return const Text('[Error]');
-                      },
-                    ),
+                    UserAuthorButton(userPostId: testId, userId: testAuthorId),
                   ],
                 ),
+                // TEST OPTIONS
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: options,
                 ),
+                // TEST QUESTIONS
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 7),
                   child: Theme(
@@ -238,6 +178,10 @@ class TestCard extends StatelessWidget {
                     child: QuestionsCard(questions: testModel.questions),
                   ),
                 ),
+                // TEST COMMENTS
+                // TODO: ONLY DISPLAY THEM ONCE THE PLAYER HAS FINISHED THE TEST,
+                //  THROUGH THE FIREBASE SECURITY RULES, TO PREVENT CHEATING!
+                Comments(testId: testId, comments: testModel.comments),
               ],
             ),
           ),
