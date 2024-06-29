@@ -44,7 +44,7 @@ class CommentTreeWidget extends StatelessWidget {
         ];
 
         return ExpansionTile(
-          title: Column(
+          title: Row(
             children: titleChildren,
           ),
           children: List<CommentTreeWidget>.of(
@@ -176,9 +176,22 @@ class _CommentsState extends State<Comments> {
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      title: const Text('Comments'),
-      children: _children,
+    return Theme(
+      data: ThemeData(
+        expansionTileTheme: const ExpansionTileThemeData(
+          backgroundColor: primaryColor,
+          collapsedBackgroundColor: primaryColor,
+          iconColor: white,
+          collapsedIconColor: white,
+          textColor: white,
+          collapsedTextColor: white,
+          childrenPadding: EdgeInsetsDirectional.only(start: 20),
+        ),
+      ),
+      child:  ExpansionTile(
+        title: const Text('Comments'),
+        children: _children,
+      ),
     );
   }
 }

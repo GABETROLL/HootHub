@@ -181,7 +181,13 @@ class TestCard extends StatelessWidget {
                 // TEST COMMENTS
                 // TODO: ONLY DISPLAY THEM ONCE THE PLAYER HAS FINISHED THE TEST,
                 //  THROUGH THE FIREBASE SECURITY RULES, TO PREVENT CHEATING!
-                Comments(testId: testId, comments: testModel.comments),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 7),
+                  child: Theme(
+                    data: outerTheme,
+                    child: Comments(testId: testId, comments: testModel.comments),
+                  ),
+                ),
               ],
             ),
           ),
