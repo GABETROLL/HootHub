@@ -36,9 +36,12 @@ class CommentTreeWidget extends StatelessWidget {
         }
 
         final List<Widget> titleChildren = <Widget>[
-          UserAuthorButton(
-            userPostId: commentId,
-            userId: result.userId,
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: UserAuthorButton(
+              userPostId: commentId,
+              userId: result.userId,
+            ),
           ),
           Text(result.comment),
         ];
@@ -100,15 +103,22 @@ class CommentForm extends StatelessWidget {
 
         final TextEditingController commentEditingController = TextEditingController();
 
+        Color themePrimaryColor = Theme.of(context).primaryColor;
+
         return Row(
           children: <Widget>[
-            ConstrainedBox(
-              constraints: userImageButtonConstraints,
-              child: currentUserImage,
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: ConstrainedBox(
+                constraints: userImageButtonConstraints,
+                child: currentUserImage,
+              ),
             ),
             Expanded(
               child: TextField(
                 controller: commentEditingController,
+                style: TextStyle(color: themePrimaryColor),
+                cursorColor: themePrimaryColor,
                 decoration: InputDecoration(
                   hintText: "Comment as '$currentUsername'...",
                 ),
@@ -178,6 +188,14 @@ class _CommentsState extends State<Comments> {
   Widget build(BuildContext context) {
     return Theme(
       data: ThemeData(
+        colorScheme: const ColorScheme.light(
+          primary: white,
+          onPrimary: primaryColor,
+          background: primaryColor,
+          onBackground: white,
+          surface: white,
+          onSurface: primaryColor,
+        ),
         expansionTileTheme: const ExpansionTileThemeData(
           backgroundColor: primaryColor,
           collapsedBackgroundColor: primaryColor,
@@ -187,8 +205,29 @@ class _CommentsState extends State<Comments> {
           collapsedTextColor: white,
           childrenPadding: EdgeInsetsDirectional.only(start: 20),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          labelStyle: const TextStyle(color: white),
+          hintStyle: TextStyle(color: white.withOpacity(0.75)),
+          iconColor: white,
+          prefixIconColor: white,
+          suffixIconColor: white,
+          focusColor: secondaryColor,
+          hoverColor: white,
+          outlineBorder: BorderSide(color: white.withOpacity(0.75)),
+          errorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+          focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: white)),
+          focusedErrorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+          disabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: white.withOpacity(0.75))),
+          border: const OutlineInputBorder(borderSide: BorderSide(color: white)),
+        ),
+        elevatedButtonTheme: const ElevatedButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
+          )
+        ),
       ),
-      child:  ExpansionTile(
+      child: ExpansionTile(
         title: const Text('Comments'),
         children: _children,
       ),
