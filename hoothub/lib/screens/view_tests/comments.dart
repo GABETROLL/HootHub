@@ -97,8 +97,12 @@ class CommentForm extends StatelessWidget {
         return (currentUserImage, currentUsername);
       },
       builder: (BuildContext context, (Uint8List?, String?)? result, bool downloaded) {
-        final Uint8List? currentUserImageData = result?.$1;
-        final String currentUsername = result?.$2 ?? '[Username not found]';
+        if (result == null) {
+          return const SizedBox();
+        }
+
+        final Uint8List? currentUserImageData = result.$1;
+        final String currentUsername = result.$2 ?? '[Username not found]';
 
         final Image currentUserImage = (
           currentUserImageData != null
