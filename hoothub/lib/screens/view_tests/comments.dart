@@ -35,29 +35,34 @@ class CommentTreeWidget extends StatelessWidget {
           return const Text('Comment not found!');
         }
 
-        final List<Widget> titleChildren = <Widget>[
-          Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: UserAuthorButton(
-              userPostId: commentId,
-              userId: result.userId,
-            ),
+        List<Widget> children = [
+          CommentForm(
+            onCommentSubmitted: (String comment) {
+              replyToCommentWithId(commentId, comment);
+            },
           ),
-          Text(result.comment),
         ];
+
+        for (String replyId in result.replyIds) {
+          children.add(
+            CommentTreeWidget(testId: testId, commentId: replyId),
+          );
+        }
 
         return ExpansionTile(
           title: Row(
-            children: titleChildren,
-          ),
-          children: List<CommentTreeWidget>.of(
-            result.replyIds.map<CommentTreeWidget>(
-              (String replyId) => CommentTreeWidget(
-                testId: testId,
-                commentId: replyId,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(right: 20),
+                child: UserAuthorButton(
+                  userPostId: commentId,
+                  userId: result.userId,
+                ),
               ),
-            ),
+              Text(result.comment),
+            ],
           ),
+          children: children,
         );
       },
       buildError: (BuildContext context, Object error) {
