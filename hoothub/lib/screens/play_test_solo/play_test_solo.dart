@@ -1,7 +1,6 @@
 // back-end
 import 'dart:typed_data';
-import 'package:hoothub/firebase/api/auth.dart';
-import 'package:hoothub/firebase/models/user.dart';
+import 'package:hoothub/firebase/api/tests.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/images.dart';
@@ -42,7 +41,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
   int _currentQuestionIndex = 0;
 
   void _next(TestResult newTestResult) => setState(() {
-    _testResult = newTestResult.copy();
+    _testResult = newTestResult;
     _currentQuestionIndex++;
   });
 
@@ -66,31 +65,28 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
         testResult: _testResult,
         questionsAmount: widget.testModel.questions.length,
         exit: () async {
-          String? userId;
-
-          try {
-            UserModel? user = await loggedInUser();
-
-            if (user != null) {
-              userId = user.id;
-            }
-          } catch (error) {
-            print("Error getting current user's id: $error");
-          }
+          SaveTestNullableResult testCompletionResults = await completeTest(testId, _testResult);
 
           if (!(context.mounted)) return;
 
-          Test? testWithChanges;
+          if (testCompletionResults.status != 'Ok') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(testCompletionResults.status)),
+            );
+            Navigator.pop<Test>(context, null);
+          } else {
+            // POP WITH RESULT
 
-          if (userId != null) {
-            testWithChanges = widget.testModel.copy();
-            // THIS SHOULD BE THE FIRST TIME TH EPLAYER HAS COMPLETED THIS TEST,
-            // AND FIREBASE SECURITY RULES SHOULD VERIFY THAT.
-            testWithChanges.userResults.putIfAbsent(userId, () => _testResult);
+            // According to how `completeTest` works,
+            // if `testCompletionResults.updatedTest` is null,
+            // `testCompletionResults.status` WILL NOT BE 'Ok'.
+            //
+            // So, I think we can safely pop with `testCompletionResults.updatedTest`...
+            // `testCompletionResults.updatedTest` MAY BE THE SAME AS `widget.testModel`,
+            // BECAUSE THE PLAYER ALREADY PLAYED IT, WHICH MAY CAUSE `ViewTests`
+            // TO REFRESH UNNECESSARILY.
+            Navigator.pop<Test>(context, testCompletionResults.updatedTest);
           }
-
-          // POP WITH RESULT
-          Navigator.pop<Test>(context, widget.testModel.copy());
         },
       );
     } else {
@@ -127,7 +123,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
             currentQuestion: currentQuestion,
             questionImage: questionImage,
             questionImageLoaded: downloaded,
-            currentTestResult: _testResult.copy(),
+            currentTestResult: _testResult,
             onNext: _next,
           );
         },

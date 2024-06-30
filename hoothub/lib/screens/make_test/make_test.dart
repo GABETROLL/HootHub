@@ -223,7 +223,9 @@ class _MakeTestState extends State<MakeTest> {
       SnackBar(content: Text(status)),
     );
 
-    // `saveTestResult.updatedTest`, IF IT WAS DEFINED, MAY NOW HAVE ITS OPTIONAL FIELDS,
+    // [OUTDATED COMMENT?]
+    //
+    //`saveTestResult.updatedTest`, IF IT WAS DEFINED, MAY NOW HAVE ITS OPTIONAL FIELDS,
     // INCLUDING `id`.
     //
     // WE MUST SAVE `saveTestResult.updatedTest` TO `_latestVersion` AND `_testModelEditor`,

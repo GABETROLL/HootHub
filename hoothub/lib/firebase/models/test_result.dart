@@ -51,6 +51,7 @@ class TestResult implements Model {
     }
 
     return TestResult(
+      userId: userId,
       correctAnswers: answeredCorrectly ? correctAnswers + 1 : correctAnswers,
       score: score + questionScore,
     );

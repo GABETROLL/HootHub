@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
+import 'package:hoothub/firebase/models/test_result.dart';
 import 'clients.dart';
 // models
 import 'package:hoothub/firebase/models/test.dart';
@@ -12,6 +14,16 @@ class SaveTestResult {
 
   final String status;
   final Test updatedTest;
+}
+
+class SaveTestNullableResult {
+  const SaveTestNullableResult({
+    required this.status,
+    required this.updatedTest,
+  });
+
+  final String status;
+  final Test? updatedTest;
 }
 
 /// Saves `test` as a document in the `testsCollection`.
@@ -158,6 +170,91 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
   } catch (error) {
     return SaveTestResult(status: error.toString(), updatedTest: test);
   }
+}
+
+/// Adds current user's `testResult` to the test document with `testId` as its key
+/// in the `tests` Cloud Firestore collection.
+///
+/// If the current user is not found,
+/// or the test in Cloud Firestore with with `testId` as its key is not found,
+/// this function doesn't modify the test in Cloud Firestore,
+/// and returns the issue as the `status` field of the result,
+/// and null as the `updatedTest` field of the result.
+///
+/// Normally, this function returns:
+/// SaveTestResult(status: "SaveTestResult", updatedTest: <updatedTest>)
+Future<SaveTestNullableResult> completeTest(String testId, TestResult testResult) async {
+  String? userId;
+
+  try {
+    UserModel? user = await loggedInUser();
+
+    if (user != null) {
+      userId = user.id;
+    }
+  } catch (error) {
+    return const SaveTestNullableResult(
+      status: "Failed to get current user...",
+      updatedTest: null,
+    );
+  }
+
+  if (userId == null) {
+    return const SaveTestNullableResult(
+      status: "You're not logged in! Log in to save your scores!",
+      updatedTest: null,
+    );
+  }
+
+  Test? testModel;
+
+  try {
+    testModel = await testWithId(testId);
+  } catch (error) {
+    return const SaveTestNullableResult(
+      status: "Failed to find test to complete...",
+      updatedTest: null,
+    );
+  }
+
+  if (testModel == null) {
+    return const SaveTestNullableResult(
+      status: "Failed to find test to complete...",
+      updatedTest: null,
+    );
+  }
+
+  if (testModel.id != testId) {
+    return const SaveTestNullableResult(
+      status: "Downloaded test's ID doesn't match...",
+      updatedTest: null,
+    ); 
+  }
+
+  final Test testWithChanges;
+
+  try {
+    testWithChanges = testModel.copy();
+    // THIS SHOULD BE THE FIRST TIME THE PLAYER HAS COMPLETED THIS TEST,
+    // AND FIREBASE SECURITY RULES SHOULD VERIFY THAT.
+    testWithChanges.userResults.putIfAbsent(userId, () => testResult);
+  } catch (error) {
+    return const SaveTestNullableResult(
+      status: "Failed to add user's scores to test...",
+      updatedTest: null,
+    );
+  }
+
+  try {
+    await testsCollection.doc(testId).set(testWithChanges.toJson());
+  } catch (error) {
+    return const SaveTestNullableResult(
+      status: "Failed to upload user's scores...",
+      updatedTest: null,
+    );
+  }
+
+  return SaveTestNullableResult(status: "Ok", updatedTest: testWithChanges);
 }
 
 typedef TestQuery = Query<Map<String, dynamic>>;

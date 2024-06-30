@@ -8,17 +8,6 @@ import 'package:hoothub/screens/play_test_solo/multiple_choice_revelation.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:hoothub/screens/styles.dart';
 
-/// WARNING: ASSUMES `currentTestResult` IS ONLY REFERENCED
-/// BY ITSELF. MAKE SURE THAT `currentTestResult` WAS
-/// COPIED USING `.copy()` BEFORE INPUTTING IT INTO HERE.
-///
-/// WARNING: ALSO COPY `nextTestResult` INSIDE THE `onNext` CALLBACK.
-///
-/// THIS IS ALSO A `StatefulWidget`, SO, `currentTestResult`
-/// WILL CHANGE INTERNALLY THROUGH `setState`. IF YOU DON'T
-/// COPY `currentTestResult` FROM `PlayTestSolo`, SINCE BOTH
-/// `PlayTestSolo` and THIS `StatefulWidget` WILL REFERENCE IT,
-/// `PlayTestSolo`'s STATE WILL ALSO CHANGE, WITHOUT CALLING ITS `setState`.
 class PlayQuestionSolo extends StatefulWidget {
   const PlayQuestionSolo({
     super.key,
