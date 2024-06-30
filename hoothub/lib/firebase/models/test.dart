@@ -98,8 +98,15 @@ class Test implements Model {
       if (!(question.isValid())) return false;
     }
 
-    for (TestResult testResult in userResults.values) {
-      if (!(0 <= testResult.correctAnswers && testResult.correctAnswers < questions.length)) {
+    for (final MapEntry<String, TestResult> mapEntry in userResults.entries) {
+      final String userId = mapEntry.key;
+      final TestResult testResult = mapEntry.value;
+
+      if (testResult.userId == null || testResult.userId != userId) {
+        return false;
+      }
+
+      if (!(0 <= testResult.correctAnswers && testResult.correctAnswers <= questions.length)) {
         return false;
       }
       // TODO: VERIFY `testResult` BASED ON THE SCORING FORMULA!

@@ -50,6 +50,7 @@ class TestCard extends StatelessWidget {
     // We NEED the test to have a valid `id` and `userId`,
     // if we want to display its image, and author's image!
     if (!(testModel.isValid()) || testId == null || testAuthorId == null) {
+
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: width),
