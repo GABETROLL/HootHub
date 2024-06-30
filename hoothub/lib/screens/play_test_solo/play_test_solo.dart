@@ -1,5 +1,6 @@
 // back-end
 import 'dart:typed_data';
+import 'package:hoothub/firebase/api/clients.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 import 'package:hoothub/firebase/models/question.dart';
 import 'package:hoothub/firebase/models/test.dart';
@@ -35,6 +36,10 @@ class PlayTestSolo extends StatefulWidget {
 
 class _PlayTestSoloState extends State<PlayTestSolo> {
   TestResult _testResult = const TestResult(
+    // Even if the user is currently logged in when this test starts,
+    // we want to upload their test results with their login info
+    // AT THE END OF THE TEST, in case they somehow logged off before the test finished.
+    userId: null,
     correctAnswers: 0,
     score: 0,
   );
@@ -65,7 +70,10 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
         testResult: _testResult,
         questionsAmount: widget.testModel.questions.length,
         exit: () async {
-          SaveTestNullableResult testCompletionResults = await completeTest(testId, _testResult);
+          SaveTestNullableResult testCompletionResults = await completeTest(
+            testId,
+            _testResult.setUserId(auth.currentUser?.uid),
+          );
 
           if (!(context.mounted)) return;
 

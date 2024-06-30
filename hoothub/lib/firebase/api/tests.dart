@@ -183,7 +183,7 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
 ///
 /// Normally, this function returns:
 /// SaveTestResult(status: "SaveTestResult", updatedTest: <updatedTest>)
-Future<SaveTestNullableResult> completeTest(String testId, TestResult testResult) async {
+Future<SaveTestNullableResult> completeTest(final String testId, TestResult testResult) async {
   String? userId;
 
   try {
@@ -201,10 +201,12 @@ Future<SaveTestNullableResult> completeTest(String testId, TestResult testResult
 
   if (userId == null) {
     return const SaveTestNullableResult(
-      status: "You're not logged in! Log in to save your scores!",
+      status: "You're not logged in, so your scores won't save!",
       updatedTest: null,
     );
   }
+
+  testResult = testResult.setUserId(userId);
 
   Test? testModel;
 

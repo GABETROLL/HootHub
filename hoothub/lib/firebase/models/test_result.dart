@@ -4,7 +4,7 @@ import 'model.dart';
 /// Represents a user's answers score for its corresponding `Test`.
 class TestResult implements Model {
   const TestResult({
-    this.userId,
+    required this.userId,
     required this.correctAnswers,
     required this.score,
   });
@@ -30,10 +30,14 @@ class TestResult implements Model {
     );
   }
 
-  /// Returns a DEEP copy of `this`.
-  ///
-  /// Immutable fields are not copied.
-  TestResult copy() => TestResult(userId: userId, correctAnswers: correctAnswers, score: score);
+  /// Sets `this.userId: userId`
+  TestResult setUserId(String? newUserId) {
+    return TestResult(
+      userId: newUserId,
+      correctAnswers: correctAnswers,
+      score: score,
+    );
+  }
 
   /// Returns a new `TestResult` instance, with the new score for the player,
   /// based on how they answered the current question.
