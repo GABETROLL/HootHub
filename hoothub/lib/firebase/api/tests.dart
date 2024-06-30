@@ -206,6 +206,8 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
     );
   }
 
+  print("completeTest($testId, $testResult) as $userId;");
+
   testResult = testResult.setUserId(userId);
 
   Test? testModel;
@@ -231,6 +233,15 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
       status: "Downloaded test's ID doesn't match...",
       updatedTest: null,
     ); 
+  }
+
+  // If the player has played their own test, don't save their test scores to it,
+  // but don't display an intimidating error message, since they could be testing it.
+  if (testModel.userId == userId) {
+    return SaveTestNullableResult(
+      status: "Your test results didn't save to the test, since you created it.",
+      updatedTest: testModel,
+    );
   }
 
   final Test testWithChanges;
