@@ -248,8 +248,16 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
 
   try {
     testWithChanges = testModel.copy();
-    // THIS SHOULD BE THE FIRST TIME THE PLAYER HAS COMPLETED THIS TEST,
-    // AND FIREBASE SECURITY RULES SHOULD VERIFY THAT.
+    // If the player has already played this test, `userId` should be present
+    // in the test's `userResults` `Map` as a key,
+    // and we should keep their original scores.
+    //
+    // Otherwise, we assume this is their first time playing the test,
+    // and we add their scores to the test.
+    //
+    // FIREBASE SECURITY RULES SHOULD VERIFY THAT WE'RE NOT UPDATING OUR SCORES TWICE
+    // (AND PERHAPS EVEN VERIFY THAT WE DON'T CANCEL OUR ORIGINAL SCORES
+    // TO CHEAT FOR BETTER ONES?).
     testWithChanges.userResults.putIfAbsent(userId, () => testResult);
   } catch (error) {
     return const SaveTestNullableResult(
