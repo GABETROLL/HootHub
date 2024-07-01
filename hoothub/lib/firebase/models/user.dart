@@ -7,13 +7,11 @@ class UserModel implements Model {
     required this.id,
     required this.username,
     required this.dateCreated,
-    required this.tests,
   });
 
   final String id;
   final String username;
   final Timestamp dateCreated;
-  final List<String> tests;
 
   /// Always returns true, for now.
   @override
@@ -26,7 +24,6 @@ class UserModel implements Model {
     id: id,
     username: username,
     dateCreated: dateCreated,
-    tests: List<String>.of(tests),
   );
 
   /// Returns the `UserModel` representation of `snapshot.data()`.
@@ -42,14 +39,13 @@ class UserModel implements Model {
       id: data['id'],
       username: data['username'],
       dateCreated: data['dateCreated'],
-      tests: (data['tests'] as List<dynamic>).cast<String>(),
     );
   }
 
+  @override
   Map<String, dynamic> toJson() => {
     'id': id,
     'username': username,
     'dateCreated': dateCreated,
-    'tests': tests,
   };
 }

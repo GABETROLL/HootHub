@@ -67,14 +67,7 @@ Future<SaveTestResult> saveTest(Test test) async {
     // or a generated unique ID.
     DocumentReference<Map<String, dynamic>> testReference = testsCollection.doc(test.id);
 
-    // IF THE TEST DOESN'T HAVE A `userId`,
-    // ASSUME THAT IT'S BRAND NEW, AND
-    // ADD THE TEST'S ID TO THE CURRENT USER'S ACCOUNT.
     String userId = currentUser.uid;
-
-    if (test.userId == null) {
-      addTestIdToLoggedInUser(testReference.id);
-    }
 
     // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
     // (to show the user the changes after the test has been uploaded)
@@ -317,7 +310,7 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
     );
   }
 
-  return SaveTestNullableResult(status: "Ok", updatedTest: testWithChanges);
+  return SaveTestNullableResult(status: "Saved scores successfully!", updatedTest: testWithChanges);
 }
 
 typedef TestQuery = Query<Map<String, dynamic>>;

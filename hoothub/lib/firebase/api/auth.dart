@@ -65,7 +65,6 @@ Future<String> signUpUser({
       id: userId,
       username: username,
       dateCreated: Timestamp.now(),
-      tests: <String>[],
     );
   } catch (error) {
     return "Error creating user's model: $error";
@@ -184,31 +183,6 @@ Future<String> deleteLoggedInUser() async {
 ///   using `UserModel.fromSnapshot`, also failed.
 Future<UserModel?> userWithId(String id) async {
   return UserModel.fromSnapshot(await usersCollection.doc(id).get());
-}
-
-/// Adds `testId` to the `UserModel`s `tests`.
-///
-/// DOES NOT VERIFY THE TEST ID.
-/// THE CLOUD FIRESTORE SECURITY RULES SHOULD VERIFY THAT.
-Future<String> addTestIdToLoggedInUser(String testId) async {
-  try {
-    UserModel? userModel = await loggedInUser();
-
-    if (userModel == null) {
-      return 'Did not receive `UserModel` from `loggedInUser`.';
-    }
-
-    userModel.tests.add(testId);
-
-    await usersCollection.doc(userModel.id).set(userModel.toJson());
-
-  } on FirebaseException catch (error) {
-    return error.message ?? error.code;
-  } catch (error) {
-    return error.toString();
-  }
-
-  return 'Ok';
 }
 
 Future<String> updateLoggedInUserScores(TestResult testResult) async {
