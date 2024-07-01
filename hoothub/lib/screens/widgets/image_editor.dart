@@ -6,11 +6,13 @@ class ImageEditor extends StatelessWidget {
   const ImageEditor({
     super.key,
     this.imageData,
+    required this.defaultImage,
     required this.asyncOnChange,
     required this.asyncOnImageNotRecieved,
   });
 
   final Uint8List? imageData;
+  final Image defaultImage;
   final void Function(Uint8List newImage) asyncOnChange;
   final void Function() asyncOnImageNotRecieved;
 
@@ -21,7 +23,7 @@ class ImageEditor extends StatelessWidget {
     try {
       image = Image.memory(imageData!);
     } catch (error) {
-      image = Image.asset('default_image.png');
+      image = defaultImage;
     }
 
     return InkWell(

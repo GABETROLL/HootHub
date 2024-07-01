@@ -10,11 +10,11 @@ import 'package:hoothub/firebase/api/images.dart';
 // frontend
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/make_test/editors.dart';
-import 'package:hoothub/screens/make_test/image_editor.dart';
-import 'package:hoothub/screens/make_test/slide_editor.dart';
-import 'package:hoothub/screens/make_test/slide_preview.dart';
+import 'editors.dart';
+import 'slide_editor.dart';
+import 'slide_preview.dart';
 import 'package:hoothub/screens/styles.dart';
+import 'package:hoothub/screens/widgets/image_editor.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 
 class AddSlideButton extends StatelessWidget {
@@ -283,6 +283,7 @@ class _MakeTestState extends State<MakeTest> {
         final List<Widget> sidePanelWithSlidePreviews = <Widget>[
           ImageEditor(
             imageData: testModelEditor.image,
+            defaultImage: Image.asset('assets/default_image.png'),
             asyncOnChange: (Uint8List newImage) {
               if (!mounted) return;
 
@@ -353,6 +354,7 @@ class _MakeTestState extends State<MakeTest> {
               questionModelEditor: testModelEditor.questionModelEditors[_currentSlideIndex],
               questionImageEditor: ImageEditor(
                 imageData: testModelEditor.questionModelEditors[_currentSlideIndex].image,
+                defaultImage: Image.asset('assets/default_image.png'),
                 asyncOnChange: (Uint8List newImage) {
                   if (!mounted) return;
 
