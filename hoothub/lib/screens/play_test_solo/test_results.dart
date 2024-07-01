@@ -34,7 +34,7 @@ class TestSoloResults extends StatelessWidget {
           style: TextStyle(fontSize: 60),
         ),
         Text(
-          '${testResult.correctAnswers}/$questionsAmount',
+          '${testResult.questionsAnsweredCorrect}/$questionsAmount',
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 90),
         ),

@@ -85,7 +85,8 @@ class _PlayQuestionSoloState extends State<PlayQuestionSolo> {
     setState(() {
       _answerSelectedIndex = answerSelectedIndex; // may not always change!
       _answerRevealed = true; // Always changes state (DUE TO ASSERTION IN THE START OF THIS METHOD (`_onQuestionFinished`!)
-      _testResult = newTestResult; // may not always change!
+      // Always changes, since `updateScore` always adds another `QuestionResult` to `newTestResult.questionResults`.
+      _testResult = newTestResult; 
     });
   }
 

@@ -151,12 +151,12 @@ class TestModelEditor {
    required this.comments,
   });
 
-  String? id;
-  String? userId;
-  TextEditingController nameEditingController;
+  final String? id;
+  final String? userId;
+  final TextEditingController nameEditingController;
   Uint8List? image;
-  Timestamp? dateCreated;
-  List<QuestionModelEditor> questionModelEditors;
+  final Timestamp? dateCreated;
+  final List<QuestionModelEditor> questionModelEditors;
   Map<String, TestResult> userResults = <String, TestResult>{};
   List<String> usersThatUpvoted = <String>[];
   List<String> usersThatDownvoted = <String>[];

@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/models/test_result.dart';
 import 'clients.dart';
@@ -37,10 +37,10 @@ class SaveTestNullableResult {
 /// IF THE `test` DOES NOT HAVE A `userId`, THIS FUNCTION ASSUMES THIS IS A BRAND NEW TEST,
 /// AND ADDS THE TEST'S ID TO THE CURRENTLY LOGGED IN USER, USING `addTestIdToLoggedInUser(testReference.id)`.
 ///
-/// IF THE USER UPLOADING THIS TEST DOES NOT OWN THE NEW TEST (`userId` doesn't match `auth.currentUser!.uid`)
-/// OR THERE ALREADY EXISTS A TEST WITH `test.id` AS ITS KEY, THE FIRESTORE SECURITY RULES
-/// WON'T ALLOW THIS OPERATION.
+/// IF THE USER UPLOADING THIS `test` DOES NOT OWN IT, (test.userId` doesn't match `auth.currentUser!.uid`),
+/// this function won't upload the test, and will consider it invalid.
 ///
+/// [OUTDATED?]
 /// ANY OTHER IDs PRESENT IN `test`, NO MATTER HOW NESTED,
 /// ARE REQUIRED TO BE VALID.
 ///
@@ -58,7 +58,9 @@ class SaveTestNullableResult {
 /// ERRORS
 /// This function shouldn't throw.
 Future<SaveTestResult> saveTest(Test test) async {
-  if (auth.currentUser == null) return SaveTestResult(status: 'No user logged in!', updatedTest: test);
+  final User? currentUser = auth.currentUser;
+
+  if (currentUser == null) return SaveTestResult(status: 'No user logged in!', updatedTest: test);
 
   try {
     // The test's reference will either have `test.id` if that's not null,
@@ -68,7 +70,7 @@ Future<SaveTestResult> saveTest(Test test) async {
     // IF THE TEST DOESN'T HAVE A `userId`,
     // ASSUME THAT IT'S BRAND NEW, AND
     // ADD THE TEST'S ID TO THE CURRENT USER'S ACCOUNT.
-    String userId = auth.currentUser!.uid;
+    String userId = currentUser.uid;
 
     if (test.userId == null) {
       addTestIdToLoggedInUser(testReference.id);
@@ -77,19 +79,18 @@ Future<SaveTestResult> saveTest(Test test) async {
     // GENERATE OPTIONAL `test` DATA TO UPLOAD IT:
     // (to show the user the changes after the test has been uploaded)
     // (THE MODEL WILL BE VALIDATED BY FIRESTORE SECURITY RULES)
-    //
-    // WARNING: IF THIS `try` CODE BLOCK FAILS MID-WAY THROUGH GENERATING `test`'s
-    // VALUES, AND WHEN THE USER TRIES TO SAVE `test` AGAIN, THE CORRECT GENERATED VALUES
-    // WOULD TURN OUT TO BE DIFFERENT, THE NEW VALUES WON'T GENERATE, SINCE THE OLD ONES
-    // ARE ALREADY OCCUPYING THEIR PLACE IN `test`.
-    // TODO; MAKE SURE THIS DOESN'T HAPPEN!
 
     if (test.id == null) {
       test = test.setId(testReference.id);
     }
+
     if (test.userId == null) {
       test = test.setUserId(userId);
+    } else if (test.userId != userId) {
+      // Test doesn't belong to the current user!
+      return SaveTestResult(status: "Invalid test!", updatedTest: test);
     }
+
     if (test.dateCreated == null) {
       test = test.setDateCreated(Timestamp.now());
     }
@@ -176,7 +177,13 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
 /// in the `tests` Cloud Firestore collection.
 ///
 /// If the current user is not found,
+/// or `testResult.userId` doesn't match the current user's ID,
 /// or the test in Cloud Firestore with with `testId` as its key is not found,
+/// or the test doesn't have a matching `id` attribute,
+/// or the test is invalid,
+/// or the current user already has their test result in the test,
+/// or the test WITH `testResult` is invalid,
+/// or anything else goes wrong,
 /// this function doesn't modify the test in Cloud Firestore,
 /// and returns the issue as the `status` field of the result,
 /// and null as the `updatedTest` field of the result.
@@ -184,20 +191,7 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
 /// Normally, this function returns:
 /// SaveTestResult(status: "SaveTestResult", updatedTest: <updatedTest>)
 Future<SaveTestNullableResult> completeTest(final String testId, TestResult testResult) async {
-  String? userId;
-
-  try {
-    UserModel? user = await loggedInUser();
-
-    if (user != null) {
-      userId = user.id;
-    }
-  } catch (error) {
-    return const SaveTestNullableResult(
-      status: "Failed to get current user...",
-      updatedTest: null,
-    );
-  }
+  String? userId = auth.currentUser?.uid;
 
   if (userId == null) {
     return const SaveTestNullableResult(
@@ -206,7 +200,15 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
     );
   }
 
-  print("completeTest($testId, $testResult) as $userId;");
+  // Test results somehow don't belong to the user
+  if (testResult.userId != null && testResult.userId != userId) {
+    return const SaveTestNullableResult(
+      status: "Invalid test results...",
+      updatedTest: null,
+    );
+  }
+
+  // print("completeTest($testId, $testResult) as $userId;");
 
   testResult = testResult.setUserId(userId);
 
@@ -233,6 +235,13 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
       status: "Downloaded test's ID doesn't match...",
       updatedTest: null,
     ); 
+  }
+
+  if (!(testModel.isValid())) {
+    return const SaveTestNullableResult(
+      status: "Test invalid!",
+      updatedTest: null,
+    );
   }
 
   // If the player has played their own test, don't save their test scores to it,
@@ -266,6 +275,13 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
     );
   }
 
+  if (!(testWithChanges.isValid())) {
+    return const SaveTestNullableResult(
+      status: "Invalid test results...",
+      updatedTest: null,
+    );
+  }
+
   try {
     await testsCollection.doc(testId).set(testWithChanges.toJson());
   } catch (error) {
@@ -285,17 +301,20 @@ typedef TestQuery = Query<Map<String, dynamic>>;
 /// Some tests in the result may be null, if their snapshots don't have
 /// any data.
 ///
-/// IF AN ERROR HAPPENS WHILE CONVERTING ANY `QueryDocumentSnapshot`
-/// TO A `Test`, ITERATING OVER ANY `QueryDocumentSnapshot`,
-/// OR ANYWHERE ELSE, IT'S THROWN, AND THE WHOLE QUERY RESULT WILL
-/// NOT BE RETURNED.
+/// If an error happens while converting a `QueryDocumentSnapshot`
+/// to a `Test`, null gets returned in its place.
 Future<List<Test?>> queryTests(TestQuery query) async {
   QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
 
   return List<Test?>.from(
     querySnapshot.docs.map<Test?>(
       (QueryDocumentSnapshot<Map<String, dynamic>> queryDocumentSnapshot) {
-        return Test.fromSnapshot(queryDocumentSnapshot);
+        try {
+          return Test.fromSnapshot(queryDocumentSnapshot);
+        } catch (error) {
+          print("Error constructing test from QueryDocumentSnapshot: $error");
+          return null;
+        }
       },
     ),
   );

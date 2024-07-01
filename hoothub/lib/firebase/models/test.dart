@@ -88,28 +88,50 @@ class Test implements Model {
   ///
   /// A `Test` is valid if its `name` and `questions` aren't empty,
   /// if all of its questions are valid,
-  /// and if all of the `userResults.values` are valid, according to this test.
+  /// and if all of the `userResults.entires` are valid, according to the rest
+  /// of the information in this test.
   ///
   /// `id`, `userId`, `dateCreated` ARE NOT NEEDED TO VALIDATE A TEST,
   /// because they SHOULD be created automatically by `saveTest`.
+  ///
+  /// `id`, `userId`, `dateCreated`, `usersThatUpvoted`, `usersThatDownvoted` and `comments`
+  /// WON'T BE VALIDATED HERE, AND SHOULD BE VALIDATED BY FIREBASE SECURITY RULES.
   @override
   bool isValid() {
     for (Question question in questions) {
       if (!(question.isValid())) return false;
     }
 
+    // VALIDATE EACH ENTRY IN `userResults`
+
     for (final MapEntry<String, TestResult> mapEntry in userResults.entries) {
-      final String userId = mapEntry.key;
+
+      // Each `testResult` must have a non-null `userId` field,
+      // that's EQUAL to its key in `userResults`.
+      final String userIdKey = mapEntry.key;
       final TestResult testResult = mapEntry.value;
 
-      if (testResult.userId == null || testResult.userId != userId) {
+      if (testResult.userId == null || testResult.userId != userIdKey) {
         return false;
       }
 
-      if (!(0 <= testResult.correctAnswers && testResult.correctAnswers <= questions.length)) {
+      // VALIDATE `testResult.questionResults`
+
+      if (testResult.questionResults.length != questions.length) {
         return false;
       }
-      // TODO: VERIFY `testResult` BASED ON THE SCORING FORMULA!
+
+      // Each `QuestionResult` in `testResult.questionResults` MUST
+      // have the same question duration as `questions[index]`.
+      for (final (int index, QuestionResult questionResult) in testResult.questionResults.indexed) {
+        if (questionResult.questionDuration != questions[index].secondsDuration) {
+          return false;
+        }
+      }
+
+      // VALIDATE `testResult` USING ITS `.isValid`:
+
+      if (!(testResult.isValid())) return false;
     }
 
     return name.isNotEmpty && questions.isNotEmpty;
