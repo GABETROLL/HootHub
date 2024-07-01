@@ -79,24 +79,17 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
 
           if (!(context.mounted)) return;
 
-          if (testCompletionResults.status != 'Ok') {
+          if (
+            testCompletionResults.status != 'Ok'
+            // && testCompletionResults.status != "Your test results didn't save to the test, since you created it."
+            // && testCompletionResults.status != "You already played this test, so your test results didn't save."
+          ) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(testCompletionResults.status)),
             );
-            Navigator.pop<Test>(context, null);
-          } else {
-            // POP WITH RESULT
-
-            // According to how `completeTest` works,
-            // if `testCompletionResults.updatedTest` is null,
-            // `testCompletionResults.status` WILL NOT BE 'Ok'.
-            //
-            // So, I think we can safely pop with `testCompletionResults.updatedTest`...
-            // `testCompletionResults.updatedTest` MAY BE THE SAME AS `widget.testModel`,
-            // BECAUSE THE PLAYER ALREADY PLAYED IT, WHICH MAY CAUSE `ViewTests`
-            // TO REFRESH UNNECESSARILY.
-            Navigator.pop<Test>(context, testCompletionResults.updatedTest);
           }
+
+          Navigator.pop<Test>(context, testCompletionResults.updatedTest);
         },
       );
     } else {

@@ -54,8 +54,11 @@ class TestResult implements Model {
   final List<QuestionResult> questionResults;
   final int score;
 
+  /// Wrapper for `questionResults.length`
+  int get questionsAnswered => questionResults.length;
+
   /// WARNING: MAY NOT RETURN CORRECT RESULTS.
-  get questionsAnsweredCorrect => questionResults.fold<int>(
+  int get questionsAnsweredCorrect => questionResults.fold<int>(
     0, (int count, QuestionResult questionResult) => count + (
       questionResult.answeredCorrectly
       ? 1

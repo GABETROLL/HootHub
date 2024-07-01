@@ -1,6 +1,7 @@
 // models
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hoothub/firebase/models/test_result.dart';
 import 'package:hoothub/firebase/models/user_scores.dart';
 import 'clients.dart';
 import 'package:hoothub/firebase/models/user.dart';
@@ -208,4 +209,43 @@ Future<String> addTestIdToLoggedInUser(String testId) async {
   }
 
   return 'Ok';
+}
+
+Future<String> updateLoggedInUserScores(TestResult testResult) async {
+  final String? userId = auth.currentUser?.uid;
+
+  if (userId == null) {
+    return "You are not logged in!";
+  }
+
+  final UserScores? userScores;
+
+  try {
+    userScores = UserScores.fromSnapshot(await usersScoresCollection.doc(userId).get());
+  } catch (error) {
+    return "Failed to get your scores...";
+  }
+
+  if (userScores == null) {
+    return "Failed to modify your scores. Your scores were not found!";
+  }
+
+  UserScores userScoresWithChanges;
+
+  try {
+    userScoresWithChanges = userScores.update(
+      testResult.questionsAnsweredCorrect,
+      testResult.questionsAnswered,
+    );
+  } catch (error) {
+    return "Failed to modify your scores...";
+  }
+
+  try {
+    await usersScoresCollection.doc(userId).set(userScoresWithChanges.toJson());
+  } catch (error) {
+    return "Failed to modify your scores...";
+  }
+
+  return "Ok";
 }

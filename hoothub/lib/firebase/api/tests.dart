@@ -191,6 +191,8 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
 /// Normally, this function returns:
 /// SaveTestResult(status: "SaveTestResult", updatedTest: <updatedTest>)
 Future<SaveTestNullableResult> completeTest(final String testId, TestResult testResult) async {
+  // FIND CURRENT USER'S ID
+
   String? userId = auth.currentUser?.uid;
 
   if (userId == null) {
@@ -210,7 +212,11 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
 
   // print("completeTest($testId, $testResult) as $userId;");
 
+  // ADD CURRENT USER'S ID TO `testResult`
+
   testResult = testResult.setUserId(userId);
+
+  // MODIFY TEST
 
   Test? testModel;
 
@@ -247,9 +253,28 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
   // If the player has played their own test, don't save their test scores to it,
   // but don't display an intimidating error message, since they could be testing it.
   if (testModel.userId == userId) {
-    return SaveTestNullableResult(
+    return const SaveTestNullableResult(
       status: "Your test results didn't save to the test, since you created it.",
-      updatedTest: testModel,
+      updatedTest: null,
+    );
+  }
+
+  // If the player has already played this test, `userId` should be present
+  // in the test's `userResults` `Map` as a key,
+  // and we should keep their original scores.
+  //
+  // Otherwise, we assume this is their first time playing the test,
+  // and we add their scores to the test.
+  //
+  // FIREBASE SECURITY RULES SHOULD VERIFY THAT WE'RE NOT UPDATING OUR SCORES TWICE
+  // (AND PERHAPS EVEN VERIFY THAT WE DON'T CANCEL OUR ORIGINAL SCORES
+  // TO CHEAT FOR BETTER ONES?).
+  // ASSUMES USER'S ID WON'T BE PRESENT IN THE `id` FIELD IN ONE OF `testModel.userResults.values`,
+  // WHICH SHOULD HOPEFULLY BE PREVENTED BY FIREBASE SECURITY RULES.
+  if (testModel.userResults.containsKey(userId)) {
+    return const SaveTestNullableResult(
+      status: "You already played this test, so your test results didn't save.",
+      updatedTest: null,
     );
   }
 
@@ -257,16 +282,6 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
 
   try {
     testWithChanges = testModel.copy();
-    // If the player has already played this test, `userId` should be present
-    // in the test's `userResults` `Map` as a key,
-    // and we should keep their original scores.
-    //
-    // Otherwise, we assume this is their first time playing the test,
-    // and we add their scores to the test.
-    //
-    // FIREBASE SECURITY RULES SHOULD VERIFY THAT WE'RE NOT UPDATING OUR SCORES TWICE
-    // (AND PERHAPS EVEN VERIFY THAT WE DON'T CANCEL OUR ORIGINAL SCORES
-    // TO CHEAT FOR BETTER ONES?).
     testWithChanges.userResults.putIfAbsent(userId, () => testResult);
   } catch (error) {
     return const SaveTestNullableResult(
@@ -288,6 +303,17 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
     return const SaveTestNullableResult(
       status: "Failed to upload user's scores...",
       updatedTest: null,
+    );
+  }
+
+  // UPDATE CURRENT USER'S SCORES
+
+  String userScoresUpdateStatus = await updateLoggedInUserScores(testResult);
+
+  if (userScoresUpdateStatus != "Ok") {
+    return SaveTestNullableResult(
+      status: userScoresUpdateStatus,
+      updatedTest: testWithChanges,
     );
   }
 
