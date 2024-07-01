@@ -79,15 +79,9 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
 
           if (!(context.mounted)) return;
 
-          if (
-            testCompletionResults.status != 'Ok'
-            // && testCompletionResults.status != "Your test results didn't save to the test, since you created it."
-            // && testCompletionResults.status != "You already played this test, so your test results didn't save."
-          ) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(testCompletionResults.status)),
-            );
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(testCompletionResults.status)),
+          );
 
           Navigator.pop<Test>(context, testCompletionResults.updatedTest);
         },
