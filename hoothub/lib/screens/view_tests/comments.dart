@@ -8,7 +8,7 @@ import 'package:hoothub/firebase/api/images.dart';
 import 'package:hoothub/firebase/api/comments.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'user_author_button.dart';
+import 'package:hoothub/screens/widgets/user_author_button.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
 import 'package:hoothub/screens/styles.dart';
 
@@ -55,7 +55,6 @@ class CommentTreeWidget extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 20),
                 child: UserAuthorButton(
-                  userPostId: commentId,
                   userId: result.userId,
                 ),
               ),

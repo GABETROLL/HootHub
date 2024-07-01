@@ -1,16 +1,13 @@
 // back-end
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/api/auth.dart';
-import 'package:hoothub/firebase/api/images.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/home/view_home_tests.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
-import 'package:hoothub/screens/widgets/info_downloader.dart';
+import 'package:hoothub/screens/widgets/user_author_button.dart';
 import 'login.dart';
 
 /// For now, this widget only shows the user a test test.
@@ -26,6 +23,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   UserModel? _userModel;
   bool _userChecked = false;
+
+  /// Ticks from false to true and back forever,
+  /// whenever this widget needs to refresh.
+  bool _refresher = false;
 
   /// Tries to get the user's `UserModel` from `loggedInUser`,
   /// then sets `_userModel` to its result, if it was eventually recieved,
@@ -108,44 +109,55 @@ class _HomeState extends State<Home> {
       );
     }
 
+    final UserModel? userModelPromoted = _userModel;
+
     final List<Widget> actions;
 
-    if (_userModel != null) {
+    if (userModelPromoted != null) {
       actions = <Widget>[
         IconButton(
-          onPressed: () {
-            Navigator.push(
+          onPressed: () async {
+            Test? testWithChanges = await Navigator.push<Test>(
               context,
-              MaterialPageRoute(
+              MaterialPageRoute<Test>(
                 builder: (BuildContext context) => MakeTest(
                   testModel: Test(),
                 ),
               ),
             );
+
+            if (!mounted) return;
+
+            if (testWithChanges != null) {
+              // TODO: SOMEHOW ONLY REFRESH THE CHANGED TEST,
+              //  TO SHOW THE USER THE CHANGES
+              setState(() {
+                _refresher = !_refresher;
+              });
+            }
           },
           icon: const Icon(Icons.add),
         ),
-        InkWell(
-          onTap: () {
-            // TODO: GO TO USER'S PROFILE HERE
+        UserAuthorButton(
+          userId: userModelPromoted.id,
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            final String logOutResult = await logOut();
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(logOutResult)),
+              );
+            }
+
+            if (mounted) {
+              setState(() {
+                _refresher = !_refresher;
+              });
+            }
           },
-          child: Row(
-            children: [
-              InfoDownloader<Uint8List>(
-                downloadInfo: () => downloadUserImage(_userModel!.id),
-                builder: (BuildContext context, Uint8List? userImageData, bool downloaded) {
-                  if (userImageData != null) {
-                    return Image.memory(userImageData);
-                  }
-                  return Image.asset('default_user_image.png');
-                },
-                buildError: (BuildContext context, Object error) {
-                  return Text("Error loading current user's profile image: $error");
-                },
-              ),
-              Text(_userModel!.username),
-            ],
-          ),
+          child: const Text('Logout'),
         ),
       ];
     } else {

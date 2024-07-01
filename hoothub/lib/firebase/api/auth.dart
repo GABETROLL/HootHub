@@ -123,6 +123,18 @@ Future<String> logInUser({required String email, required String password}) asyn
   return 'Ok';
 }
 
+Future<String> logOut() async {
+  if (auth.currentUser == null) return "Cannot logout, you're not logged in.";
+
+  try {
+    await auth.signOut();
+  } catch (error) {
+    return "Failed to log out!";
+  }
+
+  return "Logged out successfully!";
+}
+
 /// Returns the `UserModel` representation of the currently logged-in user (`auth.currentUser`),
 /// which should be in the `usersCollection`, defined in `clients.dart`.
 ///

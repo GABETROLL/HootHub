@@ -1,22 +1,19 @@
 import 'dart:typed_data';
-import 'package:flutter/widgets.dart';
 import 'package:hoothub/firebase/models/user.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/api/images.dart';
 
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/widgets/info_downloader.dart';
+import 'info_downloader.dart';
 import 'package:hoothub/screens/user_profile/user_profile.dart';
 import 'package:hoothub/screens/styles.dart';
 
 class UserAuthorButton extends StatelessWidget {
   const UserAuthorButton({
     super.key,
-    required this.userPostId,
     required this.userId,
   });
 
-  final String userPostId;
   final String? userId;
 
   @override
@@ -82,7 +79,7 @@ class UserAuthorButton extends StatelessWidget {
         );
       },
       buildError: (BuildContext context, Object error) {
-        print("Error displaying `$userPostId`'s author, `$userId`: $error");
+        print("Error displaying user $userId's profile screen button: $error");
         return const Text('[Error]');
       },
     );
