@@ -51,8 +51,15 @@ Future<String> signUpUser({
   try {
     userScoresModel = UserScores(
       userId: userId,
-      questionsAnswered: 0,
-      questionsAnsweredCorrect: 0,
+      netAnswerRatio: const AnswerRatio(questionsAnswered: 0, questionsAnsweredCorrect: 0),
+      bestScore: 0,
+      bestAnswerRatio: const AnswerRatio(questionsAnswered: 0, questionsAnsweredCorrect: 0),
+      netUpvotes: 0,
+      upvotes: 0,
+      downvotes: 0,
+      netComments: 0,
+      hardestTest: null,
+      easiestTest: null,
     );
   } catch (error) {
     return "Error creating user's scores model: $error";
@@ -207,10 +214,7 @@ Future<String> updateLoggedInUserScores(TestResult testResult) async {
   UserScores userScoresWithChanges;
 
   try {
-    userScoresWithChanges = userScores.update(
-      testResult.questionsAnsweredCorrect,
-      testResult.questionsAnswered,
-    );
+    userScoresWithChanges = userScores.update(testResult);
   } catch (error) {
     return "Failed to modify your scores...";
   }
