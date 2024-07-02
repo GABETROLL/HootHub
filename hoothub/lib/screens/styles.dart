@@ -68,6 +68,11 @@ final ThemeData outerTheme = ThemeData(
     surface: primaryColor,
     onSurface: white,
   ),
+  iconButtonTheme: const IconButtonThemeData(
+    style: ButtonStyle(
+      foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
+    ),
+  ),
   indicatorColor: primaryColor,
   inputDecorationTheme: credentialsInputTheme,
   dropdownMenuTheme: DropdownMenuThemeData(

@@ -280,6 +280,8 @@ class _MakeTestState extends State<MakeTest> {
           );
         }
 
+        const sidePanelConstraints = BoxConstraints(maxWidth: 400);
+
         final List<Widget> sidePanelWithSlidePreviews = <Widget>[
           ImageEditor(
             imageData: testModelEditor.image,
@@ -423,7 +425,7 @@ class _MakeTestState extends State<MakeTest> {
           body: Row(
             children: <Widget>[
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
+                constraints: sidePanelConstraints,
                 child: ListView(
                   children: sidePanelWithSlidePreviews,
                 ),

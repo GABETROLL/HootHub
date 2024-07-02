@@ -1,8 +1,9 @@
 import 'dart:typed_data';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 
-/// WARNING: `defaultImage` MUST BE UN-SIZED.
 class ImageEditor extends StatelessWidget {
   const ImageEditor({
     super.key,
@@ -21,44 +22,53 @@ class ImageEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Image image;
+    Uint8List? imageDataPromoted = imageData;
 
-    try {
-      image = Image.memory(imageData!);
-    } catch (error) {
+    final Image image;
+
+    if (imageDataPromoted == null) {
       image = defaultImage;
+    } else {
+      image = Image.memory(imageDataPromoted);
     }
 
-    return Stack(
-      children: <Widget>[
-        InkWell(
+    final List<Widget> children = <Widget>[
+      Flexible(
+        fit: FlexFit.loose,
+        child: InkWell(
           onTap: () async {
             final ImagePicker imagePicker = ImagePicker();
             final XFile? newImageFile = await imagePicker.pickImage(source: ImageSource.gallery);
-
             if (newImageFile == null) {
               if (!(context.mounted)) return;
-
+ 
               asyncOnImageNotRecieved();
               return;
             }
 
             final Uint8List newImageData = await newImageFile.readAsBytes();
-
             asyncOnChange(newImageData);
           },
           child: image,
         ),
-        Align(
-          alignment: Alignment.topRight,
-          child: IconButton(
-            onPressed: onDelete,
-              icon: const Icon(
-              Icons.delete,
-            ),
+      ),
+    ];
+
+    if (imageDataPromoted != null) {
+      children.add(
+        IconButton(
+          onPressed: onDelete,
+            icon: const Icon(
+            Icons.delete,
           ),
         ),
-      ],
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
     );
   }
 }

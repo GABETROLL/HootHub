@@ -36,6 +36,8 @@ class _UserProfileState extends State<UserProfile> {
     String? userIdPromoted = widget.user.id;
     String? currentUserId = auth.currentUser?.uid;
 
+    const userImageConstraints = BoxConstraints(maxHeight: 300, maxWidth: 300);
+
     final Widget userImageWidget;
 
     // If this user to display IS the current user,
@@ -81,11 +83,18 @@ class _UserProfileState extends State<UserProfile> {
     } else {
       Uint8List? userImagePromoted = _userImage;
 
+      final Image userImageImage;
+
       if (userImagePromoted != null) {
-        userImageWidget = Image.memory(userImagePromoted);
+        userImageImage = Image.memory(userImagePromoted);
       } else {
-        userImageWidget = Image.asset('assets/default_user_image.png');
+        userImageImage = Image.asset('assets/default_user_image.png');
       }
+
+      userImageWidget = ConstrainedBox(
+        constraints: userImageConstraints,
+        child: userImageImage,
+      );
     }
 
     return Scaffold(
@@ -97,9 +106,8 @@ class _UserProfileState extends State<UserProfile> {
             children: [
               Row(
                 children: [
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 300, maxWidth: 300),
-                    child: userImageWidget
+                  Flexible(
+                    child: userImageWidget,
                   ),
                   Expanded(
                     child: Column(

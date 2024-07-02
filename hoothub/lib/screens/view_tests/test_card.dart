@@ -110,6 +110,11 @@ class TestCard extends StatelessWidget {
             backgroundColor: MaterialStatePropertyAll(primaryColor),
           ),
         ),
+        iconButtonTheme: const IconButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
+          )
+        )
       ),
       child: Center(
         child: ConstrainedBox(
