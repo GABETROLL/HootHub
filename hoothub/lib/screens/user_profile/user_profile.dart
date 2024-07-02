@@ -38,6 +38,8 @@ class _UserProfileState extends State<UserProfile> {
 
     final Widget userImageWidget;
 
+    // If this user to display IS the current user,
+    // let them edit/delete/upload their profile picture:
     if (currentUserId != null && userIdPromoted == currentUserId) {
       userImageWidget = ImageEditor(
         imageData: _userImage,
@@ -66,6 +68,15 @@ class _UserProfileState extends State<UserProfile> {
             const SnackBar(content: Text("Image not recieved!")),
           );
         },
+        onDelete: () async {
+          String deleteStatus = await deleteLoggedInUserImage();
+
+          if (!(context.mounted)) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(deleteStatus)),
+          );
+        }
       );
     } else {
       Uint8List? userImagePromoted = _userImage;
@@ -87,8 +98,8 @@ class _UserProfileState extends State<UserProfile> {
               Row(
                 children: [
                   ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 300, maxHeight: 300),
-                    child: userImageWidget,
+                    constraints: const BoxConstraints(maxHeight: 300, maxWidth: 300),
+                    child: userImageWidget
                   ),
                   Expanded(
                     child: Column(

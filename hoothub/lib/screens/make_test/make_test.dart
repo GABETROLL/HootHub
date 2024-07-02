@@ -298,6 +298,9 @@ class _MakeTestState extends State<MakeTest> {
                 const SnackBar(content: Text('Image not recieved!')),
               );
             },
+            onDelete: () => setState(() {
+              testModelEditor.image = null;
+            }),
           ),
         ];
 
@@ -372,6 +375,9 @@ class _MakeTestState extends State<MakeTest> {
                     const SnackBar(content: Text("Question's image not recieved!")),
                   );
                 },
+                onDelete: () => setState(() {
+                  testModelEditor.questionModelEditors[_currentSlideIndex].image = null;
+                }),
               ),
               deleteQuestion: () => setState(() {
                 testModelEditor.deleteQuestion(_currentSlideIndex);

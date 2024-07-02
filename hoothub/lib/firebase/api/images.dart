@@ -42,3 +42,19 @@ Future<Uint8List?> downloadTestImage(String testId) {
 Future<Uint8List?> downloadQuestionImage(String testId, int questionIndex) {
   return downloadImage(testsImages.child('$testId/$questionIndex'));
 }
+
+Future<String> deleteLoggedInUserImage() async {
+  String? currentUserId = auth.currentUser?.uid;
+
+  if (currentUserId == null) {
+    return "Cannot delete this user's profile picture, you're not logged in!";
+  }
+
+  try {
+    await usersImages.child(currentUserId).delete();
+  } catch (error) {
+    return "Failed to delete you profile picture...";
+  }
+
+  return "Your profile picture was deleted successfully!";
+}

@@ -126,7 +126,7 @@ class SlideEditor extends StatelessWidget {
         Center(
           child: Container(
             alignment: Alignment.center,
-            constraints: const BoxConstraints(maxHeight: questionImageHeight),
+            constraints: questionImageConstraints,
             child: questionImageEditor,
           ),
         ),
