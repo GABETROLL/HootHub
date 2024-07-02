@@ -22,46 +22,53 @@ class ImageEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Image image;
+    Uint8List? imageDataPromoted = imageData;
 
-    try {
-      image = Image.memory(imageData!);
-    } catch (error) {
+    final Image image;
+
+    if (imageDataPromoted == null) {
       image = defaultImage;
+    } else {
+      image = Image.memory(imageDataPromoted);
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Flexible(
-          fit: FlexFit.loose,
-          child: InkWell(
-            onTap: () async {
-              final ImagePicker imagePicker = ImagePicker();
-              final XFile? newImageFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    final List<Widget> children = <Widget>[
+      Flexible(
+        fit: FlexFit.loose,
+        child: InkWell(
+          onTap: () async {
+            final ImagePicker imagePicker = ImagePicker();
+            final XFile? newImageFile = await imagePicker.pickImage(source: ImageSource.gallery);
+            if (newImageFile == null) {
+              if (!(context.mounted)) return;
+ 
+              asyncOnImageNotRecieved();
+              return;
+            }
 
-              if (newImageFile == null) {
-                if (!(context.mounted)) return;
-
-                asyncOnImageNotRecieved();
-                return;
-              }
-
-              final Uint8List newImageData = await newImageFile.readAsBytes();
-
-              asyncOnChange(newImageData);
-            },
-            child: image,
-          ),
+            final Uint8List newImageData = await newImageFile.readAsBytes();
+            asyncOnChange(newImageData);
+          },
+          child: image,
         ),
+      ),
+    ];
+
+    if (imageDataPromoted != null) {
+      children.add(
         IconButton(
           onPressed: onDelete,
             icon: const Icon(
             Icons.delete,
           ),
         ),
-      ],
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
     );
   }
 }
