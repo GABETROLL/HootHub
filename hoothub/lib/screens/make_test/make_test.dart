@@ -280,10 +280,13 @@ class _MakeTestState extends State<MakeTest> {
           );
         }
 
+        const sidePanelConstraints = BoxConstraints(maxWidth: 400);
+
         final List<Widget> sidePanelWithSlidePreviews = <Widget>[
           ImageEditor(
             imageData: testModelEditor.image,
             defaultImage: Image.asset('assets/default_image.png'),
+            constraints: sidePanelConstraints,
             asyncOnChange: (Uint8List newImage) {
               if (!mounted) return;
 
@@ -358,6 +361,7 @@ class _MakeTestState extends State<MakeTest> {
               questionImageEditor: ImageEditor(
                 imageData: testModelEditor.questionModelEditors[_currentSlideIndex].image,
                 defaultImage: Image.asset('assets/default_image.png'),
+                constraints: questionImageConstraints,
                 asyncOnChange: (Uint8List newImage) {
                   if (!mounted) return;
 
@@ -423,7 +427,7 @@ class _MakeTestState extends State<MakeTest> {
           body: Row(
             children: <Widget>[
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
+                constraints: sidePanelConstraints,
                 child: ListView(
                   children: sidePanelWithSlidePreviews,
                 ),
