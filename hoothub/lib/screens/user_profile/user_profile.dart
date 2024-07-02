@@ -46,7 +46,6 @@ class _UserProfileState extends State<UserProfile> {
       userImageWidget = ImageEditor(
         imageData: _userImage,
         defaultImage: Image.asset('assets/default_user_image.png'),
-        constraints: userImageConstraints,
         asyncOnChange: (Uint8List newImage) async {
           if (!mounted) return;
 
@@ -107,7 +106,9 @@ class _UserProfileState extends State<UserProfile> {
             children: [
               Row(
                 children: [
-                  userImageWidget,
+                  Flexible(
+                    child: userImageWidget,
+                  ),
                   Expanded(
                     child: Column(
                       children: [

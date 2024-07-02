@@ -286,7 +286,6 @@ class _MakeTestState extends State<MakeTest> {
           ImageEditor(
             imageData: testModelEditor.image,
             defaultImage: Image.asset('assets/default_image.png'),
-            constraints: sidePanelConstraints,
             asyncOnChange: (Uint8List newImage) {
               if (!mounted) return;
 
@@ -361,7 +360,6 @@ class _MakeTestState extends State<MakeTest> {
               questionImageEditor: ImageEditor(
                 imageData: testModelEditor.questionModelEditors[_currentSlideIndex].image,
                 defaultImage: Image.asset('assets/default_image.png'),
-                constraints: questionImageConstraints,
                 asyncOnChange: (Uint8List newImage) {
                   if (!mounted) return;
 
