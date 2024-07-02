@@ -108,6 +108,17 @@ Future<Test?> testWithId(String testId) async {
   return Test.fromSnapshot(await testsCollection.doc(testId).get());
 }
 
+/// Deletes test  with `testId` as its key from `testsCollection`.
+Future<String> deleteTestWithId(String testId) async {
+  try {
+    await testsCollection.doc(testId).delete();
+  } catch (error) {
+    return "And error has occured while deleting your test...";
+  }
+
+  return "Test deleted successfully!";
+}
+
 /// Votes on `test` according to `up`.
 ///
 /// This function updates the model in Cloud Firestore

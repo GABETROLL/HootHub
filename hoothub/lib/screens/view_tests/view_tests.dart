@@ -1,5 +1,6 @@
 // back-end
 import 'package:hoothub/firebase/models/test.dart';
+import 'package:hoothub/firebase/api/tests.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
@@ -230,6 +231,35 @@ class _ViewTestsState extends State<ViewTests> {
 
                         if (refreshedTest != null) {
                           asyncRefreshTest(tests, index, refreshedTest);
+                        }
+                      },
+                      delete: () async {
+                        // remove remotely
+
+                        String? testIdPromoted = testModel.id;
+
+                        final String status;
+
+                        if (testIdPromoted == null) {
+                          status = "Failed to delete test...";
+                        } else {
+                          status = await deleteTestWithId(testIdPromoted);
+                        }
+
+                        // show deleting status
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(status)),
+                          );
+                        }
+
+                        // remove locally
+
+                        if (mounted) {
+                          setState(() {
+                            tests.removeAt(index);
+                          });
                         }
                       },
                       color: testCardColor

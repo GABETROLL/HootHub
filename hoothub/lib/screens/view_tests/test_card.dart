@@ -18,6 +18,7 @@ class TestCard extends StatelessWidget {
     required this.asyncSetTestModel,
     required this.playSolo,
     required this.edit,
+    required this.delete,
     required this.color,
   });
 
@@ -25,6 +26,7 @@ class TestCard extends StatelessWidget {
   final void Function(Test newTestModel) asyncSetTestModel;
   final void Function() playSolo;
   final void Function() edit;
+  final void Function() delete;
   final Color color;
 
   Future<void> onVote({ required BuildContext context, required bool up }) async {
@@ -85,6 +87,15 @@ class TestCard extends StatelessWidget {
         ElevatedButton(
           onPressed: edit,
           child: const Text('Edit'),
+        ),
+      );
+
+      options.add(
+        IconButton(
+          onPressed: delete,
+          icon: const Icon(
+            Icons.delete,
+          ),
         ),
       );
     }
