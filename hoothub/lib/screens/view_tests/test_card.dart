@@ -192,7 +192,7 @@ class TestCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 7),
                   child: Theme(
                     data: outerTheme,
-                    child: QuestionsCard(questions: testModel.questions),
+                    child: QuestionsCard(testId: testId, questions: testModel.questions),
                   ),
                 ),
                 // TEST COMMENTS

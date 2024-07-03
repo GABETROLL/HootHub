@@ -1,8 +1,11 @@
 // back-end
+import 'dart:typed_data';
+import 'package:hoothub/firebase/api/images.dart';
 import 'package:hoothub/firebase/models/question.dart';
 // front-end
 import 'package:flutter/material.dart';
 import 'package:hoothub/screens/styles.dart';
+import 'package:hoothub/screens/widgets/info_downloader.dart';
 
 class QuestionAnswerPreview extends StatelessWidget {
   const QuestionAnswerPreview({
@@ -30,9 +33,13 @@ class QuestionAnswerPreview extends StatelessWidget {
 class QuestionCard extends StatefulWidget {
   const QuestionCard({
     super.key,
+    required this.testId,
+    required this.questionIndex,
     required this.questionModel,
   });
 
+  final String testId;
+  final int questionIndex;
   final Question questionModel;
 
   @override
@@ -42,8 +49,9 @@ class QuestionCard extends StatefulWidget {
 class _QuestionCardState extends State<QuestionCard> {
   bool _correctAnswerRevealed = false;
 
-  @override
-  Widget build(BuildContext context) {
+  Widget buildWithQuestionImage(BuildContext context, Widget questionImage) {
+    const separator = SizedBox(height: 8);
+
     List<Widget> questionChildren = [
       TextButton(
         onPressed: () => setState(() {
@@ -55,11 +63,13 @@ class _QuestionCardState extends State<QuestionCard> {
         ),
         child: Text('${_correctAnswerRevealed ? 'Hide' : 'Reveal'} correct answer'),
       ),
+      separator,
+      questionImage,
+      separator,
     ];
 
     for (final (int index, String answer) in widget.questionModel.answers.indexed) {
       final bool isCorrectAnswer = index == widget.questionModel.correctAnswer;
-
       final Icon questionPreviewIcon = (
         _correctAnswerRevealed
         ? (
@@ -77,6 +87,8 @@ class _QuestionCardState extends State<QuestionCard> {
           color: answerColor(index),
         ),
       );
+
+      questionChildren.add(separator);
     }
 
     return ExpansionTile(
@@ -84,14 +96,47 @@ class _QuestionCardState extends State<QuestionCard> {
       children: questionChildren,
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return InfoDownloader<Uint8List>(
+      downloadInfo: () => downloadQuestionImage(widget.testId, widget.questionIndex),
+      builder: (BuildContext context, Uint8List? questionImageData, bool downloaded) {
+        final Widget questionImage = ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 100, maxHeight: 100),
+          child: (
+            downloaded
+            ? (
+              questionImageData != null
+              ? Image.memory(questionImageData)
+              : const SizedBox()
+            )
+            : (
+              Image.asset('assets/default_image.png')
+            )
+          ),
+        );
+
+        return buildWithQuestionImage(context, questionImage);
+      },
+      buildError: (BuildContext context, Object error) {
+        return buildWithQuestionImage(
+          context,
+          const Text("Failed to download question's image..."),
+        );
+      },
+    );
+  }
 }
 
 class QuestionsCard extends StatelessWidget {
   const QuestionsCard({
     super.key,
+    required this.testId,
     required this.questions,
   });
 
+  final String testId;
   final List<Question> questions;
 
   @override
@@ -111,8 +156,8 @@ class QuestionsCard extends StatelessWidget {
       child: ExpansionTile(
         title: const Text('Questions'),
         children: List<Widget>.from(
-          questions.map<Widget>(
-            (Question question) => QuestionCard(questionModel: question),
+          questions.indexed.map<Widget>(
+            ((int, Question) indexAndQuestion) => QuestionCard(testId: testId, questionIndex: indexAndQuestion.$1, questionModel: indexAndQuestion.$2),
           ),
         ),
       ),

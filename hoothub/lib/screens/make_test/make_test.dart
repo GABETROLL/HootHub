@@ -3,7 +3,6 @@
 library;
 
 // backend
-import 'package:firebase_core/firebase_core.dart';
 import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 import 'package:hoothub/firebase/api/images.dart';
