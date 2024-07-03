@@ -98,8 +98,11 @@ class Test implements Model {
   /// WON'T BE VALIDATED HERE, AND SHOULD BE VALIDATED BY FIREBASE SECURITY RULES.
   @override
   bool isValid() {
-    for (Question question in questions) {
-      if (!(question.isValid())) return false;
+    for (final (int index, Question question) in questions.indexed) {
+      if (!(question.isValid())) {
+        print("question #$index invalid!");
+        return false;
+      }
     }
 
     // VALIDATE EACH ENTRY IN `userResults`
@@ -110,16 +113,6 @@ class Test implements Model {
       // that's EQUAL to its key in `userResults`.
       final String userIdKey = mapEntry.key;
       final TestResult testResult = mapEntry.value;
-
-      if (testResult.userId == null || testResult.userId != userIdKey) {
-        return false;
-      }
-
-      // VALIDATE `testResult.questionResults`
-
-      if (testResult.questionResults.length != questions.length) {
-        return false;
-      }
 
       // Each `QuestionResult` in `testResult.questionResults` MUST
       // have the same question duration as `questions[index]`.
