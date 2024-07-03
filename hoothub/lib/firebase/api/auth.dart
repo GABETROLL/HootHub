@@ -55,11 +55,9 @@ Future<String> signUpUser({
       bestScore: 0,
       bestAnswerRatio: const AnswerRatio(questionsAnswered: 0, questionsAnsweredCorrect: 0),
       netUpvotes: 0,
-      upvotes: 0,
-      downvotes: 0,
+      netVotes: 0,
+      netDownvotes: 0,
       netComments: 0,
-      hardestTest: null,
-      easiestTest: null,
     );
   } catch (error) {
     return "Error creating user's scores model: $error";
@@ -202,6 +200,15 @@ Future<String> deleteLoggedInUser() async {
 ///   using `UserModel.fromSnapshot`, also failed.
 Future<UserModel?> userWithId(String id) async {
   return UserModel.fromSnapshot(await usersCollection.doc(id).get());
+}
+
+/// Returns the `UserScores` document belonging to the user with `id` as its ID.
+///
+/// If the document doesn't exist, this function SHOULD return null.
+///
+/// This function THROWS.
+Future<UserScores?> scoresOfUserWithId(String id) async {
+  return UserScores.fromSnapshot(await usersScoresCollection.doc(id).get());
 }
 
 Future<String> updateLoggedInUserScores(TestResult testResult) async {

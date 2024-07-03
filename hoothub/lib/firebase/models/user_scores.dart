@@ -50,11 +50,9 @@ class UserScores implements Model {
     required this.bestScore,
     required this.bestAnswerRatio,
     required this.netUpvotes,
-    required this.upvotes,
-    required this.downvotes,
+    required this.netVotes,
+    required this.netDownvotes,
     required this.netComments,
-    required this.hardestTest,
-    required this.easiestTest,
   });
 
   final String? userId;
@@ -62,11 +60,9 @@ class UserScores implements Model {
   final int bestScore;
   final AnswerRatio bestAnswerRatio;
   final int netUpvotes;
-  final int upvotes;
-  final int downvotes;
+  final int netVotes;
+  final int netDownvotes;
   final int netComments;
-  final String? hardestTest;
-  final String? easiestTest;
 
   /// Validates `netAnswerRatio` and `bestAnswerRatio`.
   @override
@@ -81,11 +77,9 @@ class UserScores implements Model {
     bestScore: bestScore,
     bestAnswerRatio: bestAnswerRatio,
     netUpvotes: netUpvotes,
-    upvotes: upvotes,
-    downvotes: downvotes,
+    netVotes: netVotes,
+    netDownvotes: netDownvotes,
     netComments: netComments,
-    hardestTest: hardestTest,
-    easiestTest: easiestTest,
   );
 
   /// Returns copy of `this`, with consideration to the new questions the owner of `this`
@@ -102,11 +96,9 @@ class UserScores implements Model {
       bestScore: testResult.score > bestScore ? testResult.score : bestScore,
       bestAnswerRatio: testResultAnswerRatio.ratio > bestAnswerRatio.ratio ? testResultAnswerRatio : bestAnswerRatio,
       netUpvotes: netUpvotes,
-      upvotes: upvotes,
-      downvotes: downvotes,
+      netVotes: netVotes,
+      netDownvotes: netDownvotes,
       netComments: netComments,
-      hardestTest: hardestTest,
-      easiestTest: easiestTest,
     );
   }
 
@@ -121,11 +113,9 @@ class UserScores implements Model {
       bestScore: data['bestScore'],
       bestAnswerRatio: AnswerRatio.fromJson(data['bestAnswerRatio']),
       netUpvotes: data['netUpvotes'],
-      upvotes: data['upvotes'],
-      downvotes: data['downvotes'],
+      netVotes: data['upvotes'],
+      netDownvotes: data['downvotes'],
       netComments: data['netComments'],
-      hardestTest: data['hardestTest'],
-      easiestTest: data['easiestTest'],
     );
   }
 
@@ -136,10 +126,8 @@ class UserScores implements Model {
     'bestScore': bestScore,
     'bestAnswerRatio': bestAnswerRatio.toJson(),
     'netUpvotes': netUpvotes,
-    'upvotes':upvotes,
-    'downvotes': downvotes,
+    'upvotes': netVotes,
+    'downvotes': netDownvotes,
     'netComments': netComments,
-    'hardestTest': hardestTest,
-    'easiestTest': easiestTest,
   };
 }

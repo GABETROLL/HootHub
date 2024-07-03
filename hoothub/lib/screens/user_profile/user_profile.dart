@@ -1,6 +1,7 @@
 import 'package:hoothub/firebase/api/clients.dart';
 import 'package:hoothub/firebase/api/images.dart';
 import 'package:hoothub/firebase/models/user.dart';
+import 'package:hoothub/firebase/models/user_scores.dart';
 
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -13,10 +14,12 @@ class UserProfile extends StatefulWidget {
     super.key,
     required this.user,
     required this.userImage,
+    required this.userScores,
   });
 
   final UserModel user;
   final Uint8List? userImage;
+  final UserScores? userScores;
 
   @override
   State<UserProfile> createState() => _UserProfileState();
@@ -97,6 +100,8 @@ class _UserProfileState extends State<UserProfile> {
       );
     }
 
+    UserScores? userScoresPromoted = widget.userScores;
+
     return Scaffold(
       appBar: AppBar(title: const Text('HootHub - View Profile')),
       body: Center(
@@ -119,7 +124,57 @@ class _UserProfileState extends State<UserProfile> {
                   ),
                 ],
               ),
-              // USER STATS HERE
+              // USER SCORES:
+              (
+                userScoresPromoted == null
+                ? const Text("User scores not available...")
+                : Table(
+                  children: <TableRow>[
+                    TableRow(
+                      children: <Widget>[
+                        const Text("Total questions answered correct / Total questions answered"),
+                        Text("${userScoresPromoted.netAnswerRatio.questionsAnsweredCorrect} / ${userScoresPromoted.netAnswerRatio.questionsAnswered}"),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        const Text("Best Point Score"),
+                        Text("${userScoresPromoted.bestScore}"),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        const Text("Best Answer Score"),
+                        Text("${userScoresPromoted.bestAnswerRatio.questionsAnsweredCorrect} / ${userScoresPromoted.bestAnswerRatio.questionsAnswered}"),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        const Text("Net Upvotes"),
+                        Text("${userScoresPromoted.netUpvotes}"),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        const Text("Net Votes"),
+                        Text("${userScoresPromoted.netVotes}"),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        const Text("Net Downvotes"),
+                        Text("${userScoresPromoted.netDownvotes}"),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        const Text("Net Comments"),
+                        Text("${userScoresPromoted.netComments}"),
+                      ],
+                    ),
+                  ],
+                )
+              ),
               Expanded(
                 child: userIdPromoted != null
                   ? ViewUserTests(userId: userIdPromoted)
