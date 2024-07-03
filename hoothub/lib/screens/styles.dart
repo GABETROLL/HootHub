@@ -68,6 +68,10 @@ final ThemeData outerTheme = ThemeData(
     surface: primaryColor,
     onSurface: white,
   ),
+  appBarTheme: const AppBarTheme(
+    foregroundColor: white,
+    backgroundColor: primaryColor,
+  ),
   iconButtonTheme: const IconButtonThemeData(
     style: ButtonStyle(
       foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
