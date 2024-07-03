@@ -35,7 +35,36 @@ class CommentTreeWidget extends StatelessWidget {
           return const Text('Comment not found!');
         }
 
-        List<Widget> children = [
+        String? currentUserId = auth.currentUser?.uid;
+
+        List<Widget> rowChildren = <Widget>[
+          UserAuthorButton(
+             userId: result.userId,
+          ),
+          const SizedBox(width: 10),    
+        ];
+
+        if (currentUserId != null && result.userId != null && result.userId == currentUserId) {
+          rowChildren.add(
+            IconButton(
+              onPressed: () async {
+                String deleteStatus = await deleteCommentWithId(testId, commentId);
+
+                if (!(context.mounted)) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(deleteStatus)),
+                );
+              },
+              icon: const Icon(Icons.delete),
+            ),
+          );
+          rowChildren.add(const SizedBox(width: 10));
+        }
+
+        rowChildren.add(Text(result.comment));
+
+        List<Widget> commentChildren = [
           CommentForm(
             onCommentSubmitted: (String comment) {
               replyToCommentWithId(commentId, comment);
@@ -44,24 +73,16 @@ class CommentTreeWidget extends StatelessWidget {
         ];
 
         for (String replyId in result.replyIds) {
-          children.add(
+          commentChildren.add(
             CommentTreeWidget(testId: testId, commentId: replyId),
           );
         }
 
         return ExpansionTile(
           title: Row(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(right: 20),
-                child: UserAuthorButton(
-                  userId: result.userId,
-                ),
-              ),
-              Text(result.comment),
-            ],
+            children: rowChildren,
           ),
-          children: children,
+          children: commentChildren,
         );
       },
       buildError: (BuildContext context, Object error) {

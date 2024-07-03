@@ -53,6 +53,28 @@ class CommentTree implements Model {
     replyIds: List.of(replyIds),
   );
 
+  CommentTree setUserId(String? newUserId) => CommentTree(
+    id: id,
+    userId: newUserId,
+    testId: testId,
+    parentCommentId: parentCommentId,
+    comment: comment,
+    usersThatUpvoted: usersThatUpvoted,
+    usersThatDownvoted: usersThatDownvoted,
+    replyIds: replyIds,
+  );
+
+  CommentTree setComment(String newComment) => CommentTree(
+    id: id,
+    userId: userId,
+    testId: testId,
+    parentCommentId: parentCommentId,
+    comment: newComment,
+    usersThatUpvoted: usersThatUpvoted,
+    usersThatDownvoted: usersThatDownvoted,
+    replyIds: replyIds,
+  );
+
   static CommentTree? fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final Map<String, dynamic>? data = snapshot.data();
 

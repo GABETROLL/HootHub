@@ -55,22 +55,38 @@ Future<String> commentOnTestWithId(String testId, String comment) async {
   return 'Ok';
 }
 
-/// Tries to DELETE the comment document, in the `comments` collection,
-/// with `commentId` as its document ID key.
+/// Tries to DELETE the comment document with `commentId` as its document ID key
+/// in the `comments` collection.
 ///
-/// Returns 'Ok' if everything seems to have gone well,
-/// `error.message ?? error.code` if a FirebaseException occured,
-/// or `error.toString()` if any other error occured.
+/// Returns the status of the comment deletion.
 ///
 /// THROWS: Shouldn't throw anything.
-Future<String> deleteCommentWithId(String commentId) async {
+Future<String> deleteCommentWithId(String testId, String commentId) async {
+  CommentTree? commentTree;
+
   try {
-    await commentsCollection.doc(commentId).delete();
-    return 'Ok';
-  } on FirebaseException catch (error) {
-    return error.message ?? error.code;
+    commentTree = await commentWithId(commentId);
   } catch (error) {
-    return error.toString();
+    print("Failed to download comment to delete: $error");
+    return "Failed to download comment to delete...";
+  }
+
+  if (commentTree == null) {
+    return "Did not find comment to delete...";
+  }
+
+  try {
+    commentTree = commentTree.setUserId(null).setComment("[DELETED]");
+
+    await commentsCollection.doc(commentId).set(commentTree.toJson());
+
+    return 'Comment deleted successfully!';
+  } on FirebaseException catch (error) {
+    print("An error occured while deleting comment $commentId: ${error.message ?? error.code}");
+    return "An error occured while deleting comment!";
+  } catch (error) {
+    print("An error occured while deleting comment $commentId: ${error.toString()}");
+    return "An error occured while deleting comment!";
   }
 }
 
