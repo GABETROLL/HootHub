@@ -142,8 +142,8 @@ class _MakeTestState extends State<MakeTest> {
   /// tries to upload `testModelEditor`'s images to Cloud Storage.
   ///
   /// Returns the status string for the upload,
-  /// and a new, updated version of `TestModelEditor` with all of its optinal fields,
-  /// generated (the ones generated from `saveTest`).
+  /// and a new, updated version of `TestModelEditor` AS A `Test`,
+  /// with the changes returned by `saveTest`.
   Future<(String, Test)> _uploadTest(TestModelEditor testModelEditor) async {
     Test testModel = testModelEditor.toTest();
 
@@ -155,47 +155,26 @@ class _MakeTestState extends State<MakeTest> {
       status = 'Invalid Test!';
     } else {
       // SAVE TEST
-
       saveTestResult = await saveTest(testModel);
 
-      // saveTestResult.updatedTest.id != null
+      // SAVE TEST'S IMAGES
+      String? saveTestResultTestId = saveTestResult.updatedTest.id;
 
-      if (saveTestResult.status != 'Ok') {
-        status = 'Error saving test: ${saveTestResult.status}';
+      if (saveTestResultTestId == null) {
+        status = "Could not upload test's images: cannot get test's ID!";
       } else {
-        // SAVE TEST'S IMAGES
+        String updateTestImagesStatus = await updateTestImages(
+          saveTestResultTestId,
+          testModelEditor.image,
+          List<Uint8List?>.of(
+            testModelEditor.questionModelEditors.map<Uint8List?>(
+              (QuestionModelEditor questionModelEditor) => questionModelEditor.image,
+            ),
+          ),
+        );
 
-        // Need `testModelEditor` for the test's image
-        Uint8List? testImage = testModelEditor.image;
-
-        if (testImage != null) {
-          // Can't promote non-final fields
-          try {
-            // If `saveTestResult.updatedTest.id` is null, the error will handle it:
-            await uploadTestImage(saveTestResult.updatedTest.id!, testImage);
-            debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s IMAGE SUCCESSFULLLY!");
-          } on FirebaseException catch (error) {
-            status = 'Error saving test image: ${error.message ?? error.code}';
-          } catch (error) {
-            status = 'Error saving test image: $error';
-          }
-        }
-
-        // Need `testModelEditor.questionModelEditors` for the questions' images
-        for (final (int index, QuestionModelEditor questionModelEditor) in testModelEditor.questionModelEditors.indexed) {
-          final Uint8List? questionImage = questionModelEditor.image;
-
-          if (questionImage == null) continue;
-
-          try {
-            // If `saveTestResult.updatedTest.id` is null, the error will handle it:
-            await uploadQuestionImage(saveTestResult.updatedTest.id!, index, questionImage);
-            debugPrint("UPLOADED TEST ${saveTestResult.updatedTest.id}'s QUESTION #$index's IMAGE SUCCESSFULLLY!");
-          } on FirebaseException catch (error) {
-            status = "Error saving question $index's image: ${error.message ?? error.code}";
-          } catch (error) {
-            status = "Error saving question $index's image: $error";
-          }
+        if (updateTestImagesStatus != "Ok") {
+          status = updateTestImagesStatus;
         }
       }
     }
