@@ -108,18 +108,14 @@ class Test implements Model {
     // VALIDATE EACH ENTRY IN `userResults`
 
     for (final MapEntry<String, TestResult> mapEntry in userResults.entries) {
-
       // Each `testResult` must have a non-null `userId` field,
       // that's EQUAL to its key in `userResults`.
       final String userIdKey = mapEntry.key;
       final TestResult testResult = mapEntry.value;
 
-      // Each `QuestionResult` in `testResult.questionResults` MUST
-      // have the same question duration as `questions[index]`.
-      for (final (int index, QuestionResult questionResult) in testResult.questionResults.indexed) {
-        if (questionResult.questionDuration != questions[index].secondsDuration) {
-          return false;
-        }
+      if (testResult.userId == null || testResult.userId != userIdKey) {
+        print("User result's ID doesn't match its key: $userIdKey, ${testResult.userId}");
+        return false;
       }
 
       // VALIDATE `testResult` USING ITS `.isValid`:

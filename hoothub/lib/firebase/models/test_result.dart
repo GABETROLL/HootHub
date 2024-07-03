@@ -17,6 +17,7 @@ class QuestionResult implements Model {
   @override
   bool isValid() => (
     0 <= answeringTime && answeringTime <= questionDuration
+    && 1 <= questionDuration && questionDuration <= 60
   );
 
   bool equals(QuestionResult other) => (
