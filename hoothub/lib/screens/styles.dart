@@ -77,6 +77,53 @@ final ThemeData outerTheme = ThemeData(
       foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
     ),
   ),
+  textTheme: const TextTheme(
+                    displayLarge: TextStyle(
+                      color: primaryColor,
+                    ),
+                    displayMedium: TextStyle(
+                      color: primaryColor,
+                    ),
+                    displaySmall: TextStyle(
+                      color: primaryColor,
+                    ),
+                    headlineLarge: TextStyle(
+                      color: primaryColor,
+                    ),
+                    headlineMedium: TextStyle(
+                      color: primaryColor,
+                    ),
+                    headlineSmall: TextStyle(
+                      color: primaryColor,
+                    ),
+                    titleLarge: TextStyle(
+                      color: primaryColor,
+                    ),
+                    titleMedium: TextStyle(
+                      color: primaryColor,
+                    ),
+                    titleSmall: TextStyle(
+                      color: primaryColor,
+                    ),
+                    bodyLarge: TextStyle(
+                      color: primaryColor,
+                    ),
+                    bodyMedium: TextStyle(
+                      color: primaryColor,
+                    ),
+                    bodySmall: TextStyle(
+                      color: primaryColor,
+                    ),
+                    labelLarge: TextStyle(
+                      color: primaryColor,
+                    ),
+                    labelMedium: TextStyle(
+                      color: primaryColor,
+                    ),
+                    labelSmall: TextStyle(
+                      color: primaryColor,
+                    ),
+                  ),
   indicatorColor: primaryColor,
   inputDecorationTheme: credentialsInputTheme,
   dropdownMenuTheme: DropdownMenuThemeData(
@@ -85,9 +132,6 @@ final ThemeData outerTheme = ThemeData(
   ),
   checkboxTheme: const CheckboxThemeData(
     side: BorderSide(color: primaryColor),
-  ),
-  textTheme: const TextTheme(
-    bodyMedium: TextStyle(color: primaryColor),
   ),
   elevatedButtonTheme: const ElevatedButtonThemeData(
     style: ButtonStyle(

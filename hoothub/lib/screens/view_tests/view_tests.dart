@@ -158,26 +158,21 @@ class _ViewTestsState extends State<ViewTests> {
           padding: const EdgeInsets.only(top: 15),
           child: Column(
             children: [
-              Theme(
-                data: ThemeData(
-                  inputDecorationTheme: credentialsInputTheme,
-                ),
-                child: SearchMenu(
-                  querySettings: _querySettings,
-                  setQueryType: (QueryType queryType) => setState(() {
-                    _querySettings.queryType = queryType;
-                  }),
-                  setReverse: (bool reverse) => setState(() {
-                    _querySettings.reverse = reverse;
-                  }),
-                  setLimit: (int limit) => setState(() {
-                    _querySettings.limit = limit;
-                  }),
-                  nameEditingController: _nameEditingController,
-                  search: () => setState(() {
-                    _tests = widget.testsFutureForQuerySettings(_querySettings, _nameEditingController.text);
-                  }),
-                ),
+              SearchMenu(
+                querySettings: _querySettings,
+                setQueryType: (QueryType queryType) => setState(() {
+                  _querySettings.queryType = queryType;
+                }),
+                setReverse: (bool reverse) => setState(() {
+                  _querySettings.reverse = reverse;
+                }),
+                setLimit: (int limit) => setState(() {
+                  _querySettings.limit = limit;
+                }),
+                nameEditingController: _nameEditingController,
+                search: () => setState(() {
+                  _tests = widget.testsFutureForQuerySettings(_querySettings, _nameEditingController.text);
+                }),
               ),
               Expanded(
                 child: ListView.builder(
