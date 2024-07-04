@@ -312,7 +312,7 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
 
   // UPDATE CURRENT USER'S SCORES
 
-  String userScoresUpdateStatus = await updateLoggedInUserScores(testResult);
+  String userScoresUpdateStatus = await completeTestInUserScores(testResult);
 
   if (userScoresUpdateStatus != "Ok") {
     return SaveTestNullableResult(

@@ -211,7 +211,7 @@ Future<UserScores?> scoresOfUserWithId(String id) async {
   return UserScores.fromSnapshot(await usersScoresCollection.doc(id).get());
 }
 
-Future<String> updateLoggedInUserScores(TestResult testResult) async {
+Future<String> completeTestInUserScores(TestResult testResult) async {
   final String? userId = auth.currentUser?.uid;
 
   if (userId == null) {
