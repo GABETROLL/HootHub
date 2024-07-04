@@ -404,7 +404,9 @@ TestQuery testsByUser({ required String userId }) {
     .where('userId', isEqualTo: userId);
 }
 
-/*
-Future<dynamic> testsByName(String nameQuery) async {
-  return await
-} */
+/// Filters `query` to all the tests with their `name` field equals the `name` parameter.
+///
+/// PLEASE READ THE DOCUMENTATION FOR `queryTests`!
+TestQuery testsByName(TestQuery query, { required String name }) {
+  return query.where('name', isEqualTo: name);
+}

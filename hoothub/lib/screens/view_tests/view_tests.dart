@@ -9,7 +9,6 @@ import 'package:hoothub/screens/play_test_solo/play_test_solo.dart';
 import 'package:hoothub/screens/make_test/make_test.dart';
 import 'test_card.dart';
 
-
 enum QueryType {
   date(label: 'Newest', leadingIcon: Icon(Icons.calendar_month)),
   netUpvotes(label: 'Most Net Upvotes', leadingIcon: Icon(Icons.arrow_upward)),
@@ -25,32 +24,16 @@ enum QueryType {
   final Widget leadingIcon;
 }
 
-class TestsSearchMenu<T> extends StatelessWidget {
-  const TestsSearchMenu({
-    super.key,
-    required this.queryOption,
-    required this.setQueryOption,
-    required this.queryOptionEntries,
+class QuerySettings {
+  QuerySettings({
+    required this.limit,
+    required this.queryType,
+    required this.reverse,
   });
 
-  final T queryOption;
-  final void Function(T) setQueryOption;
-  final List<DropdownMenuEntry<T>> queryOptionEntries;
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownMenu<T>(
-      label: const Text('Order by'),
-      leadingIcon: const Icon(Icons.search),
-      initialSelection: queryOption,
-      onSelected: (T? queryType) {
-        if (queryType != null) {
-          setQueryOption(queryType);
-        }
-      },
-      dropdownMenuEntries: queryOptionEntries,
-    );
-  }
+  int limit;
+  QueryType queryType;
+  bool reverse;
 }
 
 class SearchMenu extends StatelessWidget {
@@ -60,21 +43,31 @@ class SearchMenu extends StatelessWidget {
     required this.setQueryType,
     required this.setReverse,
     required this.setLimit,
+    required this.nameEditingController,
+    required this.search,
   });
 
   final QuerySettings querySettings;
   final void Function(QueryType) setQueryType;
   final void Function(bool) setReverse;
   final void Function(int) setLimit;
+  final TextEditingController nameEditingController;
+  final void Function() search;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        TestsSearchMenu<QueryType>(
-          queryOption: querySettings.queryType,
-          setQueryOption: setQueryType,
-          queryOptionEntries: List<DropdownMenuEntry<QueryType>>.from(
+        DropdownMenu<QueryType>(
+          label: const Text('Order by'),
+          leadingIcon: const Icon(Icons.search),
+          initialSelection: querySettings.queryType,
+          onSelected: (QueryType? queryType) {
+            if (queryType != null) {
+              setQueryType(queryType);
+            }
+          },
+          dropdownMenuEntries: List<DropdownMenuEntry<QueryType>>.from(
             QueryType.values.map<DropdownMenuEntry<QueryType>>(
               (QueryType queryType) => DropdownMenuEntry<QueryType>(
                 value: queryType,
@@ -94,21 +87,14 @@ class SearchMenu extends StatelessWidget {
         ),
         const Text('Reverse order'),
         // TODO: IMPLEMENT LIMIT SETTER
+        Expanded(child: TextField(controller: nameEditingController)),
+        ElevatedButton(
+          onPressed: search,
+          child: const Text("Search"),
+        ),
       ],
     );
   }
-}
-
-class QuerySettings {
-  QuerySettings({
-    required this.limit,
-    required this.queryType,
-    required this.reverse,
-  });
-
-  int limit;
-  QueryType queryType;
-  bool reverse;
 }
 
 /// A UI for viewing different categories of tests from the Firestore.
@@ -121,7 +107,7 @@ class ViewTests extends StatefulWidget {
     required this.testsFutureForQuerySettings,
   });
 
-  final Future<List<Test?>> Function(QuerySettings querySettings) testsFutureForQuerySettings;
+  final Future<List<Test?>> Function(QuerySettings querySettings, String name) testsFutureForQuerySettings;
 
   @override
   State<ViewTests> createState() => _ViewTestsState();
@@ -133,6 +119,8 @@ class _ViewTestsState extends State<ViewTests> {
     queryType: QueryType.date,
     reverse: false,
   );
+  final TextEditingController _nameEditingController = TextEditingController();
+
   late Future<List<Test?>> _tests;
 
   /// refresh test in `_tests` after it has been played,
@@ -152,7 +140,7 @@ class _ViewTestsState extends State<ViewTests> {
   @override
   void initState() {
     super.initState();
-    _tests = widget.testsFutureForQuerySettings(_querySettings);
+    _tests = widget.testsFutureForQuerySettings(_querySettings, _nameEditingController.text);
   }
 
   @override
@@ -170,20 +158,26 @@ class _ViewTestsState extends State<ViewTests> {
           padding: const EdgeInsets.only(top: 15),
           child: Column(
             children: [
-              SearchMenu(
-                querySettings: _querySettings,
-                setQueryType: (QueryType queryType) => setState(() {
-                  _querySettings.queryType = queryType;
-                  _tests = widget.testsFutureForQuerySettings(_querySettings);
-                }),
-                setReverse: (bool reverse) => setState(() {
-                  _querySettings.reverse = reverse;
-                  _tests = widget.testsFutureForQuerySettings(_querySettings);
-                }),
-                setLimit: (int limit) => setState(() {
-                  _querySettings.limit = limit;
-                  _tests = widget.testsFutureForQuerySettings(_querySettings);
-                }),
+              Theme(
+                data: ThemeData(
+                  inputDecorationTheme: credentialsInputTheme,
+                ),
+                child: SearchMenu(
+                  querySettings: _querySettings,
+                  setQueryType: (QueryType queryType) => setState(() {
+                    _querySettings.queryType = queryType;
+                  }),
+                  setReverse: (bool reverse) => setState(() {
+                    _querySettings.reverse = reverse;
+                  }),
+                  setLimit: (int limit) => setState(() {
+                    _querySettings.limit = limit;
+                  }),
+                  nameEditingController: _nameEditingController,
+                  search: () => setState(() {
+                    _tests = widget.testsFutureForQuerySettings(_querySettings, _nameEditingController.text);
+                  }),
+                ),
               ),
               Expanded(
                 child: ListView.builder(

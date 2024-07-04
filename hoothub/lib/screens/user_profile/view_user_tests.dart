@@ -14,23 +14,25 @@ class ViewUserTests extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewTests(
-      testsFutureForQuerySettings: (QuerySettings querySettings) {
-        final TestQuery testQuery;
+      testsFutureForQuerySettings: (QuerySettings querySettings, String name) {
+        TestQuery testQuery = testsByUser(userId: userId);
 
-        final TestQuery testsByUserQuery = testsByUser(userId: userId);
+        if (name.isNotEmpty) {
+          testQuery = testsByName(testQuery, name: name);
+        }
 
         switch (querySettings.queryType) {
           case QueryType.date: {
-            testQuery = testsByDateCreated(testsByUserQuery, limit: querySettings.limit, newest: !querySettings.reverse);
+            testQuery = testsByDateCreated(testQuery, limit: querySettings.limit, newest: !querySettings.reverse);
           }
           case QueryType.netUpvotes: {
-            testQuery =  testsByNetUpvotes(testsByUserQuery, limit: querySettings.limit, most: !querySettings.reverse);
+            testQuery =  testsByNetUpvotes(testQuery, limit: querySettings.limit, most: !querySettings.reverse);
           }
           case QueryType.upvotes: {
-            testQuery = testsByUpvotes(testsByUserQuery, limit: querySettings.limit, most: !querySettings.reverse);
+            testQuery = testsByUpvotes(testQuery, limit: querySettings.limit, most: !querySettings.reverse);
           }
           case QueryType.downvotes: {
-            testQuery = testsByDownvotes(testsByUserQuery, limit: querySettings.limit, most: !querySettings.reverse);
+            testQuery = testsByDownvotes(testQuery, limit: querySettings.limit, most: !querySettings.reverse);
           }
         }
 
