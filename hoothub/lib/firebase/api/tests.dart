@@ -110,11 +110,21 @@ Future<Test?> testWithId(String testId) async {
 }
 
 /// Deletes test  with `testId` as its key from `testsCollection`.
+/// Removes all of the 
 Future<String> deleteTestWithId(String testId) async {
   try {
+    Test testModel = Test.fromSnapshot(await testsCollection.doc(testId).get())!;
+    String testAuthorId = testModel.userId!;
+    UserScores testAuthorScores = (await scoresOfUserWithId(testAuthorId))!;
+
+    testAuthorScores = testAuthorScores.setNetUpvotes(testAuthorScores.netUpvotes - testModel.upvotes);
+    testAuthorScores = testAuthorScores.setNetDownvotes(testAuthorScores.netDownvotes - testModel.downvotes);
+    testAuthorScores = testAuthorScores.setNetComments(testAuthorScores.netComments - testModel.commentCount);
+
     await testsCollection.doc(testId).delete();
+    await usersScoresCollection.doc(testAuthorId).set(testAuthorScores.toJson());
   } catch (error) {
-    return "And error has occured while deleting your test...";
+    return "Failed to delete your test...";
   }
 
   return "Test deleted successfully!";

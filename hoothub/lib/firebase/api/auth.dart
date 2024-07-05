@@ -210,12 +210,22 @@ Future<UserScores?> scoresOfUserWithId(String id) async {
   return UserScores.fromSnapshot(await usersScoresCollection.doc(id).get());
 }
 
-Future<String> addCommentToUserScoresWithId(String userId) async {
+/// Adds `commentCount` to this user's `netComments` count.
+///
+/// (`commentCount` MAY BE NEGATIVE, TO REMOVE THAT MANY COMMENTS,
+/// OR 0, TO NOT AFFECT THE COUNT AT ALL)
+///
+/// Fails, BUT DOES NOT THROW, if the new comment count is negative,
+/// since it doesn't make sense for a post to have a negative comment count.
+Future<String> addCommentCountToUserScoresWithId(String userId, int commentCount) async {
   try {
     UserScores? userScores = await scoresOfUserWithId(userId);
     if (userScores == null) return "User's scores not found...";
 
-    userScores = userScores.setNetComments(userScores.netComments + 1);
+    int newNetComments = userScores.netComments + commentCount;
+    assert (newNetComments >= 0);
+
+    userScores = userScores.setNetComments(newNetComments);
 
     await usersScoresCollection.doc(userId).set(userScores.toJson());
   } on FirebaseException catch (error) {
