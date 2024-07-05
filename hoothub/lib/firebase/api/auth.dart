@@ -240,7 +240,7 @@ Future<String> addCommentCountToUserScoresWithId(String userId, int commentCount
 }
 
 /// Completes user's scores with `testResult`.
-Future<String> completeTestInUserScores(TestResult testResult) async {
+Future<String> completeTestInMyUserScores(TestResult testResult) async {
   final String? userId = auth.currentUser?.uid;
 
   if (userId == null) {

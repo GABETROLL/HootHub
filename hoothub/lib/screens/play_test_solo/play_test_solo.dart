@@ -72,7 +72,7 @@ class _PlayTestSoloState extends State<PlayTestSolo> {
         testResult: _testResult,
         questionsAmount: widget.testModel.questions.length,
         exit: () async {
-          SaveTestNullableResult testCompletionResults = await completeTest(
+          SaveTestNullableResult testCompletionResults = await completeTestAsLoggedInUser(
             testId,
             _testResult,
           );

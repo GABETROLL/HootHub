@@ -145,6 +145,8 @@ class TestModelEditor {
     required this.image,
     required this.dateCreated,
     required this.questionModelEditors,
+    required this.netQuestionsAnsweredCorrect,
+    required this.netScore,
     required this.userResults,
     required this.upvotes,
     required this.downvotes,
@@ -160,6 +162,8 @@ class TestModelEditor {
   Uint8List? image;
   final Timestamp? dateCreated;
   final List<QuestionModelEditor> questionModelEditors;
+  final int netQuestionsAnsweredCorrect;
+  final int netScore;
   final Map<String, TestResult> userResults;
   final int upvotes;
   final int downvotes;
@@ -199,6 +203,8 @@ class TestModelEditor {
       image: testId != null ? (await downloadTestImage(testId)) : null,
       dateCreated: test.dateCreated,
       questionModelEditors: questionModelEditors,
+      netQuestionsAnsweredCorrect: test.netQuestionsAnsweredCorrect,
+      netScore: test.netScore,
       userResults: test.userResults,
       upvotes: test.upvotes,
       downvotes: test.downvotes,
@@ -232,6 +238,8 @@ class TestModelEditor {
           ),
         ),
       ),
+      netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+      netScore: netScore,
       userResults: userResults,
       upvotes: upvotes,
       downvotes: downvotes,

@@ -262,7 +262,7 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
 ///
 /// Normally, this function returns:
 /// SaveTestResult(status: "SaveTestResult", updatedTest: <updatedTest>)
-Future<SaveTestNullableResult> completeTest(final String testId, TestResult testResult) async {
+Future<SaveTestNullableResult> completeTestAsLoggedInUser(final String testId, TestResult testResult) async {
   // FIND CURRENT USER'S ID
 
   String? userId = auth.currentUser?.uid;
@@ -281,8 +281,6 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
       updatedTest: null,
     );
   }
-
-  // print("completeTest($testId, $testResult) as $userId;");
 
   // ADD CURRENT USER'S ID TO `testResult`
 
@@ -353,9 +351,13 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
   final Test testWithChanges;
 
   try {
-    testWithChanges = testModel.copy();
-    testWithChanges.userResults.putIfAbsent(userId, () => testResult);
+    // This method call already checks for `testResult.userId` being null,
+    // or having this same user already played it.
+    // Since those issues were already checked by above return messages,
+    // this must be another issue, and this will be its return message:
+    testWithChanges = testModel.addTestResult(testResult);
   } catch (error) {
+    print("Failed to add user's scores to test: $error");
     return const SaveTestNullableResult(
       status: "Failed to add user's scores to test...",
       updatedTest: null,
@@ -380,7 +382,7 @@ Future<SaveTestNullableResult> completeTest(final String testId, TestResult test
 
   // UPDATE CURRENT USER'S SCORES
 
-  String userScoresUpdateStatus = await completeTestInUserScores(testResult);
+  String userScoresUpdateStatus = await completeTestInMyUserScores(testResult);
 
   if (userScoresUpdateStatus != "Ok") {
     return SaveTestNullableResult(

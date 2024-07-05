@@ -19,6 +19,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `dateCreated` is a `Timestamp` of the exact micro(?)second this test
 ///   was uploaded to Firebase.
 /// `questions` is a List<Question>: the questions of the test.
+/// `netQuestionsAnsweredCorrect` EXISTS ONLY TO DISPLAY THE TEST'S
+///   AVERAGE QUESTIONS SCORE. It is the sum of every time
+///   ANY user that played this test got a question right.
+/// `netScore` EXISTS ONLY TO DISPLAY THE TEST'S AVERAGE POINTS SCORE.
+///   It is the sum of the scores each player that played this test, got.
 /// `userResults` is a map of each userId
 ///   and their test results, as a `TestResult` object.
 ///   (I'M NOT YET SURE IF THIS DATA SHOULD BE SEPARATE)
@@ -35,6 +40,8 @@ class Test implements Model {
     required this.name,
     required this.dateCreated,
     required this.questions,
+    required this.netQuestionsAnsweredCorrect,
+    required this.netScore,
     required this.userResults,
     required this.upvotes,
     required this.downvotes,
@@ -49,6 +56,8 @@ class Test implements Model {
   final String name;
   final Timestamp? dateCreated;
   final List<Question> questions;
+  final int netQuestionsAnsweredCorrect;
+  final int netScore;
   final Map<String, TestResult> userResults;
   final int upvotes;
   final int downvotes;
@@ -63,6 +72,8 @@ class Test implements Model {
     name: '',
     dateCreated: null,
     questions: <Question>[],
+    netQuestionsAnsweredCorrect: 0,
+    netScore: 0,
     userResults: <String, TestResult>{},
     upvotes: 0,
     downvotes: 0,
@@ -74,11 +85,13 @@ class Test implements Model {
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
   ///
-  /// A `Test` is valid if its `name` and `questions` aren't empty,
-  /// if all of its questions are valid,
-  /// all of the `userResults.values` are valid individually
-  /// and if their keys and `userId`s match,
-  /// and if `upvotes`, `downvotes` and `commentCount` match the lengths of
+  /// A `Test` is valid if:
+  /// - its `name` and `questions` aren't empty
+  /// - all of its questions are valid,
+  /// - all of the `userResults.values` are valid individually
+  ///     and if their keys and `userId` fields match
+  /// - `netQuestionsAnsweredCorrect` and `netScore` match `userResults`
+  /// - `upvotes`, `downvotes` and `commentCount` match the lengths of
   /// `usersThatUpvoted`, `usersThatDownvoted` and `comments`.
   ///
   /// `id`, `userId`, `dateCreated` ARE NOT NEEDED TO VALIDATE A TEST,
@@ -88,6 +101,7 @@ class Test implements Model {
   /// WON'T BE VALIDATED HERE, AND SHOULD BE VALIDATED BY FIREBASE SECURITY RULES.
   @override
   bool isValid() {
+    // VALIDATE EACH QUESTIO IN `questions`
     for (final (int index, Question question) in questions.indexed) {
       if (!(question.isValid())) {
         print("question #$index invalid!");
@@ -96,6 +110,10 @@ class Test implements Model {
     }
 
     // VALIDATE EACH ENTRY IN `userResults`
+    // AND VALIDATE `netQuestionsAnsweredCorrect` AND `netScore` AGAINST `userResults`.
+
+    int testNetQuestionsAnsweredCorrect = 0;
+    int testNetScore = 0;
 
     for (final MapEntry<String, TestResult> mapEntry in userResults.entries) {
       // Each `testResult` must have a non-null `userId` field,
@@ -114,6 +132,21 @@ class Test implements Model {
         print("Test result is invalid!");
         return false;
       }
+
+      // TO VALIDATE `netQuestionsAnsweredCorrect` AND `netScore` AGAINST `userResults`:
+      testNetQuestionsAnsweredCorrect += testResult.questionsAnsweredCorrect;
+      testNetScore += testResult.score;
+    }
+
+    // VALIDATE `netQuestionsAnsweredCorrect` AND `netScore` AGAINST `userResults`:
+
+    if (netQuestionsAnsweredCorrect != testNetQuestionsAnsweredCorrect) {
+      print("`testNetQuestionsAnsweredCorrect: $testNetQuestionsAnsweredCorrect` doesn't match `netQuestionsAnsweredCorrect: $netQuestionsAnsweredCorrect`!");
+      return false;
+    }
+    if (netScore != testNetScore) {
+      print("`testNetScore: $testNetScore` doesn't match `netScore: $netScore`");
+      return false;
     }
 
     return upvotes == usersThatUpvoted.length
@@ -137,6 +170,8 @@ class Test implements Model {
       && name == other.name
       && dateCreated == other.dateCreated
       && iterableEquals(questions, other.questions, (Question a, Question b) => a.equals(b))
+      && netQuestionsAnsweredCorrect == other.netQuestionsAnsweredCorrect
+      && netScore == other.netScore
       && iterableEquals(
         userResults.entries,
         other.userResults.entries,
@@ -157,6 +192,8 @@ class Test implements Model {
     name: name,
     dateCreated: dateCreated,
     questions: List.of(questions),
+    netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+    netScore: netScore,
     userResults: Map<String, TestResult>.of(userResults),
     upvotes: upvotes,
     downvotes: downvotes,
@@ -172,10 +209,12 @@ class Test implements Model {
     name: name,
     dateCreated: dateCreated,
     questions: List.of(questions),
+    netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+    netScore: netScore,
+    userResults: Map<String, TestResult>.of(userResults),
     upvotes: upvotes,
     downvotes: downvotes,
     commentCount: commentCount,
-    userResults: Map<String, TestResult>.of(userResults),
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
     comments: List<String>.of(comments),
@@ -187,6 +226,8 @@ class Test implements Model {
     name: name,
     dateCreated: newDateCreated,
     questions: List.of(questions),
+    netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+    netScore: netScore,
     userResults: Map<String, TestResult>.of(userResults),
     upvotes: upvotes,
     downvotes: downvotes,
@@ -196,12 +237,50 @@ class Test implements Model {
     comments: List<String>.of(comments),
   );
 
+  /// Adds `testResult.questionsAnsweredCorrect` to `this.netQuestionsAnsweredCorrect`
+  /// and adds `testResult.score` to `this.netScore`, in a new instance,
+  /// then returns this new instance.
+  Test addTestResult(TestResult testResult) {
+    String? userId = testResult.userId;
+    if (userId == null) {
+      throw "`testResult.userId` is null! Can't add it to test `$id`!";
+    }
+
+    if (userResults.containsKey(userId)) {
+      throw "Cannot add more than one test result per user! (test $id)";
+    }
+
+    int newNetQuestionsAnsweredCorrect = netQuestionsAnsweredCorrect + testResult.questionsAnsweredCorrect;
+    int newNetScore = netScore + testResult.score;
+    Map<String, TestResult> newUserResults = Map<String, TestResult>.of(userResults);
+    newUserResults[userId] = testResult;
+
+    return Test(
+      id: id,
+      userId: userId,
+      name: name,
+      dateCreated: dateCreated,
+      questions: List<Question>.of(questions),
+      netQuestionsAnsweredCorrect: newNetQuestionsAnsweredCorrect,
+      netScore: newNetScore,
+      userResults: newUserResults,
+      upvotes: upvotes,
+      downvotes: downvotes,
+      commentCount: commentCount,
+      usersThatUpvoted: List<String>.of(usersThatUpvoted),
+      usersThatDownvoted: List<String>.of(usersThatDownvoted),
+      comments: List<String>.of(comments),
+    );
+  }
+
   Test setUpvotes(int newUpvotes) => Test(
     id: id,
     userId: userId,
     name: name,
     dateCreated: dateCreated,
     questions: List.of(questions),
+    netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+    netScore: netScore,
     userResults: Map<String, TestResult>.of(userResults),
     upvotes: newUpvotes,
     downvotes: downvotes,
@@ -217,6 +296,8 @@ class Test implements Model {
     name: name,
     dateCreated: dateCreated,
     questions: List.of(questions),
+    netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+    netScore: netScore,
     userResults: Map<String, TestResult>.of(userResults),
     upvotes: upvotes,
     downvotes: newDownvotes,
@@ -232,6 +313,8 @@ class Test implements Model {
     name: name,
     dateCreated: dateCreated,
     questions: List.of(questions),
+    netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+    netScore: netScore,
     userResults: Map<String, TestResult>.of(userResults),
     upvotes: upvotes,
     downvotes: downvotes,
@@ -250,6 +333,8 @@ class Test implements Model {
     name: name,
     dateCreated: dateCreated,
     questions: List<Question>.of(questions),
+    netQuestionsAnsweredCorrect: netQuestionsAnsweredCorrect,
+    netScore: netScore,
     userResults: Map<String, TestResult>.of(userResults),
     upvotes: upvotes,
     downvotes: downvotes,
@@ -325,6 +410,8 @@ class Test implements Model {
       name: data['name'],
       dateCreated: data['dateCreated'],
       questions: questions,
+      netQuestionsAnsweredCorrect: data['netQuestionsAnsweredCorrect'],
+      netScore: data['netScore'],
       userResults: userResults,
       upvotes: data['upvotes'],
       downvotes: data['downvotes'],
@@ -344,6 +431,8 @@ class Test implements Model {
     'questions': List<Map<String, dynamic>>.from(
       questions.map<Map<String, dynamic>>((Question question) => question.toJson()),
     ),
+    'netQuestionsAnsweredCorrect': netQuestionsAnsweredCorrect,
+    'netScore': netScore,
     'userResults': Map<String, Map<String, dynamic>>.from(
       userResults.map<String, Map<String, dynamic>>(
         (String userId, TestResult testResult) => MapEntry<String, Map<String, dynamic>>(
