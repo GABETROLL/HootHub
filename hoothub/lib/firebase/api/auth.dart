@@ -55,7 +55,6 @@ Future<String> signUpUser({
       bestScore: 0,
       bestAnswerRatio: const AnswerRatio(questionsAnswered: 0, questionsAnsweredCorrect: 0),
       netUpvotes: 0,
-      netVotes: 0,
       netDownvotes: 0,
       netComments: 0,
     );
@@ -211,6 +210,26 @@ Future<UserScores?> scoresOfUserWithId(String id) async {
   return UserScores.fromSnapshot(await usersScoresCollection.doc(id).get());
 }
 
+Future<String> addCommentToUserScoresWithId(String userId) async {
+  try {
+    UserScores? userScores = await scoresOfUserWithId(userId);
+    if (userScores == null) return "User's scores not found...";
+
+    userScores = userScores.setNetComments(userScores.netComments + 1);
+
+    await usersScoresCollection.doc(userId).set(userScores.toJson());
+  } on FirebaseException catch (error) {
+    print("Error adding comment to user's scores: ${error.message ?? error.code}");
+    return "Failed to add comment to user's scores...";
+  } catch (error) {
+    print("Error adding comment to user's scores: $error");
+    return "Failed to add comment to user's scores...";
+  }
+
+  return "Ok";
+}
+
+/// Completes user's scores with `testResult`.
 Future<String> completeTestInUserScores(TestResult testResult) async {
   final String? userId = auth.currentUser?.uid;
 

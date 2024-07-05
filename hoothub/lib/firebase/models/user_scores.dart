@@ -50,7 +50,6 @@ class UserScores implements Model {
     required this.bestScore,
     required this.bestAnswerRatio,
     required this.netUpvotes,
-    required this.netVotes,
     required this.netDownvotes,
     required this.netComments,
   });
@@ -60,7 +59,6 @@ class UserScores implements Model {
   final int bestScore;
   final AnswerRatio bestAnswerRatio;
   final int netUpvotes;
-  final int netVotes;
   final int netDownvotes;
   final int netComments;
 
@@ -77,9 +75,38 @@ class UserScores implements Model {
     bestScore: bestScore,
     bestAnswerRatio: bestAnswerRatio,
     netUpvotes: netUpvotes,
-    netVotes: netVotes,
     netDownvotes: netDownvotes,
     netComments: netComments,
+  );
+
+  UserScores setNetUpvotes(int newNetUpvotes) => UserScores(
+    userId: userId,
+    netAnswerRatio: netAnswerRatio,
+    bestScore: bestScore,
+    bestAnswerRatio: bestAnswerRatio,
+    netUpvotes: newNetUpvotes,
+    netDownvotes: netDownvotes,
+    netComments: netComments,
+  );
+
+  UserScores setNetDownvotes(int newNetDownvotes) => UserScores(
+    userId: userId,
+    netAnswerRatio: netAnswerRatio,
+    bestScore: bestScore,
+    bestAnswerRatio: bestAnswerRatio,
+    netUpvotes: netUpvotes,
+    netDownvotes: newNetDownvotes,
+    netComments: netComments,
+  );
+
+  UserScores setNetComments(int newNetComments) => UserScores(
+    userId: userId,
+    netAnswerRatio: netAnswerRatio,
+    bestScore: bestScore,
+    bestAnswerRatio: bestAnswerRatio,
+    netUpvotes: netUpvotes,
+    netDownvotes: netDownvotes,
+    netComments: newNetComments,
   );
 
   /// Returns copy of `this`, with consideration to the new questions the owner of `this`
@@ -96,7 +123,6 @@ class UserScores implements Model {
       bestScore: testResult.score > bestScore ? testResult.score : bestScore,
       bestAnswerRatio: testResultAnswerRatio.ratio > bestAnswerRatio.ratio ? testResultAnswerRatio : bestAnswerRatio,
       netUpvotes: netUpvotes,
-      netVotes: netVotes,
       netDownvotes: netDownvotes,
       netComments: netComments,
     );
@@ -113,7 +139,6 @@ class UserScores implements Model {
       bestScore: data['bestScore'],
       bestAnswerRatio: AnswerRatio.fromJson(data['bestAnswerRatio']),
       netUpvotes: data['netUpvotes'],
-      netVotes: data['upvotes'],
       netDownvotes: data['downvotes'],
       netComments: data['netComments'],
     );
@@ -126,7 +151,6 @@ class UserScores implements Model {
     'bestScore': bestScore,
     'bestAnswerRatio': bestAnswerRatio.toJson(),
     'netUpvotes': netUpvotes,
-    'upvotes': netVotes,
     'downvotes': netDownvotes,
     'netComments': netComments,
   };

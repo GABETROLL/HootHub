@@ -121,7 +121,7 @@ class _HomeState extends State<Home> {
               context,
               MaterialPageRoute<Test>(
                 builder: (BuildContext context) => MakeTest(
-                  testModel: Test(),
+                  testModel: Test.newTest(),
                 ),
               ),
             );

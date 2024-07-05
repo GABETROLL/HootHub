@@ -157,7 +157,7 @@ class _UserProfileState extends State<UserProfile> {
                     TableRow(
                       children: <Widget>[
                         const Text("Net Votes"),
-                        Text("${userScoresPromoted.netVotes}"),
+                        Text("${userScoresPromoted.netUpvotes - userScoresPromoted.netDownvotes}"),
                       ],
                     ),
                     TableRow(

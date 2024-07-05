@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hoothub/firebase/api/auth.dart';
 // APIs
 import 'clients.dart';
 import 'tests.dart';
@@ -9,7 +10,11 @@ import '../models/comment_tree.dart';
 /// Comments on a test in the `testsCollection`,
 /// by uploading the `CommentTree` representation of `comment`
 /// to the `commentsCollection`,
-/// and by adding the new comment's ID to the test document's `comments`.
+/// by adding the new comment's ID to the test document's `comments`
+/// and by incrementing this comment's corresponding test's `commentCount`
+/// field by one,
+/// and by incrementing the test's author's score document's `netComments`
+/// field by one.
 ///
 /// If a `FirebaseException` occurs, this function returns its `message ?? code`.
 /// If any other error occurs, this function returns its `toString()`.
@@ -41,7 +46,22 @@ Future<String> commentOnTestWithId(String testId, String comment) async {
     // 2) Include the comment in the test
     Test? testModel = await testWithId(testId); // throws, but caught
     if (testModel == null) return 'Test not found!';
+
+    // NEW TEST MODEL, SO, SHOULDN'T AFFECT ANY OTHER INSTANCES,
+    // BUT JUST TO BE SURE:
+    testModel = testModel.copy();
     testModel.comments.add(commentReference.id);
+    testModel = testModel.setCommentCount(testModel.commentCount + 1);
+
+    // 3) Increment the test author's `comments` counter in their `UserScores` document.
+    String? testAuthorId = testModel.userId;
+    if (testAuthorId == null) return "Test's author not found!";
+
+    String commentIncrementOnTestAuthorScoresStatus = await addCommentToUserScoresWithId(testAuthorId);
+
+    if (commentIncrementOnTestAuthorScoresStatus != "Ok") {
+      throw commentIncrementOnTestAuthorScoresStatus; // throws, but caught
+    }
 
     // Save the changes to the test and save the comment
     await commentReference.set(commentModel.toJson()); // throws, but caught

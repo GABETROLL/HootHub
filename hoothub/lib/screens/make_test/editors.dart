@@ -35,9 +35,9 @@ class QuestionModelEditor {
     this.secondsDuration = 20,
   });
 
-  TextEditingController questionEditingController;
+  final TextEditingController questionEditingController;
   Uint8List? image;
-  List<TextEditingController> answerEditingControllers;
+  final List<TextEditingController> answerEditingControllers;
   int correctAnswer;
   int secondsDuration;
 
@@ -146,6 +146,9 @@ class TestModelEditor {
     required this.dateCreated,
     required this.questionModelEditors,
     required this.userResults,
+    required this.upvotes,
+    required this.downvotes,
+    required this.commentCount,
     required this.usersThatUpvoted,
     required this.usersThatDownvoted,
    required this.comments,
@@ -157,10 +160,13 @@ class TestModelEditor {
   Uint8List? image;
   final Timestamp? dateCreated;
   final List<QuestionModelEditor> questionModelEditors;
-  Map<String, TestResult> userResults = <String, TestResult>{};
-  List<String> usersThatUpvoted = <String>[];
-  List<String> usersThatDownvoted = <String>[];
-  List<String> comments = <String>[];
+  final Map<String, TestResult> userResults;
+  final int upvotes;
+  final int downvotes;
+  final int commentCount;
+  final List<String> usersThatUpvoted;
+  final List<String> usersThatDownvoted;
+  final List<String> comments;
 
   /// Converts `test` to its `TestModelEditor` equivalent.
   ///
@@ -194,6 +200,9 @@ class TestModelEditor {
       dateCreated: test.dateCreated,
       questionModelEditors: questionModelEditors,
       userResults: test.userResults,
+      upvotes: test.upvotes,
+      downvotes: test.downvotes,
+      commentCount: test.commentCount,
       usersThatUpvoted: test.usersThatUpvoted,
       usersThatDownvoted: test.usersThatDownvoted,
       comments: test.comments,
@@ -224,6 +233,9 @@ class TestModelEditor {
         ),
       ),
       userResults: userResults,
+      upvotes: upvotes,
+      downvotes: downvotes,
+      commentCount: commentCount,
       usersThatUpvoted: usersThatUpvoted,
       usersThatDownvoted: usersThatDownvoted,
       comments: comments,

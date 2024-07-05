@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/api/auth.dart';
 import 'package:hoothub/firebase/models/test_result.dart';
+import 'package:hoothub/firebase/models/user_scores.dart';
 import 'clients.dart';
 // models
 import 'package:hoothub/firebase/models/test.dart';
@@ -119,7 +120,8 @@ Future<String> deleteTestWithId(String testId) async {
   return "Test deleted successfully!";
 }
 
-/// Votes on `test` according to `up`.
+/// Votes on `test` according to `up`,
+/// then adds the user's votes to the test's author's `UserScores` document.
 ///
 /// This function updates the model in Cloud Firestore
 /// AND returns the changes to `test`, for local updating.
@@ -138,35 +140,77 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
   try {
     String voteString = up ? 'up' : 'down';
 
-    if (auth.currentUser == null) {
-      return SaveTestResult(status: "You're not logged in! Log in to ${voteString}vote!", updatedTest: test);
+    String? userId = auth.currentUser?.uid;
+    if (userId == null) {
+      return SaveTestResult(status: "You don't seem logged in! Log in to ${voteString}vote!", updatedTest: test);
     }
 
-    if (test.id == null) return SaveTestResult(status: "Test has no id!", updatedTest: test);
+    if (test.id == null) return SaveTestResult(status: "Failed to ${voteString}vote on test...", updatedTest: test);
+
+    String? testAuthorId = test.userId;
+    if (testAuthorId == null) {
+      return SaveTestResult(
+        status: "Failed to ${voteString}vote on test...",
+        updatedTest: test,
+      );
+    }
+
+    UserScores? testAuthorScores = await scoresOfUserWithId(testAuthorId);
+    if (testAuthorScores == null) {
+      return SaveTestResult(
+        status: "Failed to ${voteString}vote on test...",
+        updatedTest: test,
+      );
+    }
 
     // ALTER VOTING LISTS, BUT SAFELY, IN TEST'S COPY:
     // (THE LISTS ARE ALSO SAFELY AND DEEPLY COPIED WITH `.copy()`)
-    final Test testCopy = test.copy();
+    Test testCopy = test.copy();
 
-    List<String> votingList = (
-      up
-      ? testCopy.usersThatUpvoted
-      : testCopy.usersThatDownvoted
-    );
-    List<String> oppositeVotingList = (
-      up
-      ? testCopy.usersThatDownvoted
-      : testCopy.usersThatUpvoted
-    );
-
-    if (oppositeVotingList.contains(auth.currentUser!.uid)) {
-      oppositeVotingList.remove(auth.currentUser!.uid);
+    void removeUpvote(UserScores testAuthorScores) {
+      testCopy.usersThatUpvoted.remove(userId);
+      testCopy = testCopy.setUpvotes(testCopy.upvotes - 1);
+      testAuthorScores = testAuthorScores.setNetUpvotes(testAuthorScores.netUpvotes - 1);
     }
 
-    if (votingList.contains(auth.currentUser!.uid)) {
-      votingList.remove(auth.currentUser!.uid);
+    void addUpvote(UserScores testAuthorScores) {
+      testCopy.usersThatUpvoted.add(userId);
+      testCopy = testCopy.setUpvotes(testCopy.upvotes + 1);
+      testAuthorScores = testAuthorScores.setNetUpvotes(testAuthorScores.netUpvotes + 1);
+    }
+
+    void removeDownvote(UserScores testAuthorScores) {
+      testCopy.usersThatDownvoted.remove(userId);
+      testCopy = testCopy.setDownvotes(testCopy.downvotes - 1);
+      testAuthorScores = testAuthorScores.setNetDownvotes(testAuthorScores.netDownvotes - 1);
+    }
+
+    void addDownvote(UserScores testAuthorScores) {
+      testCopy.usersThatDownvoted.add(userId);
+      testCopy = testCopy.setDownvotes(testCopy.downvotes + 1);
+      testAuthorScores = testAuthorScores.setNetDownvotes(testAuthorScores.netDownvotes + 1);
+    }
+
+    if (up) {
+      if (testCopy.usersThatUpvoted.contains(userId)) {
+        removeUpvote(testAuthorScores);
+      }
+      else {
+        if (testCopy.usersThatDownvoted.contains(userId)) {
+          removeDownvote(testAuthorScores);
+        }
+        addUpvote(testAuthorScores);
+      }
     } else {
-      votingList.add(auth.currentUser!.uid);
+      if (testCopy.usersThatDownvoted.contains(userId)) {
+        removeDownvote(testAuthorScores);
+      }
+      else {
+        if (testCopy.usersThatUpvoted.contains(userId)) {
+          removeUpvote(testAuthorScores);
+        }
+        addDownvote(testAuthorScores);
+      }
     }
 
     return saveTest(testCopy);
@@ -179,6 +223,7 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
 
 /// Adds current user's `testResult` to the test document with `testId` as its key
 /// in the `tests` Cloud Firestore collection.
+/// Updates current user's `UserScores` document in accordance with `testResult`.
 ///
 /// If the current user is not found,
 /// or `testResult.userId` doesn't match the current user's ID,

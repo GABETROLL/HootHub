@@ -22,74 +22,64 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// `userResults` is a map of each userId
 ///   and their test results, as a `TestResult` object.
 ///   (I'M NOT YET SURE IF THIS DATA SHOULD BE SEPARATE)
+/// `upvotes`, `downvotes` and `commentCount` should be equal to
+///   the lengths of `usersThatUpvoted`, `usersThatDownvoted` and `comments`,
+///   AND THIS TEST WON'T BE VALID IF ANY OF THEM ARE NOT.
 /// `usersThatUpvoted`/`usersThatDownvoted` are lists of IDs
 ///   of the users that upvoted/downvoted this test.
 /// `comments` are a list of IDs of the `Comment` documents for this test.
 class Test implements Model {
-  Test({
-    this.id,
-    this.userId,
-    String? name,
-    this.dateCreated,
-    List<Question>? questions,
-    Map<String, TestResult>? userResults,
-    List<String>? usersThatUpvoted,
-    List<String>? usersThatDownvoted,
-    List<String>? comments,
-  }) {
-    if (name != null) {
-      this.name = name;
-    } else {
-      this.name = '';
-    }
-
-    if (questions != null) {
-      this.questions = questions;
-    } else {
-      this.questions = <Question>[];
-    }
-
-    if (userResults != null) {
-      this.userResults = userResults;
-    } else {
-      this.userResults = <String, TestResult>{};
-    }
-
-    if (usersThatUpvoted != null) {
-      this.usersThatUpvoted = usersThatUpvoted;
-    } else {
-      this.usersThatUpvoted = <String>[];
-    }
-
-    if (usersThatDownvoted != null) {
-      this.usersThatDownvoted = usersThatDownvoted;
-    } else {
-      this.usersThatDownvoted = <String>[];
-    }
-
-    if (comments != null) {
-      this.comments = comments;
-    } else {
-      this.comments = <String>[];
-    }
-  }
+  const Test({
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.dateCreated,
+    required this.questions,
+    required this.userResults,
+    required this.upvotes,
+    required this.downvotes,
+    required this.commentCount,
+    required this.usersThatUpvoted,
+    required this.usersThatDownvoted,
+    required this.comments,
+  });
 
   final String? id;
   final String? userId;
-  late final String name;
+  final String name;
   final Timestamp? dateCreated;
-  late final List<Question> questions;
-  late final Map<String, TestResult> userResults;
-  late final List<String> usersThatUpvoted;
-  late final List<String> usersThatDownvoted;
-  late final List<String> comments;
+  final List<Question> questions;
+  final Map<String, TestResult> userResults;
+  final int upvotes;
+  final int downvotes;
+  final int commentCount;
+  final List<String> usersThatUpvoted;
+  final List<String> usersThatDownvoted;
+  final List<String> comments;
+
+  static Test newTest() => const Test(
+    id: null,
+    userId: null,
+    name: '',
+    dateCreated: null,
+    questions: <Question>[],
+    userResults: <String, TestResult>{},
+    upvotes: 0,
+    downvotes: 0,
+    commentCount: 0,
+    usersThatUpvoted: <String>[],
+    usersThatDownvoted: <String>[],
+    comments: <String>[],
+  );
 
   /// Validates `this` before it can be put in `FirebaseFirestore`.
   ///
   /// A `Test` is valid if its `name` and `questions` aren't empty,
   /// if all of its questions are valid,
-  /// and if all of the `userResults.entires` are valid, according to the rest
-  /// of the information in this test.
+  /// all of the `userResults.values` are valid individually
+  /// and if their keys and `userId`s match,
+  /// and if `upvotes`, `downvotes` and `commentCount` match the lengths of
+  /// `usersThatUpvoted`, `usersThatDownvoted` and `comments`.
   ///
   /// `id`, `userId`, `dateCreated` ARE NOT NEEDED TO VALIDATE A TEST,
   /// because they SHOULD be created automatically by `saveTest`.
@@ -120,10 +110,16 @@ class Test implements Model {
 
       // VALIDATE `testResult` USING ITS `.isValid`:
 
-      if (!(testResult.isValid())) return false;
+      if (!(testResult.isValid())) {
+        print("Test result is invalid!");
+        return false;
+      }
     }
 
-    return name.isNotEmpty && questions.isNotEmpty;
+    return upvotes == usersThatUpvoted.length
+      && downvotes == usersThatDownvoted.length
+      && commentCount == comments.length
+      && name.isNotEmpty && questions.isNotEmpty;
   }
 
   bool userUpvotedTest(String userId) {
@@ -146,6 +142,9 @@ class Test implements Model {
         other.userResults.entries,
         (MapEntry<String, TestResult> a, MapEntry<String, TestResult> b) => a.key == b.key && a.value.equals(b.value)
       )
+      && upvotes == other.upvotes
+      && downvotes == other.downvotes
+      && commentCount == other.commentCount
       && iterableEquals(usersThatUpvoted, other.usersThatUpvoted, (String a, String b) => a == b)
       && iterableEquals(usersThatDownvoted, other.usersThatDownvoted, (String a, String b) => a == b)
       && iterableEquals(comments, other.comments, (String a, String b) => a == b)
@@ -159,6 +158,9 @@ class Test implements Model {
     dateCreated: dateCreated,
     questions: List.of(questions),
     userResults: Map<String, TestResult>.of(userResults),
+    upvotes: upvotes,
+    downvotes: downvotes,
+    commentCount: commentCount,
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
     comments: List<String>.of(comments),
@@ -170,6 +172,9 @@ class Test implements Model {
     name: name,
     dateCreated: dateCreated,
     questions: List.of(questions),
+    upvotes: upvotes,
+    downvotes: downvotes,
+    commentCount: commentCount,
     userResults: Map<String, TestResult>.of(userResults),
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
@@ -183,6 +188,54 @@ class Test implements Model {
     dateCreated: newDateCreated,
     questions: List.of(questions),
     userResults: Map<String, TestResult>.of(userResults),
+    upvotes: upvotes,
+    downvotes: downvotes,
+    commentCount: commentCount,
+    usersThatUpvoted: List<String>.of(usersThatUpvoted),
+    usersThatDownvoted: List<String>.of(usersThatDownvoted),
+    comments: List<String>.of(comments),
+  );
+
+  Test setUpvotes(int newUpvotes) => Test(
+    id: id,
+    userId: userId,
+    name: name,
+    dateCreated: dateCreated,
+    questions: List.of(questions),
+    userResults: Map<String, TestResult>.of(userResults),
+    upvotes: newUpvotes,
+    downvotes: downvotes,
+    commentCount: commentCount,
+    usersThatUpvoted: List<String>.of(usersThatUpvoted),
+    usersThatDownvoted: List<String>.of(usersThatDownvoted),
+    comments: List<String>.of(comments),
+  );
+
+  Test setDownvotes(int newDownvotes) => Test(
+    id: id,
+    userId: userId,
+    name: name,
+    dateCreated: dateCreated,
+    questions: List.of(questions),
+    userResults: Map<String, TestResult>.of(userResults),
+    upvotes: upvotes,
+    downvotes: newDownvotes,
+    commentCount: commentCount,
+    usersThatUpvoted: List<String>.of(usersThatUpvoted),
+    usersThatDownvoted: List<String>.of(usersThatDownvoted),
+    comments: List<String>.of(comments),
+  );
+
+  Test setCommentCount(int newCommentCount) => Test(
+    id: id,
+    userId: userId,
+    name: name,
+    dateCreated: dateCreated,
+    questions: List.of(questions),
+    userResults: Map<String, TestResult>.of(userResults),
+    upvotes: upvotes,
+    downvotes: downvotes,
+    commentCount: newCommentCount,
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
     comments: List<String>.of(comments),
@@ -198,6 +251,9 @@ class Test implements Model {
     dateCreated: dateCreated,
     questions: List<Question>.of(questions),
     userResults: Map<String, TestResult>.of(userResults),
+    upvotes: upvotes,
+    downvotes: downvotes,
+    commentCount: commentCount,
     usersThatUpvoted: List<String>.of(usersThatUpvoted),
     usersThatDownvoted: List<String>.of(usersThatDownvoted),
     comments: List<String>.of(comments),
@@ -270,6 +326,9 @@ class Test implements Model {
       dateCreated: data['dateCreated'],
       questions: questions,
       userResults: userResults,
+      upvotes: data['upvotes'],
+      downvotes: data['downvotes'],
+      commentCount: data['commentCount'],
       usersThatUpvoted: (data['usersThatUpvoted'] as List<dynamic>).cast<String>(),
       usersThatDownvoted: (data['usersThatDownvoted'] as List<dynamic>).cast<String>(),
       comments: (data['comments'] as List<dynamic>).cast<String>(),
@@ -292,6 +351,9 @@ class Test implements Model {
         ),
       ),
     ),
+    'upvotes': upvotes,
+    'downvotes': downvotes,
+    'commentCount': commentCount,
     'usersThatUpvoted': usersThatUpvoted,
     'usersThatDownvoted': usersThatDownvoted,
     'comments': comments,
