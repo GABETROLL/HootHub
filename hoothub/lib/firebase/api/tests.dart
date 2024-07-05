@@ -147,15 +147,19 @@ Future<String> deleteTestWithId(String testId) async {
 ///
 /// SHOULDN'T THROW.
 Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) async {
+  String voteString = up ? 'up' : 'down';
+  String errorMessage = "An error occured while ${voteString}voting...";
+
   try {
-    String voteString = up ? 'up' : 'down';
+    // 1) Gather the current user's ID, the test's author, and the test's author's scores
 
     String? userId = auth.currentUser?.uid;
     if (userId == null) {
       return SaveTestResult(status: "You don't seem logged in! Log in to ${voteString}vote!", updatedTest: test);
     }
 
-    if (test.id == null) return SaveTestResult(status: "Failed to ${voteString}vote on test...", updatedTest: test);
+    String? testId = test.id;
+    if (testId == null) return SaveTestResult(status: "Failed to ${voteString}vote on test...", updatedTest: test);
 
     String? testAuthorId = test.userId;
     if (testAuthorId == null) {
@@ -172,6 +176,8 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
         updatedTest: test,
       );
     }
+
+    // 2) Alter the test and the test's author's voting information
 
     // ALTER VOTING LISTS, BUT SAFELY, IN TEST'S COPY:
     // (THE LISTS ARE ALSO SAFELY AND DEEPLY COPIED WITH `.copy()`)
@@ -223,11 +229,18 @@ Future<SaveTestResult> voteOnTest({ required Test test, required bool up }) asyn
       }
     }
 
-    return saveTest(testCopy);
+    // 3) Save changes to the test and the test author's scores
+    await testsCollection.doc(testId).set(testCopy.toJson());
+    await usersScoresCollection.doc(testAuthorId).set(testAuthorScores.toJson());
+
+    // 4) Return result
+    return SaveTestResult(status: "${voteString}voted successfully!", updatedTest: testCopy);
   } on FirebaseException catch (error) {
-    return SaveTestResult(status: error.message ?? error.code, updatedTest: test);
+    print("An error occured while voting: ${error.message ?? error.code}");
+    return SaveTestResult(status: errorMessage, updatedTest: test);
   } catch (error) {
-    return SaveTestResult(status: error.toString(), updatedTest: test);
+    print("An error occured while voting: $error");
+    return SaveTestResult(status: errorMessage, updatedTest: test);
   }
 }
 
