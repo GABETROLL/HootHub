@@ -162,8 +162,8 @@ final ThemeData outerTheme = ThemeData(
   ),
   elevatedButtonTheme: const ElevatedButtonThemeData(
     style: ButtonStyle(
-      foregroundColor: MaterialStatePropertyAll(primaryColor),
-      backgroundColor: MaterialStatePropertyAll(white),
+      foregroundColor: MaterialStatePropertyAll(white),
+      backgroundColor: MaterialStatePropertyAll(primaryColor),
     ),
   ),
   snackBarTheme: const SnackBarThemeData(
@@ -171,6 +171,11 @@ final ThemeData outerTheme = ThemeData(
     contentTextStyle: TextStyle(color: white),
   ),
   useMaterial3: true,
+);
+
+const appBarElevatedButtonStyle = ButtonStyle(
+  foregroundColor: MaterialStatePropertyAll(primaryColor),
+  backgroundColor: MaterialStatePropertyAll(white),
 );
 
 ThemeData expansionTileTheme = ThemeData(

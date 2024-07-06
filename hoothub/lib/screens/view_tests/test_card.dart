@@ -209,7 +209,10 @@ class TestCard extends StatelessWidget {
                   children: options,
                 ),
                 // TEST STATISTICS
-                TestStatistics(testModel: testModel),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 7),
+                  child: TestStatistics(testModel: testModel),
+                ),
                 // TEST QUESTIONS
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 7),

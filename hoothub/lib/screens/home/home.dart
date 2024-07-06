@@ -5,10 +5,11 @@ import 'package:hoothub/firebase/models/test.dart';
 import 'package:hoothub/firebase/models/user.dart';
 // front-end
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/home/view_home_tests.dart';
-import 'package:hoothub/screens/make_test/make_test.dart';
-import 'package:hoothub/screens/widgets/user_author_button.dart';
+import 'view_home_tests.dart';
 import 'login.dart';
+import 'package:hoothub/screens/widgets/user_author_button.dart';
+import 'package:hoothub/screens/styles.dart';
+import 'package:hoothub/screens/make_test/make_test.dart';
 
 /// For now, this widget only shows the user a test test.
 ///
@@ -142,6 +143,7 @@ class _HomeState extends State<Home> {
           userId: userModelPromoted.id,
         ),
         ElevatedButton(
+          style: appBarElevatedButtonStyle,
           onPressed: () async {
             final String logOutResult = await logOut();
 
@@ -163,6 +165,7 @@ class _HomeState extends State<Home> {
     } else {
       actions = <Widget>[
         ElevatedButton(
+          style: appBarElevatedButtonStyle,
           onPressed: () => _onLogin(context),
           child: const Text('Login'),
         ),

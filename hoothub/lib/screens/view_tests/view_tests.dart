@@ -86,6 +86,8 @@ class _SearchMenuState extends State<SearchMenu> {
             ),
           ),
         ),
+        const SizedBox(width: 10),
+        const Text('Reverse order'),
         Checkbox(
           semanticLabel: 'Reverse order',
           value: _querySettings.reverse,
@@ -97,9 +99,12 @@ class _SearchMenuState extends State<SearchMenu> {
             });
           },
         ),
-        const Text('Reverse order'),
+        const SizedBox(width: 10),
         // TODO: IMPLEMENT LIMIT SETTER
+        const Text("Title:"),
+        const SizedBox(width: 10),
         Expanded(child: TextField(controller: widget.nameEditingController)),
+        const SizedBox(width: 10),
         ElevatedButton(
           onPressed: () => widget.search(_querySettings),
           child: const Text("Search"),
