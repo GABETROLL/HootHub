@@ -12,7 +12,7 @@ class TestStatistics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: expansionTileTheme,
+      data: whiteOnPurpleTheme,
       child: Builder(
         builder: (BuildContext context) {
           final ThemeData themeData = Theme.of(context);

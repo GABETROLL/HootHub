@@ -63,6 +63,8 @@ class _SearchMenuState extends State<SearchMenu> {
 
   @override
   Widget build(BuildContext context) {
+    const optionNameFontSize = TextStyle(fontSize: smallHeadingFontSize);
+
     return Row(
       children: <Widget>[
         DropdownMenu<QueryType>(
@@ -87,7 +89,7 @@ class _SearchMenuState extends State<SearchMenu> {
           ),
         ),
         const SizedBox(width: 10),
-        const Text('Reverse order'),
+        const Text('Reverse order', style: optionNameFontSize),
         Checkbox(
           semanticLabel: 'Reverse order',
           value: _querySettings.reverse,
@@ -101,7 +103,7 @@ class _SearchMenuState extends State<SearchMenu> {
         ),
         const SizedBox(width: 10),
         // TODO: IMPLEMENT LIMIT SETTER
-        const Text("Title:"),
+        const Text("Title:", style: optionNameFontSize),
         const SizedBox(width: 10),
         Expanded(child: TextField(controller: widget.nameEditingController)),
         const SizedBox(width: 10),

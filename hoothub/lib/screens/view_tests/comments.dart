@@ -216,7 +216,7 @@ class _CommentsState extends State<Comments> {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: expansionTileTheme,
+      data: whiteOnPurpleTheme,
       child: ExpansionTile(
         title: const Text('Comments', style: TextStyle(fontSize: smallHeadingFontSize)),
         children: _children,

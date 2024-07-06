@@ -223,6 +223,8 @@ class _MakeTestState extends State<MakeTest> {
 
   @override
   Widget build(BuildContext outerContext) {
+    const title = Text('HootHub - Make Test');
+
     return InfoDownloader<TestModelEditor>(
       downloadInfo: () => _testModelEditor,
       builder: (BuildContext context, TestModelEditor? testModelEditor, bool downloaded) {
@@ -238,9 +240,10 @@ class _MakeTestState extends State<MakeTest> {
         if (testModelEditor == null) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('HootHub'),
+              title: title,
               actions: <Widget>[
                 ElevatedButton(
+                  style: appBarElevatedButtonStyle,
                   onPressed: () => _onExit(outerContext),
                   child: const Text('Exit'),
                 ),
@@ -380,35 +383,52 @@ class _MakeTestState extends State<MakeTest> {
 
         return Scaffold(
           appBar: AppBar(
-            title: TextField(
-              controller: testModelEditor.nameEditingController,
-              cursorColor: white,
-              decoration: const InputDecoration(
-                hintText: 'Title',
-              ),
-            ),
+            title: title,
             actions: <Widget>[
               ElevatedButton(
+                style: appBarElevatedButtonStyle,
                 onPressed: () => _onExit(outerContext),
                 child: const Text('Exit'),
               ),
               Builder(
-                builder: (BuildContext context) =>  ElevatedButton(
+                builder: (BuildContext context) => ElevatedButton(
+                  style: appBarElevatedButtonStyle,
                   onPressed: () => _onTestSaved(context, testModelEditor),
                   child: const Text('Save'),
                 ),
               ),
             ],
           ),
-          body: Row(
+          body: Column(
             children: <Widget>[
-              ConstrainedBox(
-                constraints: sidePanelConstraints,
-                child: ListView(
-                  children: sidePanelWithSlidePreviews,
+              Row(
+                children: <Widget>[
+                  const Text("Test's Name:"),
+                  Expanded(
+                    child: TextField(
+                      controller: testModelEditor.nameEditingController,
+                      cursorColor: white,
+                      decoration: const InputDecoration(
+                        hintText: "Test's Name",
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              Expanded(
+                child: Row(
+                  children: <Widget>[
+                    ConstrainedBox(
+                      constraints: sidePanelConstraints,
+                      child: ListView(
+                        children: sidePanelWithSlidePreviews,
+                      ),
+                    ),
+                    currentSlideEditor,
+                  ],
                 ),
               ),
-              currentSlideEditor,
             ],
           ),
         );
@@ -416,9 +436,10 @@ class _MakeTestState extends State<MakeTest> {
       buildError: (BuildContext context, Object error) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('HootHub'),
+            title: title,
             actions: <Widget>[
               ElevatedButton(
+                style: appBarElevatedButtonStyle,
                 onPressed: () => _onExit(outerContext),
                 child: const Text('Exit'),
               ),

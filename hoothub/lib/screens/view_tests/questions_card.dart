@@ -142,7 +142,7 @@ class QuestionsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: expansionTileTheme,
+      data: whiteOnPurpleTheme,
       child: ExpansionTile(
         title: const Text('Questions', style: TextStyle(fontSize: smallHeadingFontSize)),
         children: List<Widget>.from(

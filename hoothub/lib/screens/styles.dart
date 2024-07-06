@@ -43,8 +43,11 @@ final Color secondaryColor = Colors.purple.shade800;
 final Color tertiaryColor = Colors.purple.shade200;
 const Color white = Colors.white;
 
-const TextStyle questionTextStyle = TextStyle(fontSize: 60, color: primaryColor);
-const TextStyle answerTextStyle = TextStyle(fontSize: 50, color: Colors.black);
+const double questionFontSize = 60;
+const double answerFontSize = 50;
+
+const TextStyle questionTextStyle = TextStyle(fontSize: questionFontSize, color: Colors.black);
+const TextStyle answerTextStyle = TextStyle(fontSize: answerFontSize, color: Colors.black);
 
 final dropDownInputTheme = InputDecorationTheme(
   labelStyle: TextStyle(color: tertiaryColor),
@@ -206,7 +209,12 @@ const appBarElevatedButtonStyle = ButtonStyle(
   backgroundColor: MaterialStatePropertyAll(white),
 );
 
-ThemeData expansionTileTheme = ThemeData(
+const appBarIconButtonStyle = ButtonStyle(
+  foregroundColor: MaterialStatePropertyAll(white),
+  backgroundColor: MaterialStatePropertyAll(primaryColor),
+);
+
+ThemeData whiteOnPurpleTheme = ThemeData(
   colorScheme: const ColorScheme.light(
     primary: white,
     onPrimary: primaryColor,
@@ -224,53 +232,10 @@ ThemeData expansionTileTheme = ThemeData(
     collapsedTextColor: white,
     childrenPadding: EdgeInsetsDirectional.only(start: 20),
   ),
-  textTheme: const TextTheme(
-    displayLarge: TextStyle(
-      color: white,
-    ),
-    displayMedium: TextStyle(
-      color: white,
-    ),
-    displaySmall: TextStyle(
-      color: white,
-    ),
-    headlineLarge: TextStyle(
-      color: white,
-    ),
-    headlineMedium: TextStyle(
-      color: white,
-    ),
-    headlineSmall: TextStyle(
-      color: white,
-    ),
-    titleLarge: TextStyle(
-      color: white,
-    ),
-    titleMedium: TextStyle(
-      color: white,
-    ),
-    titleSmall: TextStyle(
-      color: white,
-    ),
-    bodyLarge: TextStyle(
-      color: white,
-    ),
-    bodyMedium: TextStyle(
-      color: white,
-    ),
-    bodySmall: TextStyle(
-      color: white,
-    ),
-    labelLarge: TextStyle(
-      color: white,
-    ),
-    labelMedium: TextStyle(
-      color: white,
-    ),
-    labelSmall: TextStyle(
-      color: white,
-    ),
+  cardTheme: const CardTheme(
+    color: primaryColor,
   ),
+  textTheme: whiteOuterTextTheme,
   dataTableTheme: const DataTableThemeData(
     dataTextStyle: TextStyle(
       color: white,

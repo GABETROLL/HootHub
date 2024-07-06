@@ -117,6 +117,7 @@ class _HomeState extends State<Home> {
     if (userModelPromoted != null) {
       actions = <Widget>[
         IconButton(
+          style: appBarIconButtonStyle,
           onPressed: () async {
             Test? testWithChanges = await Navigator.push<Test>(
               context,

@@ -48,7 +48,7 @@ class MultipleChoiceEditor extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: questionModelEditor.answerEditingControllers[index],
-              style: answerTextStyle,
+              style: const TextStyle(color: primaryColor, fontSize: answerFontSize),
               decoration: InputDecoration(
                 hintText: 'Answer ${index + 1} ${index >= 2 ? '(Optional)' : ''}',
               ),
@@ -117,7 +117,7 @@ class SlideEditor extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: questionModelEditor.questionEditingController,
-                style: questionTextStyle,
+                style: const TextStyle(color: primaryColor, fontSize: questionFontSize),
                 decoration: const InputDecoration(hintText: 'Question'),
               ),
             ),

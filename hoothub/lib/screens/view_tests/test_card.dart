@@ -69,7 +69,7 @@ class TestCard extends StatelessWidget {
       );
     }
 
-    const optionTextStyle = TextStyle(fontSize: 26);
+    const optionTextStyle = TextStyle(fontSize: normalFontSize);
 
     List<Widget> options = [
       ElevatedButton(

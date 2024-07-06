@@ -125,10 +125,12 @@ class _UserProfileState extends State<UserProfile> {
                 ],
               ),
               // USER SCORES:
-              Card(
+              Theme(
+                data: whiteOnPurpleTheme,
+                child: Card(
                   child: Column(
                     children: [
-                      const Text("User's Statistics"),
+                      const Text("User's Statistics", style: TextStyle(fontSize: smallHeadingFontSize)),
                       userScoresPromoted == null
                       ? const Text("User scores not available...")
                       : Table(
@@ -180,6 +182,7 @@ class _UserProfileState extends State<UserProfile> {
                     ],
                   ),
                 ),
+              ),
               Expanded(
                 child: userIdPromoted != null
                   ? ViewUserTests(userId: userIdPromoted)
