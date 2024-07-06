@@ -218,7 +218,7 @@ class _CommentsState extends State<Comments> {
     return Theme(
       data: expansionTileTheme,
       child: ExpansionTile(
-        title: const Text('Comments'),
+        title: const Text('Comments', style: TextStyle(fontSize: smallHeadingFontSize)),
         children: _children,
       ),
     );

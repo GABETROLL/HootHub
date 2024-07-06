@@ -92,7 +92,7 @@ class _QuestionCardState extends State<QuestionCard> {
     }
 
     return ExpansionTile(
-      title: Text(widget.questionModel.question),
+      title: Text(widget.questionModel.question, style: const TextStyle(fontSize: smallHeadingFontSize)),
       children: questionChildren,
     );
   }
@@ -144,7 +144,7 @@ class QuestionsCard extends StatelessWidget {
     return Theme(
       data: expansionTileTheme,
       child: ExpansionTile(
-        title: const Text('Questions'),
+        title: const Text('Questions', style: TextStyle(fontSize: smallHeadingFontSize)),
         children: List<Widget>.from(
           questions.indexed.map<Widget>(
             ((int, Question) indexAndQuestion) => QuestionCard(testId: testId, questionIndex: indexAndQuestion.$1, questionModel: indexAndQuestion.$2),

@@ -86,6 +86,77 @@ const submitCredentialsButtonStyle = ButtonStyle(
   foregroundColor: MaterialStatePropertyAll(white),
 );
 
+const double normalFontSize = 18;
+const double smallHeadingFontSize = 24;
+
+const purpleOuterTextStyle = TextStyle(
+  color: primaryColor,
+  fontSize: normalFontSize,
+);
+
+const whiteOuterTextStyle = TextStyle(
+  color: white,
+  fontSize: normalFontSize,
+);
+
+const blackOuterTextStyle = TextStyle(
+  fontSize: normalFontSize,
+);
+
+const purpleOuterTextTheme = TextTheme(
+  displayLarge: purpleOuterTextStyle,
+  displayMedium: purpleOuterTextStyle,
+  displaySmall: purpleOuterTextStyle,
+  headlineLarge: purpleOuterTextStyle,
+  headlineMedium: purpleOuterTextStyle,
+  headlineSmall: purpleOuterTextStyle,
+  titleLarge: purpleOuterTextStyle,
+  titleMedium: purpleOuterTextStyle,
+  titleSmall: purpleOuterTextStyle,
+  bodyLarge: purpleOuterTextStyle,
+  bodyMedium: purpleOuterTextStyle,
+  bodySmall: purpleOuterTextStyle,
+  labelLarge: purpleOuterTextStyle,
+  labelMedium: purpleOuterTextStyle,
+  labelSmall: purpleOuterTextStyle,
+);
+
+const whiteOuterTextTheme = TextTheme(
+  displayLarge: whiteOuterTextStyle,
+  displayMedium: whiteOuterTextStyle,
+  displaySmall: whiteOuterTextStyle,
+  headlineLarge: whiteOuterTextStyle,
+  headlineMedium: whiteOuterTextStyle,
+  headlineSmall: whiteOuterTextStyle,
+  titleLarge: whiteOuterTextStyle,
+  titleMedium: whiteOuterTextStyle,
+  titleSmall: whiteOuterTextStyle,
+  bodyLarge: whiteOuterTextStyle,
+  bodyMedium: whiteOuterTextStyle,
+  bodySmall: whiteOuterTextStyle,
+  labelLarge: whiteOuterTextStyle,
+  labelMedium: whiteOuterTextStyle,
+  labelSmall: whiteOuterTextStyle,
+);
+
+const blackOuterTextTheme = TextTheme(
+  displayLarge: blackOuterTextStyle,
+  displayMedium: blackOuterTextStyle,
+  displaySmall: blackOuterTextStyle,
+  headlineLarge: blackOuterTextStyle,
+  headlineMedium: blackOuterTextStyle,
+  headlineSmall: blackOuterTextStyle,
+  titleLarge: blackOuterTextStyle,
+  titleMedium: blackOuterTextStyle,
+  titleSmall: blackOuterTextStyle,
+  bodyLarge: blackOuterTextStyle,
+  bodyMedium: blackOuterTextStyle,
+  bodySmall: blackOuterTextStyle,
+  labelLarge: blackOuterTextStyle,
+  labelMedium: blackOuterTextStyle,
+  labelSmall: blackOuterTextStyle,
+);
+
 final ThemeData outerTheme = ThemeData(
   colorScheme: const ColorScheme.light(
     primary: primaryColor,
@@ -99,58 +170,15 @@ final ThemeData outerTheme = ThemeData(
     foregroundColor: white,
     backgroundColor: primaryColor,
   ),
+  cardTheme: const CardTheme(
+    color: primaryColor,
+  ),
   iconButtonTheme: const IconButtonThemeData(
     style: ButtonStyle(
       foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
     ),
   ),
-  textTheme: const TextTheme(
-    displayLarge: TextStyle(
-      color: primaryColor,
-    ),
-    displayMedium: TextStyle(
-      color: primaryColor,
-    ),
-    displaySmall: TextStyle(
-      color: primaryColor,
-    ),
-    headlineLarge: TextStyle(
-      color: primaryColor,
-    ),
-    headlineMedium: TextStyle(
-      color: primaryColor,
-    ),
-    headlineSmall: TextStyle(
-      color: primaryColor,
-    ),
-    titleLarge: TextStyle(
-      color: primaryColor,
-    ),
-    titleMedium: TextStyle(
-      color: primaryColor,
-    ),
-    titleSmall: TextStyle(
-      color: primaryColor,
-    ),
-    bodyLarge: TextStyle(
-      color: primaryColor,
-    ),
-    bodyMedium: TextStyle(
-      color: primaryColor,
-    ),
-    bodySmall: TextStyle(
-      color: primaryColor,
-    ),
-    labelLarge: TextStyle(
-      color: primaryColor,
-    ),
-    labelMedium: TextStyle(
-      color: primaryColor,
-    ),
-    labelSmall: TextStyle(
-      color: primaryColor,
-    ),
-  ),
+  textTheme: purpleOuterTextTheme,
   indicatorColor: primaryColor,
   inputDecorationTheme: credentialsInputTheme,
   dropdownMenuTheme: DropdownMenuThemeData(

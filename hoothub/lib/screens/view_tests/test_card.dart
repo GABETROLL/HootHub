@@ -69,10 +69,12 @@ class TestCard extends StatelessWidget {
       );
     }
 
+    const optionTextStyle = TextStyle(fontSize: 26);
+
     List<Widget> options = [
       ElevatedButton(
         onPressed: playSolo,
-        child: const Text('Play solo'),
+        child: const Text('Play', style: optionTextStyle),
       ),
     ];
 
@@ -89,7 +91,7 @@ class TestCard extends StatelessWidget {
       options.add(
         ElevatedButton(
           onPressed: edit,
-          child: const Text('Edit'),
+          child: const Text('Edit', style: optionTextStyle),
         ),
       );
 
@@ -107,6 +109,7 @@ class TestCard extends StatelessWidget {
       data: ThemeData(
         // WARNING: DO NOT USE `cardColor`, IT DOESN'T WORK!
         cardTheme: CardTheme(color: color),
+        textTheme: blackOuterTextTheme,
         elevatedButtonTheme: const ElevatedButtonThemeData(
           style: ButtonStyle(
             foregroundColor: MaterialStatePropertyAll(Colors.white),
@@ -116,8 +119,8 @@ class TestCard extends StatelessWidget {
         iconButtonTheme: const IconButtonThemeData(
           style: ButtonStyle(
             foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
-          )
-        )
+          ),
+        ),
       ),
       child: Center(
         child: ConstrainedBox(
@@ -211,7 +214,10 @@ class TestCard extends StatelessWidget {
                 // TEST STATISTICS
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 7),
-                  child: TestStatistics(testModel: testModel),
+                  child: Theme(
+                    data: outerTheme,
+                    child: TestStatistics(testModel: testModel),
+                  ),
                 ),
                 // TEST QUESTIONS
                 Padding(

@@ -20,7 +20,7 @@ class TestStatistics extends StatelessWidget {
           final TextStyle textStyle = TextStyle(color: themeData.primaryColor);
 
           return ExpansionTile(
-            title: const Text("Statistics"),
+            title: const Text("Statistics", style: TextStyle(fontSize: smallHeadingFontSize),),
             children: <Widget>[
               Table(
                 children: <TableRow>[

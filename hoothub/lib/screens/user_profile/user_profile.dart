@@ -125,56 +125,61 @@ class _UserProfileState extends State<UserProfile> {
                 ],
               ),
               // USER SCORES:
-              (
-                userScoresPromoted == null
-                ? const Text("User scores not available...")
-                : Table(
-                  children: <TableRow>[
-                    TableRow(
-                      children: <Widget>[
-                        const Text("Total questions answered correct / Total questions answered"),
-                        Text("${userScoresPromoted.netAnswerRatio.questionsAnsweredCorrect} / ${userScoresPromoted.netAnswerRatio.questionsAnswered}"),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        const Text("Best Point Score"),
-                        Text("${userScoresPromoted.bestScore}"),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        const Text("Best Answer Score"),
-                        Text("${userScoresPromoted.bestAnswerRatio.questionsAnsweredCorrect} / ${userScoresPromoted.bestAnswerRatio.questionsAnswered}"),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        const Text("Net Upvotes"),
-                        Text("${userScoresPromoted.netUpvotes}"),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        const Text("Net Votes"),
-                        Text("${userScoresPromoted.netUpvotes - userScoresPromoted.netDownvotes}"),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        const Text("Net Downvotes"),
-                        Text("${userScoresPromoted.netDownvotes}"),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        const Text("Net Comments"),
-                        Text("${userScoresPromoted.netComments}"),
-                      ],
-                    ),
-                  ],
-                )
-              ),
+              Card(
+                  child: Column(
+                    children: [
+                      const Text("User's Statistics"),
+                      userScoresPromoted == null
+                      ? const Text("User scores not available...")
+                      : Table(
+                        children: <TableRow>[
+                          TableRow(
+                            children: <Widget>[
+                              const Text("Total questions answered correct / Total questions answered"),
+                              Text("${userScoresPromoted.netAnswerRatio.questionsAnsweredCorrect} / ${userScoresPromoted.netAnswerRatio.questionsAnswered}"),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Widget>[
+                              const Text("Best Point Score"),
+                              Text("${userScoresPromoted.bestScore}"),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Widget>[
+                              const Text("Best Answer Score"),
+                              Text("${userScoresPromoted.bestAnswerRatio.questionsAnsweredCorrect} / ${userScoresPromoted.bestAnswerRatio.questionsAnswered}"),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Widget>[
+                              const Text("Net Upvotes"),
+                              Text("${userScoresPromoted.netUpvotes}"),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Widget>[
+                              const Text("Net Votes"),
+                              Text("${userScoresPromoted.netUpvotes - userScoresPromoted.netDownvotes}"),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Widget>[
+                              const Text("Net Downvotes"),
+                              Text("${userScoresPromoted.netDownvotes}"),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Widget>[
+                              const Text("Net Comments"),
+                              Text("${userScoresPromoted.netComments}"),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: userIdPromoted != null
                   ? ViewUserTests(userId: userIdPromoted)
