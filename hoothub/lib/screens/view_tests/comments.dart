@@ -216,46 +216,7 @@ class _CommentsState extends State<Comments> {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: ThemeData(
-        colorScheme: const ColorScheme.light(
-          primary: white,
-          onPrimary: primaryColor,
-          background: primaryColor,
-          onBackground: white,
-          surface: white,
-          onSurface: primaryColor,
-        ),
-        expansionTileTheme: const ExpansionTileThemeData(
-          backgroundColor: primaryColor,
-          collapsedBackgroundColor: primaryColor,
-          iconColor: white,
-          collapsedIconColor: white,
-          textColor: white,
-          collapsedTextColor: white,
-          childrenPadding: EdgeInsetsDirectional.only(start: 20),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          labelStyle: const TextStyle(color: white),
-          hintStyle: TextStyle(color: white.withOpacity(0.75)),
-          iconColor: white,
-          prefixIconColor: white,
-          suffixIconColor: white,
-          focusColor: secondaryColor,
-          hoverColor: white,
-          outlineBorder: BorderSide(color: white.withOpacity(0.75)),
-          errorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
-          focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: white)),
-          focusedErrorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
-          disabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
-          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: white.withOpacity(0.75))),
-          border: const OutlineInputBorder(borderSide: BorderSide(color: white)),
-        ),
-        elevatedButtonTheme: const ElevatedButtonThemeData(
-          style: ButtonStyle(
-            foregroundColor: MaterialStatePropertyAll<Color>(primaryColor),
-          )
-        ),
-      ),
+      data: expansionTileTheme,
       child: ExpansionTile(
         title: const Text('Comments'),
         children: _children,

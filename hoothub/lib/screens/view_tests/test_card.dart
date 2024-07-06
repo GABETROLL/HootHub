@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hoothub/firebase/api/clients.dart';
 import 'package:hoothub/firebase/api/tests.dart';
 import 'package:hoothub/firebase/models/test.dart';
@@ -5,11 +6,12 @@ import 'package:hoothub/firebase/api/images.dart';
 // front-end
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:hoothub/screens/styles.dart';
-import 'comments.dart';
 import 'package:hoothub/screens/widgets/user_author_button.dart';
 import 'package:hoothub/screens/widgets/info_downloader.dart';
+import 'package:hoothub/screens/styles.dart';
+import 'statistics.dart';
 import 'questions_card.dart';
+import 'comments.dart';
 
 class TestCard extends StatelessWidget {
   const TestCard({
@@ -45,20 +47,21 @@ class TestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     String? testId = testModel.id;
     String? testAuthorId = testModel.userId;
+    Timestamp? testDateCreated = testModel.dateCreated;
 
     const double width = mediumScreenWidth;
     const double testImageWidth = width / 2;
 
     // We NEED the test to have a valid `id` and `userId`,
     // if we want to display its image, and author's image!
-    if (!(testModel.isValid()) || testId == null || testAuthorId == null) {
+    if (!(testModel.isValid()) || testId == null || testAuthorId == null || testDateCreated == null) {
 
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: width),
           child: const Column(
             children: <Widget>[
-              Text("Test is either invalid, has no ID or no user author ID... Very sorry!"),
+              Text("Test appears invalid... Very sorry!"),
               Text(":("),
             ],
           ),
@@ -180,6 +183,24 @@ class TestCard extends StatelessWidget {
                       ],
                     ),
                     UserAuthorButton(userId: testAuthorId),
+                    Expanded(
+                      child: Table(
+                        children: <TableRow>[
+                          const TableRow(
+                            children: <Text>[
+                              Text("Date Created"),
+                              Text("Comments"),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Text>[
+                              Text("${testDateCreated.toDate()}"),
+                              Text("${testModel.commentCount}"),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
                 // TEST OPTIONS
@@ -187,6 +208,8 @@ class TestCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: options,
                 ),
+                // TEST STATISTICS
+                TestStatistics(testModel: testModel),
                 // TEST QUESTIONS
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 7),
