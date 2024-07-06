@@ -39,8 +39,6 @@ class _UserProfileState extends State<UserProfile> {
     String? userIdPromoted = widget.user.id;
     String? currentUserId = auth.currentUser?.uid;
 
-    const userImageConstraints = BoxConstraints(maxHeight: 300, maxWidth: 300);
-
     final Widget userImageWidget;
 
     // If this user to display IS the current user,
@@ -85,19 +83,11 @@ class _UserProfileState extends State<UserProfile> {
       );
     } else {
       Uint8List? userImagePromoted = _userImage;
-
-      final Image userImageImage;
-
       if (userImagePromoted != null) {
-        userImageImage = Image.memory(userImagePromoted);
+        userImageWidget = Image.memory(userImagePromoted);
       } else {
-        userImageImage = Image.asset('assets/default_user_image.png');
+        userImageWidget = Image.asset('assets/default_user_image.png');
       }
-
-      userImageWidget = ConstrainedBox(
-        constraints: userImageConstraints,
-        child: userImageImage,
-      );
     }
 
     UserScores? userScoresPromoted = widget.userScores;
@@ -110,9 +100,13 @@ class _UserProfileState extends State<UserProfile> {
           child: Column(
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Flexible(
-                    child: userImageWidget,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 200, maxWidth: 200),
+                      child: userImageWidget,
+                    ),
                   ),
                   Expanded(
                     child: Column(
