@@ -21,9 +21,7 @@ final List<Color> themeColors = <Color>[
   const HSVColor
     .fromAHSV(1, 0, themeColorsSaturation, themeColorsSaturation)
     .toColor(),
-  const HSVColor
-    .fromAHSV(1, 360 * 2 / 3, themeColorsSaturation, themeColorsSaturation)
-    .toColor(),
+  const Color.fromARGB(255, 64, 64, 255),
   const HSVColor
     .fromAHSV(1, 360 / 6, themeColorsSaturation, themeColorsSaturation)
     .toColor(),

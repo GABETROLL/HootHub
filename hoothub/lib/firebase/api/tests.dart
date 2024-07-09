@@ -97,7 +97,7 @@ Future<SaveTestResult> saveTest(Test test) async {
     return SaveTestResult(status: error.toString(), updatedTest: test);
   }
 
-  return SaveTestResult(status: 'Ok', updatedTest: test);
+  return SaveTestResult(status: 'Saved test successfully!', updatedTest: test);
 }
 
 /// Returns the test in the `testsCollection` with `testId` as its key.
