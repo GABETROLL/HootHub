@@ -151,7 +151,6 @@ class Test implements Model {
 
     return upvotes == usersThatUpvoted.length
       && downvotes == usersThatDownvoted.length
-      && commentCount == comments.length
       && name.isNotEmpty && questions.isNotEmpty;
   }
 
