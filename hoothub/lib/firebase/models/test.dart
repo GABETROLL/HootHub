@@ -240,19 +240,19 @@ class Test implements Model {
   /// and adds `testResult.score` to `this.netScore`, in a new instance,
   /// then returns this new instance.
   Test addTestResult(TestResult testResult) {
-    String? userId = testResult.userId;
-    if (userId == null) {
+    String? currentUserId = testResult.userId;
+    if (currentUserId == null) {
       throw "`testResult.userId` is null! Can't add it to test `$id`!";
     }
 
-    if (userResults.containsKey(userId)) {
+    if (userResults.containsKey(currentUserId)) {
       throw "Cannot add more than one test result per user! (test $id)";
     }
 
     int newNetQuestionsAnsweredCorrect = netQuestionsAnsweredCorrect + testResult.questionsAnsweredCorrect;
     int newNetScore = netScore + testResult.score;
     Map<String, TestResult> newUserResults = Map<String, TestResult>.of(userResults);
-    newUserResults[userId] = testResult;
+    newUserResults[currentUserId] = testResult;
 
     return Test(
       id: id,
